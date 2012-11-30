@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+    <metadata>
+        <id>Lex.Db</id>
+        <version>1.0.0-rc3</version>
+        <title>Lex DB</title>
+        <authors>Lex Lavnikov</authors>
+        <owners>Lex Lavnikov</owners>
+        <licenseUrl>https://raw.github.com/demigor/lex.db/master/License.txt</licenseUrl>
+        <projectUrl>https://github.com/demigor/lex.db</projectUrl>
+        <requireLicenseAcceptance>true</requireLicenseAcceptance>
+        <description>Features: 
+* Supports isolated storage, files &amp; local app data folders.
+* Table structure auto-upgrade
+* Concurrent database access (SL OOB multiple instance support)
+* RBT Indexes
+* Lazy loading</description>
+        <summary>Superfast, lightweight (~100K), object-oriented database for .NET4+, Silverlight 5+, Windows Phone 8+ &amp; Windows RT platforms.</summary>
+        <releaseNotes>Prerelease</releaseNotes>
+        <copyright>Alexey Lavnikov</copyright>
+        <language>en-US</language>
+        <dependencies>
+            <group targetFramework="Silverlight5.0">
+                <dependency id="Microsoft.CompilerServices.AsyncTargetingPack" version="1.0.0" />
+            </group>
+            <group targetFramework=".NETFramework4.0">
+                <dependency id="Microsoft.CompilerServices.AsyncTargetingPack" version="1.0.0" />
+            </group>
+        </dependencies>
+    </metadata>
+    <files>
+        <file src="..\bin\Release\Net4\Lex.Db.dll" target="lib\net40\Lex.Db.dll" />
+        <file src="..\bin\Release\Net45\Lex.Db.dll" target="lib\net45\Lex.Db.dll" />
+        <file src="..\bin\Release\WinRT\Lex.Db.dll" target="lib\netcore45\Lex.Db.dll" />
+        <file src="..\bin\Release\Silverlight5\Lex.Db.dll" target="lib\sl50\Lex.Db.dll" />
+        <file src="..\bin\Release\WinPhone8\Lex.Db.dll" target="lib\wp8\Lex.Db.dll" />
+    </files>
+</package>

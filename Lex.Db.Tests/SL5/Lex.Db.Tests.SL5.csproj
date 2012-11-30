@@ -13,7 +13,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Lex.Db</RootNamespace>
-    <AssemblyName>Lex.Db.Tests</AssemblyName>
+    <AssemblyName>Lex.Db.Tests.SL5</AssemblyName>
     <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
     <SilverlightApplication>true</SilverlightApplication>
     <XapOutputs>true</XapOutputs>
