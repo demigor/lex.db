@@ -5,7 +5,7 @@ using Windows.Foundation;
 
 namespace Lex.Db
 {
-  public struct Awaiter : IDisposable
+  struct Awaiter : IDisposable
   {
     ManualResetEventSlim _event;
 

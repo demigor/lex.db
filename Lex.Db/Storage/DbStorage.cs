@@ -7,7 +7,7 @@ using System.Windows;
 
 namespace Lex.Db
 {
-  public class DbStorage : IDbStorage
+  class DbStorage : IDbStorage
   {
 #if SILVERLIGHT
     readonly IsolatedStorageFile _storage = IsolatedStorageFile.GetUserStoreForApplication();

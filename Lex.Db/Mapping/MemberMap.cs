@@ -116,7 +116,7 @@ namespace Lex.Db
     public readonly MemberInfo RefMember;
   }
 
-  public static partial class Extensions
+  static partial class Extensions
   {
     internal static Expression Member(this Expression target, MemberInfo member)
     {

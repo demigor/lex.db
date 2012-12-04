@@ -2,7 +2,7 @@
 
 namespace Lex.Db
 {
-  public sealed class MStream : MemoryStream
+  sealed class MStream : MemoryStream
   {
     public MStream() { }
 

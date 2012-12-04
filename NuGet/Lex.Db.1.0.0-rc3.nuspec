@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
     <metadata>
         <id>Lex.Db</id>
@@ -30,9 +30,14 @@
     </metadata>
     <files>
         <file src="..\bin\Release\Net4\Lex.Db.dll" target="lib\net40\Lex.Db.dll" />
+        <file src="..\bin\Release\Net4\Lex.Db.xml" target="lib\net40\Lex.Db.xml" />
         <file src="..\bin\Release\Net45\Lex.Db.dll" target="lib\net45\Lex.Db.dll" />
+        <file src="..\bin\Release\Net45\Lex.Db.xml" target="lib\net45\Lex.Db.xml" />
         <file src="..\bin\Release\WinRT\Lex.Db.dll" target="lib\netcore45\Lex.Db.dll" />
+        <file src="..\bin\Release\WinRT\Lex.Db.xml" target="lib\netcore45\Lex.Db.xml" />
         <file src="..\bin\Release\Silverlight5\Lex.Db.dll" target="lib\sl50\Lex.Db.dll" />
+        <file src="..\bin\Release\Silverlight5\Lex.Db.xml" target="lib\sl50\Lex.Db.xml" />
         <file src="..\bin\Release\WinPhone8\Lex.Db.dll" target="lib\wp8\Lex.Db.dll" />
+        <file src="..\bin\Release\WinPhone8\Lex.Db.xml" target="lib\wp8\Lex.Db.xml" />
     </files>
 </package>

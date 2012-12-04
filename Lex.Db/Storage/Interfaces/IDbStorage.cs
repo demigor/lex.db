@@ -1,6 +1,6 @@
 ﻿namespace Lex.Db
 {
-  public interface IDbStorage
+  interface IDbStorage
   {
     IDbSchemaStorage OpenSchema(string path);
 

@@ -2,7 +2,7 @@
 
 namespace Lex.Db
 {
-  public interface IDbTableStorage
+  interface IDbTableStorage
   {
     IDbTableReader BeginRead();
     IDbTableWriter BeginWrite();
@@ -10,14 +10,14 @@ namespace Lex.Db
     void Flush();
   }
 
-  public interface IDbTableReader : IDisposable
+  interface IDbTableReader : IDisposable
   {
     DateTimeOffset Ts { get; }
     byte[] ReadIndex();
     byte[] ReadData(long position, int length);
   }
 
-  public interface IDbTableWriter : IDbTableReader
+  interface IDbTableWriter : IDbTableReader
   {
     void WriteIndex(byte[] data, int length);
     void WriteData(byte[] data, long position, int length);

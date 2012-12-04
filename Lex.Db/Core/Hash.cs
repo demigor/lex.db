@@ -2,7 +2,7 @@
 
 namespace Lex.Db
 {
-  public static class Hash
+  static class Hash
   {
     public static uint Compute(byte[] data)
     {

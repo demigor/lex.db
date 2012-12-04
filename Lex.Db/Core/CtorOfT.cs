@@ -6,7 +6,7 @@ using NLog;
 
 namespace Lex.Db
 {
-  public static class Ctor<T>
+  static class Ctor<T>
   {
 #if NLOG
     static readonly Logger Log = LogManager.GetCurrentClassLogger();
@@ -17,10 +17,5 @@ namespace Lex.Db
     }
 #endif
     public static readonly Func<T> New = Expression.Lambda<Func<T>>(Expression.New(typeof(T))).Compile();
-  }
-
-  public static class ObjectCtor<T>
-  {
-    public static readonly Func<object> New = Expression.Lambda<Func<object>>(Expression.New(typeof(T))).Compile();
   }
 }

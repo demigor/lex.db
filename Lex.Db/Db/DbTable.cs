@@ -17,33 +17,104 @@ namespace Lex.Db
   using Mapping;
   using Serialization;
 
+  /// <summary>
+  /// Abstract database table interface
+  /// </summary>
   public abstract class DbTable
   {
     internal IDbTableStorage Storage;
 
+    /// <summary>
+    /// Type of the table entity class
+    /// </summary>
     public abstract Type Type { get; }
+
+    /// <summary>
+    /// Name of the table
+    /// </summary>
     public abstract string Name { get; internal set; }
 
+    /// <summary>
+    /// Determines count of entities stored in the table
+    /// </summary>
+    /// <returns></returns>
     public abstract int Count();
 
+    /// <summary>
+    /// Removes all entities from the table
+    /// </summary>
     public abstract void Purge();
+
+    /// <summary>
+    /// Compacts the data stream of the table
+    /// </summary>
     public abstract void Compact();
+
+    /// <summary>
+    /// Flushed the underlying data and index streams to disk
+    /// </summary>
     public abstract void Flush();
 
+    /// <summary>
+    /// Specifies key/values pairs of the table metadata 
+    /// </summary>
+    /// <param name="property">Metadata property name</param>
+    /// <returns>Value of the named metadata property</returns>
     public abstract string this[string property] { get; set; }
 
+    /// <summary>
+    /// Gathers all currently used PK values from PK index
+    /// </summary>
+    /// <typeparam name="K">Type of the key</typeparam>
+    /// <returns>Typed list of key values</returns>
     public abstract List<K> AllKeys<K>();
+
+    /// <summary>
+    /// Gathers all currently used PK values from PK index
+    /// </summary>
+    /// <returns>Untyped IEnumerable of key values</returns>
     public abstract IEnumerable AllKeys();
+
+    /// <summary>
+    /// Determines minimal PK value from PK index,
+    /// returns default(K) if table is empty
+    /// </summary>
+    /// <typeparam name="K">Type of the key</typeparam>
+    /// <returns>Minimal PK value</returns>
     public abstract K GetMinKey<K>();
+
+    /// <summary>
+    /// Determines maximal PK value from PK index,
+    /// returns default(K) if table is empty
+    /// </summary>
+    /// <typeparam name="K">Type of the key</typeparam>
+    /// <returns>Maximal PK value</returns>
     public abstract K GetMaxKey<K>();
 
+    /// <summary>
+    /// Deletes single entity by PK value
+    /// </summary>
+    /// <typeparam name="K">Type of the key</typeparam>
+    /// <param name="key">Entity PK value</param>
+    /// <returns>Returns true if record was deleted, false otherwise</returns>
     public abstract bool DeleteByKey<K>(K key);
+
+    /// <summary>
+    /// Deletes set of entities, determined by their PK values
+    /// </summary>
+    /// <typeparam name="K">Type of the key</typeparam>
+    /// <param name="keys">Enumeration of entity PK values</param>
+    /// <returns></returns>
     public abstract int DeleteByKeys<K>(IEnumerable<K> keys);
 
     internal abstract void LoadIndex(IDbTableReader reader);
     internal abstract void SaveIndex(IDbTableWriter writer, bool crop);
   }
 
+  /// <summary>
+  /// Typed database table 
+  /// </summary>
+  /// <typeparam name="T">Table entity class</typeparam>
   [DebuggerDisplay("{Name}")]
   public sealed class DbTable<T> : DbTable where T : class
   {
@@ -63,7 +134,7 @@ namespace Lex.Db
     public override string Name { get { return _name; } internal set { _name = value; } }
     readonly DbInstance _db;
 
-    public DbTable(DbInstance db)
+    internal DbTable(DbInstance db)
     {
       _db = db;
     }
@@ -528,7 +599,6 @@ namespace Lex.Db
     /// Saves specified item sequence, adding or updating as needed
     /// </summary>
     /// <param name="items">Sequence to merge in</param>
-    /// <param name="flush">Flush table on disk</param>
     public void Save(IEnumerable<T> items)
     {
       if (items == null)
@@ -565,7 +635,6 @@ namespace Lex.Db
     /// Saves specified item, adding or updating as needed
     /// </summary>
     /// <param name="item">Item to merge in</param>
-    /// <param name="flush">Flush table on disk</param>
     public void Save(T item)
     {
       if (item == null)
@@ -638,6 +707,9 @@ namespace Lex.Db
       return ms;
     }
 
+    /// <summary>
+    /// Flushes the underlying table storage
+    /// </summary>
     public override void Flush()
     {
       Storage.Flush();
@@ -648,8 +720,7 @@ namespace Lex.Db
     /// </summary>
     /// <typeparam name="K">Type of the primary key</typeparam>
     /// <param name="key">Key of item to delete</param>
-    /// <param name="flush">Flush table on disk</param>
-    /// <returns>Returns true if item deleted</returns>
+    /// <returns>Returns true if item was deleted</returns>
     public override bool DeleteByKey<K>(K key)
     {
       using (var scope = WriteScope())
@@ -667,7 +738,6 @@ namespace Lex.Db
     /// </summary>
     /// <typeparam name="K">Type of the primary key</typeparam>
     /// <param name="keys">Key sequence to delete</param>
-    /// <param name="flush">Flush table on disk</param>
     /// <returns>Returns count of the deleted items</returns>
     public override int DeleteByKeys<K>(IEnumerable<K> keys)
     {
@@ -689,7 +759,6 @@ namespace Lex.Db
     /// Deletes specified item
     /// </summary>
     /// <param name="item">Item to delete</param>
-    /// <param name="flush">Flush table on disk</param>
     public bool Delete(T item)
     {
       if (item == null)
@@ -709,7 +778,6 @@ namespace Lex.Db
     /// Deletes specified item sequence
     /// </summary>
     /// <param name="items">Sequence of items to delete</param>
-    /// <param name="flush">Flush table on disk</param>
     public int Delete(IEnumerable<T> items)
     {
       var result = 0;

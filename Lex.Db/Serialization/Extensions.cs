@@ -3,7 +3,7 @@ using System.IO;
 
 namespace Lex.Db
 {
-  public static partial class Extensions
+  static partial class Extensions
   {
     public static void Write(this BinaryWriter writer, TimeSpan value)
     {

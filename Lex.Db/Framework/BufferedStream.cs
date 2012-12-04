@@ -885,7 +885,7 @@ namespace Lex.Db.Streams
 
 namespace Lex.Db.Streams
 {
-  public static partial class Extensions
+  static partial class Extensions
   {
 #if NETFX_CORE
     public static Stream AsBuffered(this IRandomAccessStream stream, int buffer = 256 * 1024)

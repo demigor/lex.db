@@ -8,7 +8,7 @@ using System.Linq;
 
 namespace Lex.Db
 {
-  public static class TypeHelper
+  static class TypeHelper
   {
 #if NETFX_CORE
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
