@@ -8,16 +8,27 @@ using System.Xml.Serialization;
 
 namespace Lex.Db
 {
+  using System.IO;
   using Serialization;
 
+  /// <summary>
+  /// Entity type to table mapping base
+  /// </summary>
   public abstract class TypeMap
   {
+    /// <summary>
+    /// Indicates name of the table
+    /// </summary>
     public abstract string Name { get; }
     internal abstract Type KeyType { get; }
     internal abstract void Clear();
     internal abstract DbTable Initialize(IDbTableStorage table);
   }
 
+  /// <summary>
+  /// Entity type to table mapping
+  /// </summary>
+  /// <typeparam name="T"></typeparam>
   [DebuggerDisplay("{Name}")]
   public sealed class TypeMap<T> : TypeMap where T : class
   {
@@ -35,20 +46,40 @@ namespace Lex.Db
       _table = new DbTable<T>(_db);
     }
 
+    /// <summary>
+    /// Indicates name of the table
+    /// </summary>
     public override string Name { get { return _table.Name; } }
 
+    /// <summary>
+    /// Defines a non-default name of the entity table
+    /// </summary>
+    /// <param name="name">Name of the table file without extension</param>
+    /// <returns>Entity type mapping to continue with</returns>
     public TypeMap<T> ToTable(string name)
     {
+      if (string.IsNullOrEmpty(name))
+        throw new ArgumentException("name");
+
       _table.Name = name;
       return this;
     }
 
+    /// <summary>
+    /// Resets all mappings
+    /// </summary>
+    /// <returns>Entity type mapping to continue with</returns>
     public TypeMap<T> Reset()
     {
       Clear();
       return this;
     }
 
+    /// <summary>
+    /// Registers interceptor to control serialization of properties
+    /// </summary>
+    /// <param name="interceptor">Custom interceptor implementation</param>
+    /// <returns>Entity type mapping to continue with</returns>
     public TypeMap<T> WithInterceptor(Interceptor<T> interceptor)
     {
       if (interceptor == null)
@@ -59,6 +90,11 @@ namespace Lex.Db
       return this;
     }
 
+    /// <summary>
+    /// Registers interceptor function to control serialization of properties
+    /// </summary>
+    /// <param name="interceptor">Custom interceptor function</param>
+    /// <returns>Entity type mapping to continue with</returns>
     public TypeMap<T> WithInterceptor(Func<T, string, bool?> interceptor)
     {
       if (interceptor == null)
@@ -71,6 +107,13 @@ namespace Lex.Db
 
     MemberInfo _key;
 
+    /// <summary>
+    /// Defines primary key expression, indicating optional automatic generation of PK values
+    /// </summary>
+    /// <typeparam name="K">Type of the PK</typeparam>
+    /// <param name="keyBuilder">Primary key expression</param>
+    /// <param name="autoGen">Indicates automatic generation of PK values (int, long, Guid types only)</param>
+    /// <returns>Entity type mapping to continue with</returns>
     public TypeMap<T> Key<K>(Expression<Func<T, K>> keyBuilder, bool autoGen = false)
     {
       if (_key != null)
@@ -81,6 +124,14 @@ namespace Lex.Db
       return this;
     }
 
+    /// <summary>
+    /// Defines complete mapping for public properties and fields via reflection, 
+    /// with specified primary key expression and optional automatic generation
+    /// </summary>
+    /// <typeparam name="K">Type of the PK</typeparam>
+    /// <param name="keyBuilder">Primary key expression</param>
+    /// <param name="autoGen">Indicates automatic generation of PK values (int, long, Guid types only)</param>
+    /// <returns>Entity type mapping to continue with</returns>
     public TypeMap<T> Automap<K>(Expression<Func<T, K>> keyBuilder, bool autoGen = false)
     {
       return Key(keyBuilder, autoGen).MapAll();
@@ -109,6 +160,7 @@ namespace Lex.Db
        }
     */
 
+    /*
     public TypeMap<T> Ref<R>(Expression<Func<T, R>> reference)
     {
       if (reference == null)
@@ -122,7 +174,7 @@ namespace Lex.Db
 
       return this;
     }
-
+    */
 
     /*
         public TypeMap<T> Refs<K, R>(Expression<Func<T, IEnumerable<K>>> source, Expression<Func<K, R>> key)
@@ -140,6 +192,10 @@ namespace Lex.Db
         }
     */
 
+    /// <summary>
+    /// Defines complete mapping for public properties and fields via reflection
+    /// </summary>
+    /// <returns>Entity type mapping to continue with</returns>
     public TypeMap<T> MapAll()
     {
       var fields = from f in typeof(T).GetPublicInstanceFields()
@@ -163,6 +219,12 @@ namespace Lex.Db
       return this;
     }
 
+    /// <summary>
+    /// Removes mapping for specified member
+    /// </summary>
+    /// <typeparam name="K">Type of the member</typeparam>
+    /// <param name="property">Member access expression</param>
+    /// <returns>Entity type mapping to continue with</returns>
     public TypeMap<T> Unmap<K>(Expression<Func<T, K>> property)
     {
       var member = ExtractMember(property);
@@ -174,6 +236,12 @@ namespace Lex.Db
       return this;
     }
 
+    /// <summary>
+    /// Adds mapping for specified member
+    /// </summary>
+    /// <typeparam name="K">Type of the member</typeparam>
+    /// <param name="property">Members access expression (public readable/writable property or field)</param>
+    /// <returns>Entity type mapping to continue with</returns>
     public TypeMap<T> Map<K>(Expression<Func<T, K>> property)
     {
       Expression target;
@@ -186,6 +254,13 @@ namespace Lex.Db
       return this;
     }
 
+    /// <summary>
+    /// Adds non-unique typed index over single component
+    /// </summary>
+    /// <typeparam name="I1">Type of the index key</typeparam>
+    /// <param name="name">Name of the index</param>
+    /// <param name="indexBy">Indexing expression</param>
+    /// <returns>Entity type mapping to continue with</returns>
     public TypeMap<T> WithIndex<I1>(string name, Expression<Func<T, I1>> indexBy)
       where I1 : IComparable<I1>
     {
@@ -202,6 +277,15 @@ namespace Lex.Db
       return this;
     }
 
+    /// <summary>
+    /// Adds non-unique typed index over two components
+    /// </summary>
+    /// <typeparam name="I1">Type of the first index key component</typeparam>
+    /// <typeparam name="I2">Type of the second index key component</typeparam>
+    /// <param name="name">Name of the index</param>
+    /// <param name="indexBy">First index key component expression</param>
+    /// <param name="thenBy">Second index key component expression</param>
+    /// <returns>Entity type mapping to continue with</returns>
     public TypeMap<T> WithIndex<I1, I2>(string name, Expression<Func<T, I1>> indexBy, Expression<Func<T, I2>> thenBy)
       where I1 : IComparable<I1>
       where I2 : IComparable<I2>
@@ -222,6 +306,17 @@ namespace Lex.Db
       return this;
     }
 
+    /// <summary>
+    /// Adds non-unique typed index over three components
+    /// </summary>
+    /// <typeparam name="I1">Type of the first index key component</typeparam>
+    /// <typeparam name="I2">Type of the second index key component</typeparam>
+    /// <typeparam name="I3">Type of the third index key component</typeparam>
+    /// <param name="name">Name of the index</param>
+    /// <param name="indexBy">First index key component expression</param>
+    /// <param name="thenBy">Second index key component expression</param>
+    /// <param name="andThenBy">Third index key component expression</param>
+    /// <returns>Entity type mapping to continue with</returns>
     public TypeMap<T> WithIndex<I1, I2, I3>(string name, Expression<Func<T, I1>> indexBy, Expression<Func<T, I2>> thenBy, Expression<Func<T, I3>> andThenBy)
       where I1 : IComparable<I1>
       where I2 : IComparable<I2>

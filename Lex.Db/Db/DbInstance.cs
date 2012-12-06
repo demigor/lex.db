@@ -6,15 +6,22 @@ using System.Threading;
 
 namespace Lex.Db
 {
+  /// <summary>
+  /// Database access and management
+  /// </summary>
   public class DbInstance : IDisposable
   {
     static readonly IDbStorage Storage = new DbStorage();
     readonly IDbSchemaStorage _schema;
-    bool _sealed;
+    bool _sealed, _disposed;
 
     Dictionary<Type, TypeMap> _maps = new Dictionary<Type, TypeMap>();
     Dictionary<Type, DbTable> _tables;
 
+    /// <summary>
+    /// Creates database instance with specified path
+    /// </summary>
+    /// <param name="path">Path to database storage folder (relative to default app storage)</param>
     public DbInstance(string path)
     {
       _schema = Storage.OpenSchema(path);
@@ -32,6 +39,9 @@ namespace Lex.Db
         throw new InvalidOperationException("DbInstance is not initialized");
     }
 
+    /// <summary>
+    /// Initializes database
+    /// </summary>
     public void Initialize()
     {
       CheckNotSealed();
@@ -49,7 +59,7 @@ namespace Lex.Db
       _sealed = true;
 
       #region Drop maps - we don't need them anymore
-    
+
       foreach (var m in _maps.Values)
         m.Clear();
 
@@ -58,6 +68,9 @@ namespace Lex.Db
       #endregion
     }
 
+    /// <summary>
+    /// Indicates path to database storage folder (relative to default app storage)
+    /// </summary>
     public string Path { get { return _schema.Path; } }
 
     internal Type GetKeyType(Type type)
@@ -71,16 +84,34 @@ namespace Lex.Db
       return null;
     }
 
+    /// <summary>
+    /// Indicates whether specified entity type is mapped in database
+    /// </summary>
+    /// <param name="type">Entity type</param>
+    /// <returns>True if type is mapped in database, false otherwise</returns>
     public bool HasMap(Type type)
     {
+      if (type == null)
+        throw new ArgumentNullException("type");
+
       return _maps != null ? _maps.ContainsKey(type) : _tables.ContainsKey(type);
     }
 
+    /// <summary>
+    /// Indicates whether specified entity type is mapped in database
+    /// </summary>
+    /// <typeparam name="T">Entity type</typeparam>
+    /// <returns>True if type is mapped in database, false otherwise</returns>
     public bool HasMap<T>()
     {
       return HasMap(typeof(T));
     }
 
+    /// <summary>
+    /// Maps specified entity type in database and provides mapping infrastructure
+    /// </summary>
+    /// <typeparam name="T">Entity type</typeparam>
+    /// <returns>Entity type to table mapping</returns>
     public TypeMap<T> Map<T>() where T : class, new()
     {
       CheckNotSealed();
@@ -100,6 +131,11 @@ namespace Lex.Db
       }
     }
 
+    /// <summary>
+    /// Provides database table infrastructure to read/write/query entities
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
     public DbTable<T> Table<T>() where T : class
     {
       CheckSealed();
@@ -296,6 +332,10 @@ namespace Lex.Db
       }
     }
 
+    /// <summary>
+    /// Performs specified action inside read transaction scope
+    /// </summary>
+    /// <param name="action">Action to execute inside read transaction scope</param>
     public void BulkRead(Action action)
     {
       _lock.EnterReadLock();
@@ -310,6 +350,10 @@ namespace Lex.Db
       }
     }
 
+    /// <summary>
+    /// Performs specified action inside write transcantion scope.
+    /// </summary>
+    /// <param name="action">Action to execute inside write transaction scope</param>
     public void BulkWrite(Action action)
     {
       _lock.EnterWriteLock();
@@ -324,87 +368,178 @@ namespace Lex.Db
       }
     }
 
+    /// <summary>
+    /// Loads all entities of specified entity type
+    /// </summary>
+    /// <typeparam name="T">Type of the entity</typeparam>
+    /// <returns>List of all entities</returns>
     public List<T> LoadAll<T>() where T : class
     {
       return Table<T>().LoadAll();
     }
 
+    /// <summary>
+    /// Loads an entity of specified entity type by specified PK value
+    /// </summary>
+    /// <typeparam name="T">Type of the entity</typeparam>
+    /// <param name="key">PK value as object</param>
+    /// <returns>Entity identified by the PK value, if any</returns>
     public T LoadByKey<T>(object key) where T : class
     {
       return Table<T>().LoadByKey(key);
     }
 
+    /// <summary>
+    /// Loads an entity of specified entity type by specified PK value
+    /// </summary>
+    /// <typeparam name="T">Type of the entity</typeparam>
+    /// <typeparam name="K">Type of the PK</typeparam>
+    /// <param name="key">PK value</param>
+    /// <returns>Entity identified by the PK value, if any</returns>
     public T LoadByKey<T, K>(K key) where T : class
     {
       return Table<T>().LoadByKey(key);
     }
 
+    /// <summary>
+    /// Determines number of entities stored in specified entity table
+    /// </summary>
+    /// <typeparam name="T">Type of the entity</typeparam>
+    /// <returns>Number of entities stored in specified entity table</returns>
     public int Count<T>() where T : class
     {
       return Table<T>().Count();
     }
 
+    /// <summary>
+    /// Saves specified entity, adding or updating as needed
+    /// </summary>
+    /// <typeparam name="T">Type of the entity</typeparam>
+    /// <param name="item">Entity to upsert into table</param>
     public void Save<T>(T item) where T : class
     {
       Table<T>().Save(item);
     }
 
+    /// <summary>
+    /// Saves specified entity sequence, adding or updating as needed
+    /// </summary>
+    /// <typeparam name="T">Type of the entity</typeparam>
+    /// <param name="items">Entity sequence to upsert into table</param>
     public void Save<T>(params T[] items) where T : class
     {
       Table<T>().Save(items);
     }
 
+    /// <summary>
+    /// Saves specified entity sequence, adding or updating as needed
+    /// </summary>
+    /// <typeparam name="T">Type of the entity</typeparam>
+    /// <param name="items">Entity sequence to upsert into table</param>
     public void Save<T>(IEnumerable<T> items) where T : class
     {
       Table<T>().Save(items);
     }
 
+    /// <summary>
+    /// Deletes entities specified by key sequence
+    /// </summary>
+    /// <typeparam name="T">Type of the entity</typeparam>
+    /// <typeparam name="K">Type of the primary key</typeparam>
+    /// <param name="keys">Sequence of key values to specify entities to delete</param>
+    /// <returns>Returns count of the deleted entities</returns>
     public int DeleteByKeys<T, K>(IEnumerable<K> keys) where T : class
     {
       return Table<T>().DeleteByKeys(keys);
     }
 
+    /// <summary>
+    /// Deletes entity specified by PK value
+    /// </summary>
+    /// <typeparam name="T">Type of the entity</typeparam>
+    /// <param name="key">Key of entity to delete</param>
+    /// <returns>True if entity was deleted</returns>
     public bool DeleteByKey<T>(object key) where T : class
     {
       return Table<T>().DeleteByKey(key);
     }
 
+    /// <summary>
+    /// Deletes entity specified by PK value
+    /// </summary>
+    /// <typeparam name="T">Type of the entity</typeparam>
+    /// <typeparam name="K">Type of the PK</typeparam>
+    /// <param name="key">Key of entity to delete</param>
+    /// <returns>True if entity was deleted</returns>
     public bool DeleteByKey<T, K>(K key) where T : class
     {
       return Table<T>().DeleteByKey(key);
     }
 
+    /// <summary>
+    /// Deletes specified entity
+    /// </summary>
+    /// <typeparam name="T">Type of the entity</typeparam>
+    /// <param name="item">Entity to delete</param>
+    /// <returns>True if entity was deleted</returns>
     public bool Delete<T>(T item) where T : class
     {
       return Table<T>().Delete(item);
     }
 
+    /// <summary>
+    /// Refreshes specified entity from disk
+    /// </summary>
+    /// <typeparam name="T">Type of the entity</typeparam>
+    /// <param name="item">Entity to refresh</param>
+    /// <returns>Same entity, updated from disk</returns>
     public T Refresh<T>(T item) where T : class
     {
       return Table<T>().Refresh(item);
     }
 
-    public List<K> LoadAllKeys<T, K>() where T : class
+    /// <summary>
+    /// Lists all current key values for specified entity type
+    /// </summary>
+    /// <typeparam name="T">Type of the entity</typeparam>
+    /// <typeparam name="K">Type of the PK</typeparam>
+    /// <returns>List of all current key values for specified entity type</returns>
+    public List<K> AllKeys<T, K>() where T : class
     {
       return Table<T>().AllKeys<K>();
     }
 
-    public IEnumerable LoadAllKeys<T>() where T : class
+    /// <summary>
+    /// Lists all current key values 
+    /// </summary>
+    /// <typeparam name="T">Type of the entity</typeparam>
+    /// <returns>Sequence of key values for specified entity type</returns>
+    public IEnumerable AllKeys<T>() where T : class
     {
       return Table<T>().AllKeys();
     }
 
+    /// <summary>
+    /// Flushes underlying database storage
+    /// </summary>
     public void Flush()
     {
       foreach (var i in _tables.Values)
         i.Flush();
     }
 
+    /// <summary>
+    /// Flushes the underlying table storage
+    /// </summary>
+    /// <typeparam name="T">Type of the entity</typeparam>
     public void Flush<T>() where T : class
     {
       Table<T>().Flush();
     }
 
+    /// <summary>
+    /// Compacts all data files in database
+    /// </summary>
     public void Compact()
     {
       _lock.EnterWriteLock();
@@ -420,6 +555,9 @@ namespace Lex.Db
       }
     }
 
+    /// <summary>
+    /// Clears the database
+    /// </summary>
     public void Purge()
     {
       _lock.EnterWriteLock();
@@ -433,14 +571,28 @@ namespace Lex.Db
       }
     }
 
+    /// <summary>
+    /// Clears the specified entity table
+    /// </summary>
+    /// <typeparam name="T">Type of the entity</typeparam>
     public void Purge<T>() where T : class
     {
       Table<T>().Purge();
     }
 
+    /// <summary>
+    /// Disposes database
+    /// </summary>
     public void Dispose()
     {
       _lock.Dispose();
+      _disposed = true;
+    }
+
+    void CheckDisposed()
+    {
+      if (_disposed)
+        throw new ObjectDisposedException("DbInstance");
     }
   }
 }

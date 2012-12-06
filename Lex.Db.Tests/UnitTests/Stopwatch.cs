@@ -1,4 +1,4 @@
-﻿#if SILVERLIGHT
+﻿#if SILVERLIGHT && !WINDOWS_PHONE
 namespace System.Diagnostics
 {
   /// <summary>

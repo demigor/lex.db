@@ -6,7 +6,7 @@ namespace Lex.Db.Indexing
 {
   using Serialization;
 
-  public class Indexer<I1, I2> : IComparable<Indexer<I1, I2>>
+  class Indexer<I1, I2> : IComparable<Indexer<I1, I2>>
   {
     static readonly IComparer<I1> _comparer1 = Comparer<I1>.Default;
     static readonly IComparer<I2> _comparer2 = Comparer<I2>.Default;
@@ -46,7 +46,7 @@ namespace Lex.Db.Indexing
     }
   }
 
-  public class Indexer<I1, I2, I3> : IComparable<Indexer<I1, I2, I3>>
+  class Indexer<I1, I2, I3> : IComparable<Indexer<I1, I2, I3>>
   {
     static readonly IComparer<I1> _comparer1 = Comparer<I1>.Default;
     static readonly IComparer<I2> _comparer2 = Comparer<I2>.Default;

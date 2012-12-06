@@ -18,6 +18,7 @@ namespace Lex.Db.Serialization
       Register<float>(KnownDbType.Float);
       Register<double>(KnownDbType.Double);
       Register<DateTime>(KnownDbType.DateTime);
+      Register<DateTimeOffset>(KnownDbType.DateTimeOffset);
       Register<TimeSpan>(KnownDbType.TimeSpan);
       Register<bool>(KnownDbType.Boolean);
       Register<decimal>(KnownDbType.Decimal);

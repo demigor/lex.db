@@ -8,7 +8,7 @@ using System.Security;
 
 namespace Lex.Db.Streams
 {
-  public sealed class BufferedStream : Stream
+  sealed class BufferedStream : Stream
   {
     Stream _s;         
     byte[] _buffer;    
@@ -438,8 +438,7 @@ using Windows.Storage.Streams;
 
 namespace Lex.Db.Streams
 {
-
-  public sealed class BufferedStream : Stream
+  sealed class BufferedStream : Stream
   {
     IRandomAccessStream _s;
     byte[] _buffer;    

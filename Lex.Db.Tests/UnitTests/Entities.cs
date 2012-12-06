@@ -9,18 +9,36 @@ namespace Lex.Db
     public string Name { get; set; }
     public string LastName { get; set; }
 
+    public int IntField { get; set; }
+    public int? IntNField { get; set; }
+
+    public long LongField { get; set; }
+    public long? LongNField { get; set; }
+
     public double DoubleField { get; set; }
     public double? DoubleNField { get; set; }
+
     public decimal DecimalField { get; set; }
     public decimal? DecimalNField { get; set; }
-    public float FloadField { get; set; }
-    public float? FloadNField { get; set; }
+
+    public float FloatField { get; set; }
+    public float? FloatNField { get; set; }
+
     public bool BoolField { get; set; }
     public bool? BoolNField { get; set; }
+
     public DateTime DateTimeField { get; set; }
     public DateTime? DateTimeNField { get; set; }
+
+    public DateTimeOffset DateTimeOffsetField { get; set; }
+    public DateTimeOffset? DateTimeOffsetNField { get; set; }
+
     public TimeSpan TimeSpanField { get; set; }
     public TimeSpan? TimeSpanNField { get; set; }
+
+    public Guid GuidField { get; set; }
+    public Guid? GuidNField { get; set; }
+
     public List<int> ListField { get; set; }
     public Dictionary<string, int> DictField { get; set; }
 

@@ -4,7 +4,7 @@ using System.IO;
 
 namespace Lex.Db.Serialization
 {
-  public class DictSerializers<K, V>
+  class DictSerializers<K, V>
   {
     static readonly Action<DataWriter, K> _keySerializer = Serializers.GetWriter<K>();
     static readonly Func<DataReader, K> _keyDeserializer = Serializers.GetReader<K>();

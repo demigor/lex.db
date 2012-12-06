@@ -4,18 +4,18 @@ using System.Diagnostics;                // for TraceInformation ...
 
 namespace System.Threading
 {
-  public enum LockRecursionPolicy
+  enum LockRecursionPolicy
   {
     NoRecursion = 0,
     SupportsRecursion = 1,
   }
 
-  public class SLLockRecursionException : Exception
+  class SLLockRecursionException : Exception
   {
     public SLLockRecursionException(string message) : base(message) { }
   }
 
-  public class SLSynchronizationLockException : Exception
+  class SLSynchronizationLockException : Exception
   {
     public SLSynchronizationLockException(string message) : base(message) { }
   }
@@ -29,7 +29,7 @@ namespace System.Threading
   //Ideally ReadCount should be part of recursivecount too.
   //However,to avoid an extra lookup in the common case (readers only) 
   //we maintain the readercount in the common per-thread structure.
-  internal class ReaderWriterCount
+  class ReaderWriterCount
   {
     public int ThreadId;
     public int ReaderCount;
@@ -52,7 +52,7 @@ namespace System.Threading
   /// or in fact any non-trivial API while holding the spin lock).
   /// </summary> 
 
-  public class ReaderWriterLockSlim : IDisposable
+  class ReaderWriterLockSlim : IDisposable
   {
     //Specifying if locked can be reacquired recursively. 
     readonly bool _isReentrant;

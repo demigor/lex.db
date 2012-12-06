@@ -14,6 +14,7 @@
     Guid = 7,
     DateTime = 8,
     TimeSpan = 9,
-    Long = 10
+    Long = 10,
+    DateTimeOffset = 11
   }
 }

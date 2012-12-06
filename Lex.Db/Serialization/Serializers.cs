@@ -9,7 +9,10 @@ namespace Lex.Db.Serialization
 {
   using Indexing;
 
-  public static class Serializers
+  /// <summary>
+  /// Provides serialization logic and code generation
+  /// </summary>
+  static class Serializers
   {
     static readonly Dictionary<Type, MethodInfo> _readerMethods;
     static readonly Dictionary<Type, MethodInfo> _writerMethods;
@@ -234,7 +237,6 @@ namespace Lex.Db.Serialization
 
     #endregion
 
-
     #region float serialization
 
     public static float ReadFloat(DataReader reader)
@@ -291,6 +293,21 @@ namespace Lex.Db.Serialization
 
     #endregion
 
+    #region DateTimeOffset serialization
+
+    public static DateTimeOffset ReadDateTimeOffset(DataReader reader)
+    {
+      return reader.ReadDateTimeOffset();
+    }
+
+    public static void WriteDateTimeOffset(DataWriter writer, DateTimeOffset value)
+    {
+      writer.Write(value);
+    }
+
+    #endregion
+
+
     #region TimeSpan serialization
 
     public static TimeSpan ReadTimeSpan(DataReader reader)
@@ -335,7 +352,7 @@ namespace Lex.Db.Serialization
 
     #region byte array serialization
 
-    public static byte[] ReadArra(DataReader reader)
+    public static byte[] ReadArray(DataReader reader)
     {
       return reader.ReadArray();
     }
@@ -356,7 +373,11 @@ namespace Lex.Db.Serialization
 
     public static void WriteDecimal(DataWriter writer, decimal value)
     {
+#if SILVERLIGHT && !WINDOWS_PHONE
+      writer.WriteDecimal(value);
+#else
       writer.Write(value);
+#endif
     }
 
     #endregion
@@ -438,27 +459,188 @@ namespace Lex.Db.Serialization
     }
   }
 
-  public class DataReader : BinaryReader
+  /// <summary>
+  /// Extended binary reader 
+  /// </summary>
+  public sealed class DataReader : BinaryReader
   {
     internal static readonly MethodInfo LoadRefMethod = typeof(DataReader).GetPublicInstanceMethod("LoadReference");
 
+    /// <summary>
+    /// Creates DataReader with specified owned stream
+    /// </summary>
+    /// <param name="stream">Stream to read from</param>
     public DataReader(Stream stream) : base(stream) { }
 
+    /// <summary>
+    /// Reads TimeSpan value from stream
+    /// </summary>
+    /// <returns>TimeSpan value</returns>
+    public TimeSpan ReadTimeSpan()
+    {
+      return new TimeSpan(ReadInt64());
+    }
+
+    static DateTime RawToDateTime(long value)
+    {
+      return new DateTime(value & 0x3fffffffffffffffL, (DateTimeKind)((value >> 0x3e) & 0x3));
+    }
+
+    /// <summary>
+    /// Reads DateTime value from stream
+    /// </summary>
+    /// <returns>DateTime value</returns>
+    public DateTime ReadDateTime()
+    {
+      return RawToDateTime(ReadInt64());
+    }
+
+    /// <summary>
+    /// Reads DateTimeOffset value from stream
+    /// </summary>
+    /// <returns>DateTimeOffset value</returns>
+    public DateTimeOffset ReadDateTimeOffset()
+    {
+      var date = ReadDateTime();
+      var offset = ReadInt16();
+      return new DateTimeOffset(date, new TimeSpan(0, offset, 0));
+    }
+
+    /// <summary>
+    /// Reads Guid value from stream
+    /// </summary>
+    /// <returns>Guid value</returns>
+    public Guid ReadGuid()
+    {
+      return new Guid(ReadBytes(16));
+    }
+
+    /// <summary>
+    /// Reads byte array from stream
+    /// </summary>
+    /// <returns>Byte array</returns>
+    public byte[] ReadArray()
+    {
+      return ReadBytes(ReadInt32());
+    }
+
+#if SILVERLIGHT && !WINDOWS_PHONE
+    
+    /// <summary>
+    /// Reads Decimal value from stream
+    /// </summary>
+    /// <returns>Decimal value</returns>
+    public decimal ReadDecimal()
+    {
+      return new decimal(new[] { ReadInt32(), ReadInt32(), ReadInt32(), ReadInt32() });
+    }
+#endif
+
+    /// <summary>
+    /// Loads referenced entity of specified entity type and specified PK value
+    /// </summary>
+    /// <typeparam name="T">Type of the entity</typeparam>
+    /// <typeparam name="K">Type of the PK</typeparam>
+    /// <param name="key">PK value</param>
+    /// <returns>Entity with specified PK value or null if not found</returns>
     public T LoadReference<T, K>(K key)
     {
+      // TODO:
       return default(T);
     }
   }
 
-  public class DataWriter : BinaryWriter
+  /// <summary>
+  /// Extended binary writer
+  /// </summary>
+  public sealed class DataWriter : BinaryWriter
   {
     internal static readonly MethodInfo SaveRefMethod = typeof(DataReader).GetPublicInstanceMethod("SaveReference");
 
+    /// <summary>
+    /// Creates DataWriter with specified owned stream
+    /// </summary>
+    /// <param name="stream">Stream to write to</param>
     public DataWriter(Stream stream) : base(stream) { }
 
+    /// <summary>
+    /// Saves reference to specified entity and returns its PK value
+    /// </summary>
+    /// <typeparam name="T">Type of the entity</typeparam>
+    /// <typeparam name="K">Type of the PK</typeparam>
+    /// <param name="reference">Entity to save reference to</param>
+    /// <returns>PK value of the referenced entity</returns>
     public K SaveReference<T, K>(T reference)
     {
+      // TODO:
       return default(K);
+    }
+
+    /// <summary>
+    /// Writes TimeSpan value to stream
+    /// </summary>
+    /// <param name="value">TimeSpan value to write</param>
+    public void Write(TimeSpan value)
+    {
+      Write(value.Ticks);
+    }
+
+    static long DateTimeToRaw(DateTime value)
+    {
+      return value.Ticks | (((long)value.Kind) << 0x3e);
+    }
+
+    /// <summary>
+    /// Writes DateTime value to stream
+    /// </summary>
+    /// <param name="value">DateTime value to write</param>
+    public void Write(DateTime value)
+    {
+      Write(DateTimeToRaw(value));
+    }
+
+    /// <summary>
+    /// Writes DateTimeOffset value to stream
+    /// </summary>
+    /// <param name="value">DateTimeOffset value to write</param>
+    public void Write(DateTimeOffset value)
+    {
+      Write(value.DateTime);
+      Write((short)(value.Offset.Ticks / TimeSpan.TicksPerMinute));
+    }
+
+    /// <summary>
+    /// Writes Guid value to stream
+    /// </summary>
+    /// <param name="value">Guid value to write</param>
+    public void Write(Guid guid)
+    {
+      Write(guid.ToByteArray(), 0, 16);
+    }
+
+#if SILVERLIGHT && !WINDOWS_PHONE
+    /// <summary>
+    /// Writes Decimal value to stream
+    /// </summary>
+    /// <param name="value">Decimal value to write</param>
+    public void WriteDecimal(decimal value)
+    {
+      var bits = decimal.GetBits(value);
+      Write(bits[0]);
+      Write(bits[1]);
+      Write(bits[2]);
+      Write(bits[3]);
+    }
+#endif
+
+    /// <summary>
+    /// Writes byte array to stream
+    /// </summary>
+    /// <param name="value">Byte array to write</param>
+    public void WriteArray(byte[] value)
+    {
+      Write(value.Length);
+      Write(value);
     }
   }
 }

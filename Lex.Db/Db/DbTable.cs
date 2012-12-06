@@ -128,10 +128,18 @@ namespace Lex.Db
 
     Dictionary<string, IDataIndex<T>> _indexes;
 
+    /// <summary>
+    /// Type of the table entity class
+    /// </summary>
     public override Type Type { get { return typeof(T); } }
 
     string _name = typeof(T).Name;
+  
+    /// <summary>
+    /// Name of the table
+    /// </summary>
     public override string Name { get { return _name; } internal set { _name = value; } }
+ 
     readonly DbInstance _db;
 
     internal DbTable(DbInstance db)
@@ -348,9 +356,9 @@ namespace Lex.Db
     #endregion
 
     /// <summary>
-    /// Returns actual item count 
+    /// Determines number of entities stored in the table
     /// </summary>
-    /// <returns></returns>
+    /// <returns>Number of entities stored in the table</returns>
     public override int Count()
     {
       using (ReadScope())
@@ -391,10 +399,10 @@ namespace Lex.Db
     #endregion
 
     /// <summary>
-    /// Lists all current keys 
+    /// Lists all current key values 
     /// </summary>
-    /// <typeparam name="K">Type of the primary key</typeparam>
-    /// <returns>List of key values</returns>
+    /// <typeparam name="K">Type of the PK</typeparam>
+    /// <returns>List of all current key values</returns>
     public override List<K> AllKeys<K>()
     {
       using (ReadScope())
@@ -411,12 +419,10 @@ namespace Lex.Db
         return KeyIndex.MakeKeyList();
     }
 
-
-
     /// <summary>
-    /// Bulk loads all instances
+    /// Loads all entities  
     /// </summary>
-    /// <returns>List of all instances</returns>
+    /// <returns>List of all entities</returns>
     public List<T> LoadAll()
     {
       using (var scope = ReadScope())
@@ -424,9 +430,9 @@ namespace Lex.Db
     }
 
     /// <summary>
-    /// Bulk loads by key instances
+    /// Loads entities by specified index and key value 
     /// </summary>
-    /// <returns>List of all instances</returns>
+    /// <returns>List of all entities with specified key value</returns>
     public List<T> LoadAll<I1>(string index, I1 key)
     {
       var idx = GetIndex<I1>(index);
@@ -516,11 +522,11 @@ namespace Lex.Db
     }
 
     /// <summary>
-    /// Loads an instance specified by key 
+    /// Loads an entity by specified PK value
     /// </summary>
     /// <typeparam name="K">Type of the primary key</typeparam>
-    /// <param name="key">Key value</param>
-    /// <returns>Instance identified by the key, if any</returns>
+    /// <param name="key">PK value</param>
+    /// <returns>Entity identified by the PK value, if any</returns>
     public T LoadByKey<K>(K key)
     {
       using (var scope = ReadScope())
@@ -574,10 +580,10 @@ namespace Lex.Db
     }
 
     /// <summary>
-    /// Refreshes specified instance from disk
+    /// Refreshes specified entity from disk
     /// </summary>
-    /// <param name="item">Instance to refresh</param>
-    /// <returns>Same instance, updated from disk</returns>
+    /// <param name="item">Entity to refresh</param>
+    /// <returns>Same entity, updated from disk</returns>
     public T Refresh(T item)
     {
       if (item == null)
@@ -596,9 +602,9 @@ namespace Lex.Db
     }
 
     /// <summary>
-    /// Saves specified item sequence, adding or updating as needed
+    /// Saves specified entity sequence, adding or updating as needed
     /// </summary>
-    /// <param name="items">Sequence to merge in</param>
+    /// <param name="items">Entity sequence to upsert into table</param>
     public void Save(IEnumerable<T> items)
     {
       if (items == null)
@@ -632,9 +638,9 @@ namespace Lex.Db
     }
 
     /// <summary>
-    /// Saves specified item, adding or updating as needed
+    /// Saves specified entity, adding or updating as needed
     /// </summary>
-    /// <param name="item">Item to merge in</param>
+    /// <param name="item">Entity to upsert into table</param>
     public void Save(T item)
     {
       if (item == null)
@@ -716,11 +722,11 @@ namespace Lex.Db
     }
 
     /// <summary>
-    /// Deletes item specified by key
+    /// Deletes entity specified by key
     /// </summary>
     /// <typeparam name="K">Type of the primary key</typeparam>
-    /// <param name="key">Key of item to delete</param>
-    /// <returns>Returns true if item was deleted</returns>
+    /// <param name="key">Key of entity to delete</param>
+    /// <returns>True if entity was deleted</returns>
     public override bool DeleteByKey<K>(K key)
     {
       using (var scope = WriteScope())
@@ -734,11 +740,11 @@ namespace Lex.Db
     }
 
     /// <summary>
-    /// Deletes items specified by key sequence 
+    /// Deletes entities specified by key sequence 
     /// </summary>
     /// <typeparam name="K">Type of the primary key</typeparam>
     /// <param name="keys">Key sequence to delete</param>
-    /// <returns>Returns count of the deleted items</returns>
+    /// <returns>Count of the deleted entities</returns>
     public override int DeleteByKeys<K>(IEnumerable<K> keys)
     {
       if (keys == null)
@@ -756,9 +762,10 @@ namespace Lex.Db
     }
 
     /// <summary>
-    /// Deletes specified item
+    /// Deletes specified entity
     /// </summary>
-    /// <param name="item">Item to delete</param>
+    /// <param name="item">Entity to delete</param>
+    /// <returns>True is entity was deleted</returns>
     public bool Delete(T item)
     {
       if (item == null)
@@ -775,9 +782,9 @@ namespace Lex.Db
     }
 
     /// <summary>
-    /// Deletes specified item sequence
+    /// Deletes entities specified by the sequence 
     /// </summary>
-    /// <param name="items">Sequence of items to delete</param>
+    /// <param name="items">Sequence of entities to delete</param>
     public int Delete(IEnumerable<T> items)
     {
       var result = 0;
@@ -796,7 +803,7 @@ namespace Lex.Db
     }
 
     /// <summary>
-    /// Compacts data file
+    /// Compacts data file of the table
     /// </summary>
     public override void Compact()
     {
@@ -809,7 +816,7 @@ namespace Lex.Db
     }
 
     /// <summary>
-    /// Truncates all items
+    /// Clears the table
     /// </summary>
     public override void Purge()
     {
@@ -872,6 +879,11 @@ namespace Lex.Db
         writer.CropData(KeyIndex.GetFileSize());
     }
 
+    /// <summary>
+    /// Specifies key/values pairs of the table metadata 
+    /// </summary>
+    /// <param name="property">Metadata property name</param>
+    /// <returns>Value of the named metadata property</returns>
     public override string this[string property]
     {
       get
@@ -894,12 +906,24 @@ namespace Lex.Db
       }
     }
 
+    /// <summary>
+    /// Determines minimal PK value from PK index,
+    /// returns default(K) if table is empty
+    /// </summary>
+    /// <typeparam name="K">Type of the key</typeparam>
+    /// <returns>Minimal PK value</returns>
     public override K GetMinKey<K>()
     {
       using (ReadScope())
         return (K)KeyIndex.MinKey();
     }
 
+    /// <summary>
+    /// Determines maximal PK value from PK index,
+    /// returns default(K) if table is empty
+    /// </summary>
+    /// <typeparam name="K">Type of the key</typeparam>
+    /// <returns>Maximal PK value</returns>
     public override K GetMaxKey<K>()
     {
       using (ReadScope())
