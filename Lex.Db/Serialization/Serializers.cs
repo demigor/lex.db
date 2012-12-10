@@ -10,6 +10,29 @@ namespace Lex.Db.Serialization
   using Indexing;
 
   /// <summary>
+  /// Serialization extender
+  /// </summary>
+  public static class Extender
+  {
+    /// <summary>
+    /// Registers static serialization extension before any DbInstance initialization.
+    /// Serialization extensions is a static class with following methods pattern:
+    /// public static K ReadXXX(DataReader reader)
+    /// public static void WriteXXX(DataWriter writer, K value)
+    /// where K is custom type to serialize
+    /// XXX is type name of K without namespace
+    /// </summary>
+    /// <typeparam name="K">Type to serialize</typeparam>
+    /// <typeparam name="S">Serialization extension</typeparam>
+    /// <param name="streamId">Stable (for the lifetime of your app) id of the custom type. 
+    /// Must be greater than 1000 (other are already taken or reserved for future use)</param>
+    public static void RegisterType<K, S>(short streamId)
+    {
+      Serializers.RegisterType<K, S>(streamId);
+    }
+  }
+
+  /// <summary>
   /// Provides serialization logic and code generation
   /// </summary>
   static class Serializers
@@ -306,7 +329,6 @@ namespace Lex.Db.Serialization
     }
 
     #endregion
-
 
     #region TimeSpan serialization
 
@@ -613,9 +635,9 @@ namespace Lex.Db.Serialization
     /// Writes Guid value to stream
     /// </summary>
     /// <param name="value">Guid value to write</param>
-    public void Write(Guid guid)
+    public void Write(Guid value)
     {
-      Write(guid.ToByteArray(), 0, 16);
+      Write(value.ToByteArray(), 0, 16);
     }
 
 #if SILVERLIGHT && !WINDOWS_PHONE

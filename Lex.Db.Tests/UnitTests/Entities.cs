@@ -42,11 +42,21 @@ namespace Lex.Db
     public List<int> ListField { get; set; }
     public Dictionary<string, int> DictField { get; set; }
 
+    public TestEnum EnumField { get; set; }
+    public TestEnum? EnumNField { get; set; }
+
     public MyData()
     {
       ListField = new List<int>();
       DictField = new Dictionary<string, int>();
     }
+  }
+
+  public enum TestEnum
+  {
+    None,
+    EnumValue1,
+    EnumValue2
   }
 
   public class MyDataGroup

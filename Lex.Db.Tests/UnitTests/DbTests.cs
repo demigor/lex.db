@@ -208,6 +208,7 @@ namespace Lex.Db.Silverlight
       Assert.AreEqual(obj.DateTimeNField, newObj.DateTimeNField);
       Assert.AreEqual(obj.DateTimeOffsetNField, newObj.DateTimeOffsetNField);
       Assert.AreEqual(obj.GuidNField, newObj.GuidNField);
+      Assert.AreEqual(obj.EnumNField, newObj.EnumNField);
       Assert.AreEqual(obj.Name, newObj.Name);
 
     }
@@ -382,6 +383,23 @@ namespace Lex.Db.Silverlight
 
       Assert.AreEqual(obj.GuidField, newObj.GuidField);
       Assert.AreEqual(obj.GuidNField, newObj.GuidNField);
+    }
+
+    #endregion
+
+    #region Enum Rountrip Tests
+
+    [TestMethod]
+    public void RountripEnum1()
+    {
+      var obj = new MyData { EnumField = TestEnum.EnumValue1, EnumNField = TestEnum.EnumValue2 };
+
+      table.Save(obj);
+
+      var newObj = table.LoadByKey(obj.Id);
+
+      Assert.AreEqual(obj.EnumField, newObj.EnumField);
+      Assert.AreEqual(obj.EnumNField, newObj.EnumNField);
     }
 
     #endregion

@@ -8,6 +8,7 @@
         <owners>Lex Lavnikov</owners>
         <licenseUrl>https://raw.github.com/demigor/lex.db/master/License.txt</licenseUrl>
         <projectUrl>https://github.com/demigor/lex.db</projectUrl>
+        <iconUrl>http://lexblog.azurewebsites.net/wp-content/uploads/2012/12/lexdb32.png</iconUrl>
         <requireLicenseAcceptance>true</requireLicenseAcceptance>
         <description>Features: 
 * Supports isolated storage, files &amp; local app data folders.
@@ -15,7 +16,7 @@
 * Concurrent database access (SL OOB multiple instance support)
 * RBT Indexes
 * Lazy loading</description>
-        <summary>Superfast, lightweight (~100K), object-oriented database for .NET4+, Silverlight 5+, Windows Phone 8+ &amp; Windows RT platforms.</summary>
+        <summary>Superfast, lightweight (~100K), object-oriented database for WP8+ &amp; WinRT, .NET4+, Silverlight 5+,  platforms.</summary>
         <releaseNotes>Prerelease</releaseNotes>
         <copyright>Alexey Lavnikov</copyright>
         <language>en-US</language>
