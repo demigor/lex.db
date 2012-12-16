@@ -232,6 +232,34 @@ namespace Lex.Db.Serialization
 
     #endregion
 
+    #region Uri serialization
+
+    public static Uri ReadUri(DataReader reader)
+    {
+      var uri = reader.ReadString();
+      if (uri == null)
+        return null;
+
+      var absolute = reader.ReadBoolean();
+      if (absolute)
+        return new Uri(uri, UriKind.Absolute);
+
+      return new Uri(uri, UriKind.Relative);
+    }
+
+    public static void WriteUri(DataWriter writer, Uri value)
+    {
+      if (value == null)
+        writer.Write((string)null);
+      else
+      {
+        var absolute = value.IsAbsoluteUri;
+        writer.Write(absolute);
+        writer.Write(value.GetComponents(UriComponents.SerializationInfoString, UriFormat.UriEscaped));
+      }
+    }
+
+    #endregion
     #region int serialization
 
     public static int ReadInt(DataReader reader)

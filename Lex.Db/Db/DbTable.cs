@@ -134,12 +134,12 @@ namespace Lex.Db
     public override Type Type { get { return typeof(T); } }
 
     string _name = typeof(T).Name;
-  
+
     /// <summary>
     /// Name of the table
     /// </summary>
     public override string Name { get { return _name; } internal set { _name = value; } }
- 
+
     readonly DbInstance _db;
 
     internal DbTable(DbInstance db)
@@ -300,39 +300,48 @@ namespace Lex.Db
       return result;
     }
 
-    internal IDataIndex<T, K> GetIndex<K>(string name)
+    internal IDataIndex<T, I1> GetIndex<I1>(string name)
     {
-      return (IDataIndex<T, K>)GetIndex(name);
-    }
-
-    internal IDataIndex<T> GetIndex(params MemberInfo[] members)
-    {
-      if (_indexes == null)
+      var idx = GetIndex(name);
+      if (idx == null)
         return null;
 
-      return _indexes.Values.FirstOrDefault(i => members.SequenceEqual(i.Keys));
+      var result = idx as IDataIndex<T, I1>;
+      if (result == null)
+        throw new ArgumentException(string.Format("Index '{0}' type mismatch", name));
+
+      return result;
     }
 
-    internal IDataIndex<T> CreateIndex<I1>(string name, Func<T, I1> getter, MemberInfo[] members, Func<DataNode<I1>, Lazy<T>> lazyCtor) where I1 : IComparable<I1>
+    IDataIndex<T> CreateIndex<I1>(string name, Func<T, I1> getter, IComparer<I1> comparer, MemberInfo[] members, Func<DataNode<I1>, Lazy<T>> lazyCtor)
     {
-      return new DataIndex<T, I1>(this, name, getter, Comparer<I1>.Default, lazyCtor, i => LoadByKey(i.KeyNode.Key), members);
+      return new DataIndex<T, I1>(this, name, getter, comparer ?? Comparer<I1>.Default, lazyCtor, i => LoadByKey(i.KeyNode.Key), members);
     }
 
-    internal void CreateIndex<I1>(string name, Func<T, I1> getter, MemberInfo member) where I1 : IComparable<I1>
+    internal void CreateIndex<I1>(string name, Func<T, I1> getter, MemberInfo member, IComparer<I1> comparer)
     {
-      Indexes[name] = CreateIndex(name, getter, new[] { member },
+      Indexes[name] = CreateIndex(name,
+        getter,
+        comparer,
+        new[] { member },
         i => new Lazy<T, I1>(i.Key, () => LoadByKey(i.KeyNode.Key)));
     }
 
-    internal void CreateIndex<I1, I2>(string name, MemberInfo member1, MemberInfo member2)
+    internal void CreateIndex<I1, I2>(string name, MemberInfo member1, IComparer<I1> comparer1, MemberInfo member2, IComparer<I2> comparer2)
     {
-      Indexes[name] = CreateIndex(name, BuildGetter<I1, I2>(member1, member2), new[] { member1, member2 },
+      Indexes[name] = CreateIndex(name,
+        BuildGetter<I1, I2>(member1, member2),
+        new Indexer<I1, I2>.Comparer(comparer1, comparer2),
+        new[] { member1, member2 },
         i => new Lazy<T, I1, I2>(i.Key, () => LoadByKey(i.KeyNode.Key)));
     }
 
-    internal void CreateIndex<I1, I2, I3>(string name, MemberInfo member1, MemberInfo member2, MemberInfo member3)
+    internal void CreateIndex<I1, I2, I3>(string name, MemberInfo member1, IComparer<I1> comparer1, MemberInfo member2, IComparer<I2> comparer2, MemberInfo member3, IComparer<I3> comparer3)
     {
-      Indexes[name] = CreateIndex(name, BuildGetter<I1, I2, I3>(member1, member2, member3), new[] { member1, member2, member3 },
+      Indexes[name] = CreateIndex(name,
+        BuildGetter<I1, I2, I3>(member1, member2, member3),
+        new Indexer<I1, I2, I3>.Comparer(comparer1, comparer2, comparer3),
+        new[] { member1, member2, member3 },
         i => new Lazy<T, I1, I2, I3>(i.Key, () => LoadByKey(i.KeyNode.Key)));
     }
 
@@ -437,7 +446,7 @@ namespace Lex.Db
     {
       var idx = GetIndex<I1>(index);
       if (idx == null)
-        throw new InvalidOperationException("Index {0} not found");
+        throw new InvalidOperationException(string.Format("Index {0} not found", index));
 
       using (ReadScope())
         return idx.Load(key).ToList();
@@ -486,6 +495,25 @@ namespace Lex.Db
       using (ReadScope())
         return idx.LazyLoad(key).Cast<Lazy<T, I1>>().ToList();
     }
+
+    /// <summary>
+    /// Lazy load via normal index
+    /// </summary>
+    /// <typeparam name="I1">Index type first parameter</typeparam>
+    /// <typeparam name="I2">Index type second parameter</typeparam>
+    /// <param name="index">Name of the index (case insensitive)</param>
+    /// <param name="key">Key value</param>
+    /// <returns>List of lazy instances</returns>
+    public List<Lazy<T, I1, I2>> LazyLoad<I1, I2>(string index, I1 key1, I2 key2)
+    {
+      var idx = GetIndex<Indexer<I1, I2>>(index);
+      if (idx == null)
+        throw new ArgumentException("index");
+
+      using (ReadScope())
+        return idx.LazyLoad(new Indexer<I1, I2>(key1, key2)).Cast<Lazy<T, I1, I2>>().ToList();
+    }
+
     /// <summary>
     /// Lazy load via normal index by two columns
     /// </summary>
@@ -501,6 +529,27 @@ namespace Lex.Db
 
       using (ReadScope())
         return idx.LazyLoad().Cast<Lazy<T, I1, I2>>().ToList();
+    }
+
+    /// <summary>
+    /// Lazy load via normal index
+    /// </summary>
+    /// <typeparam name="I1">Index type first parameter</typeparam>
+    /// <typeparam name="I2">Index type second parameter</typeparam>
+    /// <typeparam name="I3">Index type second parameter</typeparam>
+    /// <param name="index">Name of the index (case insensitive)</param>
+    /// <param name="key1">First component of key value</param>
+    /// <param name="key2">Second component of key value</param>
+    /// <param name="key3">Third component of key value</param>
+    /// <returns>List of lazy instances</returns>
+    public List<Lazy<T, I1, I2, I3>> LazyLoad<I1, I2, I3>(string index, I1 key1, I2 key2, I3 key3)
+    {
+      var idx = GetIndex<Indexer<I1, I2, I3>>(index);
+      if (idx == null)
+        throw new ArgumentException("index");
+
+      using (ReadScope())
+        return idx.LazyLoad(new Indexer<I1, I2, I3>(key1, key2, key3)).Cast<Lazy<T, I1, I2, I3>>().ToList();
     }
 
     /// <summary>

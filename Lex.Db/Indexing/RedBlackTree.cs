@@ -336,7 +336,6 @@ namespace Lex.Db.Indexing
       target.Parent = source.Parent;
     }
 
-
     ///<summary>
     ///Find key in the dictionary
     ///This operation is O(logN) operation
@@ -507,19 +506,19 @@ namespace Lex.Db.Indexing
       _root.Color = RBTreeColor.Black;
     }
 
-/*
-     Rotate our tree Left
+    /*
+         Rotate our tree Left
     
-                 X        rb_left_rotate(X)--->            Y
-               /   \                                     /   \
-              A     Y                                   X     C
-                  /   \                               /   \
-                 B     C                             A     B
+                     X        rb_left_rotate(X)--->            Y
+                   /   \                                     /   \
+                  A     Y                                   X     C
+                      /   \                               /   \
+                     B     C                             A     B
     
-     N.B. This does not change the ordering.
+         N.B. This does not change the ordering.
     
-     We assume that neither X or Y is NULL
-*/
+         We assume that neither X or Y is NULL
+    */
     protected void LeftRotate(TNode x)
     {
       // set Y
@@ -554,19 +553,19 @@ namespace Lex.Db.Indexing
       x.Parent = y;
     }
 
-/*
-     Rotate our tree Right
+    /*
+         Rotate our tree Right
     
-                 X                                         Y
-               /   \                                     /   \
-              A     Y     < ---rb_right_rotate(Y)       X     C
-                  /   \                               /   \
-                 B     C                             A     B
+                     X                                         Y
+                   /   \                                     /   \
+                  A     Y     < ---rb_right_rotate(Y)       X     C
+                      /   \                               /   \
+                     B     C                             A     B
     
-     N.B. This does not change the ordering.
+         N.B. This does not change the ordering.
     
-     We assume that neither X or Y is NULL
-*/
+         We assume that neither X or Y is NULL
+    */
     protected void RightRotate(TNode y)
     {
       // set X

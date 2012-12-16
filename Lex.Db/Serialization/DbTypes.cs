@@ -23,6 +23,7 @@ namespace Lex.Db.Serialization
       Register<bool>(KnownDbType.Boolean);
       Register<decimal>(KnownDbType.Decimal);
       Register<byte>(KnownDbType.Byte);
+      Register<Uri>(KnownDbType.Uri);
     }
 
     static void Register<T>(KnownDbType dbType)

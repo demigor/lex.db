@@ -121,6 +121,37 @@ namespace Lex.Db.Silverlight
     }
 
     [TestMethod]
+    public void Indexing()
+    {
+      var db = new DbInstance(@"My Database\Indexing");
+
+      db.Map<MyData>().Automap(i => i.Id, true)
+        .WithIndex("LastName", i => i.Name, StringComparer.CurrentCulture)
+        .WithIndex("LastNameText", i => i.Name, StringComparer.CurrentCultureIgnoreCase);
+      db.Initialize();
+
+      var table = db.Table<MyData>();
+      table.Purge();
+
+      db.BulkWrite(() =>
+      {
+        for (var s = 0; s < 100; s++)
+          for (var i = 0; i < 10; i++)
+            table.Save(new MyData { Name = "Test" + i });
+
+        for (var s = 0; s < 100; s++)
+          for (var i = 0; i < 10; i++)
+            table.Save(new MyData { Name = "TeST" + i });
+      });
+
+      var list1 = table.LoadAll("LastName", "Test5");
+      var list2 = table.LoadAll("LastNameText", "TEst5");
+
+      Assert.AreEqual(list1.Count, 100);
+      Assert.AreEqual(list2.Count, 200);
+    }
+
+    [TestMethod]
     public void LoadData()
     {
       var table = db.Table<MyData>();

@@ -15,6 +15,7 @@
     DateTime = 8,
     TimeSpan = 9,
     Long = 10,
-    DateTimeOffset = 11
+    DateTimeOffset = 11,
+    Uri = 12
   }
 }

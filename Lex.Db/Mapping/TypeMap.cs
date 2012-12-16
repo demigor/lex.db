@@ -261,18 +261,13 @@ namespace Lex.Db
     /// <param name="name">Name of the index</param>
     /// <param name="indexBy">Indexing expression</param>
     /// <returns>Entity type mapping to continue with</returns>
-    public TypeMap<T> WithIndex<I1>(string name, Expression<Func<T, I1>> indexBy)
-      where I1 : IComparable<I1>
+    public TypeMap<T> WithIndex<I1>(string name, Expression<Func<T, I1>> indexBy, IComparer<I1> comparer = null)
     {
       CheckIndexDoesNotExists(name);
 
       var member = ExtractMember(indexBy, MemberUsage.DataIndex);
 
-      var index = _table.GetIndex(member);
-      if (index != null)
-        throw new InvalidOperationException(string.Format("Index for member {0} is already defined", member.Name));
-
-      _table.CreateIndex(name, indexBy.Compile(), member);
+      _table.CreateIndex(name, indexBy.Compile(), member, comparer);
 
       return this;
     }
@@ -286,9 +281,7 @@ namespace Lex.Db
     /// <param name="indexBy">First index key component expression</param>
     /// <param name="thenBy">Second index key component expression</param>
     /// <returns>Entity type mapping to continue with</returns>
-    public TypeMap<T> WithIndex<I1, I2>(string name, Expression<Func<T, I1>> indexBy, Expression<Func<T, I2>> thenBy)
-      where I1 : IComparable<I1>
-      where I2 : IComparable<I2>
+    public TypeMap<T> WithIndex<I1, I2>(string name, Expression<Func<T, I1>> indexBy, Expression<Func<T, I2>> thenBy, IComparer<I1> comparerIndexBy = null, IComparer<I2> comparerThenBy = null)
     {
       CheckIndexDoesNotExists(name);
 
@@ -297,11 +290,7 @@ namespace Lex.Db
 
       CheckUnique(member1, member2);
 
-      var index = _table.GetIndex(member1, member2);
-      if (index != null)
-        throw new InvalidOperationException(string.Format("Index for members {0} | {1} is already defined", member1.Name, member2.Name));
-
-      _table.CreateIndex<I1, I2>(name, member1, member2);
+      _table.CreateIndex<I1, I2>(name, member1, comparerIndexBy, member2, comparerThenBy);
 
       return this;
     }
@@ -317,10 +306,7 @@ namespace Lex.Db
     /// <param name="thenBy">Second index key component expression</param>
     /// <param name="andThenBy">Third index key component expression</param>
     /// <returns>Entity type mapping to continue with</returns>
-    public TypeMap<T> WithIndex<I1, I2, I3>(string name, Expression<Func<T, I1>> indexBy, Expression<Func<T, I2>> thenBy, Expression<Func<T, I3>> andThenBy)
-      where I1 : IComparable<I1>
-      where I2 : IComparable<I2>
-      where I3 : IComparable<I3>
+    public TypeMap<T> WithIndex<I1, I2, I3>(string name, Expression<Func<T, I1>> indexBy, Expression<Func<T, I2>> thenBy, Expression<Func<T, I3>> andThenBy, IComparer<I1> comparerIndexBy = null, IComparer<I2> comparerThenBy = null, IComparer<I3> comparerAndThenBy = null)
     {
       CheckIndexDoesNotExists(name);
 
@@ -330,11 +316,7 @@ namespace Lex.Db
 
       CheckUnique(member1, member2, member3);
 
-      var index = _table.GetIndex(member1, member2, member3);
-      if (index != null)
-        throw new InvalidOperationException(string.Format("Index for members {0} | {1} | {2} is already defined", member1.Name, member2.Name, member3.Name));
-
-      _table.CreateIndex<I1, I2, I3>(name, member1, member2, member3);
+      _table.CreateIndex<I1, I2, I3>(name, member1, comparerIndexBy, member2, comparerThenBy, member3, comparerAndThenBy);
 
       return this;
     }
