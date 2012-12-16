@@ -102,13 +102,18 @@ namespace Lex.Db.FileSystem
       protected Stream _readStream, _indexStream;
       protected readonly DbTableStorage _table;
       readonly Action _finalizer;
-      readonly DateTimeOffset _ts;
+      DateTimeOffset _ts;
 
       public Reader(DbTableStorage table, Action finalizer)
       {
         _table = table;
         _finalizer = finalizer;
         CreateStreams();
+        UpdateTs();
+      }
+
+      protected void UpdateTs()
+      {
         _ts = File.GetLastWriteTime(_table._indexName);
       }
 
@@ -193,6 +198,8 @@ namespace Lex.Db.FileSystem
       {
         _indexStream.SetLength(0);
         _indexStream.Write(data, 0, length);
+
+        UpdateTs();
       }
 
       public void CopyData(long position, long target, int length)
