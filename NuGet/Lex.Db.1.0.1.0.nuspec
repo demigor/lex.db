@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
     <metadata>
         <id>Lex.Db</id>
-        <version>1.0.0.0</version>
+        <version>1.0.1.0</version>
         <title>Lex DB</title>
         <authors>Lex Lavnikov</authors>
         <owners>Lex Lavnikov</owners>
@@ -16,7 +16,7 @@
 * Concurrent database access (SL OOB multiple instance support)
 * RBT Indexes
 * Lazy loading</description>
-        <summary>Superfast, lightweight (~100K), object-oriented database for WP8+ &amp; WinRT, .NET4+, Silverlight 5+,  platforms.</summary>
+        <summary>Superfast, lightweight (~100K), POCO database for WP8+ &amp; WinRT, .NET4+, Silverlight 5+,  platforms.</summary>
         <releaseNotes>Prerelease</releaseNotes>
         <copyright>Alexey Lavnikov</copyright>
         <language>en-US</language>

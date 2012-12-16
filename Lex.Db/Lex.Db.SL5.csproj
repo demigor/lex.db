@@ -122,13 +122,5 @@
   <Target Name="AfterBuild">
   </Target>
   -->
-  <Target Name="BeforeBuild" Condition=" '$(BuildNumber)' != '' ">
-    <ItemGroup>
-      <AssemblyAttributes Include="AssemblyVersion">
-        <_Parameter1>1.0.$(BuildNumber)</_Parameter1>
-      </AssemblyAttributes>
-    </ItemGroup>
-    <WriteCodeFragment Language="C#" OutputFile="Properties\Version.cs" AssemblyAttributes="@(AssemblyAttributes)" />
-  </Target>
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
 </Project>
