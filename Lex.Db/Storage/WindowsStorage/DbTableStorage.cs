@@ -87,7 +87,7 @@ namespace Lex.Db.WindowsStorage
       protected Stream _readStream;
       protected readonly DbTableStorage _table;
       readonly Action _finalizer;
-      readonly DateTimeOffset _ts;
+      DateTimeOffset _ts;
       readonly protected Awaiter _awaiter = new Awaiter(true);
 
       public Reader(DbTableStorage table, Action finalizer)
@@ -95,6 +95,11 @@ namespace Lex.Db.WindowsStorage
         _table = table;
         _finalizer = finalizer;
         CreateStreams();
+        UpdateTs();
+      }
+
+      protected void UpdateTs()
+      {
         _ts = _awaiter.Await(_table._indexFile.GetBasicPropertiesAsync()).DateModified;
       }
 
@@ -161,8 +166,10 @@ namespace Lex.Db.WindowsStorage
 
       public void WriteIndex(byte[] data, int length)
       {
-        _indexStream.Size = 0;
+        _indexStream.Seek(0);
         _awaiter.Await(_indexStream.WriteAsync(data.AsBuffer(0, length)));
+        _indexStream.Size = (ulong)length;
+        UpdateTs();
       }
 
       public void CopyData(long position, long target, int length)

@@ -861,6 +861,7 @@ namespace Lex.Db
         if (ts > _tableTs)
         {
           _tableTs = ts;
+
           var index = reader.ReadIndex();
           if (index == null)
             PurgeCore();
@@ -877,6 +878,8 @@ namespace Lex.Db
 
       if (crop)
         writer.CropData(KeyIndex.GetFileSize());
+
+      _tableTs = writer.Ts;
     }
 
     /// <summary>
