@@ -260,6 +260,7 @@ namespace Lex.Db
     /// <typeparam name="I1">Type of the index key</typeparam>
     /// <param name="name">Name of the index</param>
     /// <param name="indexBy">Indexing expression</param>
+    /// <param name="comparer">Optional comparer for indexing expression</param>
     /// <returns>Entity type mapping to continue with</returns>
     public TypeMap<T> WithIndex<I1>(string name, Expression<Func<T, I1>> indexBy, IComparer<I1> comparer = null)
     {
@@ -280,6 +281,8 @@ namespace Lex.Db
     /// <param name="name">Name of the index</param>
     /// <param name="indexBy">First index key component expression</param>
     /// <param name="thenBy">Second index key component expression</param>
+    /// <param name="comparerIndexBy">Optional comparer for first index key component</param>
+    /// <param name="comparerThenBy">Optional comparer for second index key component</param>
     /// <returns>Entity type mapping to continue with</returns>
     public TypeMap<T> WithIndex<I1, I2>(string name, Expression<Func<T, I1>> indexBy, Expression<Func<T, I2>> thenBy, IComparer<I1> comparerIndexBy = null, IComparer<I2> comparerThenBy = null)
     {
@@ -305,6 +308,9 @@ namespace Lex.Db
     /// <param name="indexBy">First index key component expression</param>
     /// <param name="thenBy">Second index key component expression</param>
     /// <param name="andThenBy">Third index key component expression</param>
+    /// <param name="comparerIndexBy">Optional comparer for first index key component</param>
+    /// <param name="comparerThenBy">Optional comparer for second index key component</param>
+    /// <param name="comparerAndThenBy">Optional comparer for thirt index key component</param>
     /// <returns>Entity type mapping to continue with</returns>
     public TypeMap<T> WithIndex<I1, I2, I3>(string name, Expression<Func<T, I1>> indexBy, Expression<Func<T, I2>> thenBy, Expression<Func<T, I3>> andThenBy, IComparer<I1> comparerIndexBy = null, IComparer<I2> comparerThenBy = null, IComparer<I3> comparerAndThenBy = null)
     {

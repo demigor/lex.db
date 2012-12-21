@@ -502,7 +502,8 @@ namespace Lex.Db
     /// <typeparam name="I1">Index type first parameter</typeparam>
     /// <typeparam name="I2">Index type second parameter</typeparam>
     /// <param name="index">Name of the index (case insensitive)</param>
-    /// <param name="key">Key value</param>
+    /// <param name="key1">Value for first key component</param>
+    /// <param name="key2">Value for second key component</param>
     /// <returns>List of lazy instances</returns>
     public List<Lazy<T, I1, I2>> LazyLoad<I1, I2>(string index, I1 key1, I2 key2)
     {
