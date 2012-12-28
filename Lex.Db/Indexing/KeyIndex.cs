@@ -31,7 +31,7 @@ namespace Lex.Db.Indexing
     long GetFileSize();
 
     void Compact(IDbTableWriter compacter);
-    List<T> Load(IDbTableReader reader, Metadata<T> metadata);
+    T[] Load(IDbTableReader reader, Metadata<T> metadata);
 
     IKeyNode Update(T instance, int length);
     bool Remove(T instance);
@@ -381,9 +381,9 @@ namespace Lex.Db.Indexing
 
     DataMap<K> _map;
 
-    public List<T> Load(IDbTableReader reader, Metadata<T> metadata)
+    public T[] Load(IDbTableReader reader, Metadata<T> metadata)
     {
-      return new List<T>(_setter == null ? LoadNoKeys(reader, metadata) : LoadWithKeys(reader, metadata));
+      return _setter == null ? LoadNoKeys(reader, metadata) : LoadWithKeys(reader, metadata);
     }
 
     T[] LoadWithKeys(IDbTableReader reader, Metadata<T> metadata)

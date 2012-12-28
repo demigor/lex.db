@@ -372,8 +372,8 @@ namespace Lex.Db
     /// Loads all entities of specified entity type
     /// </summary>
     /// <typeparam name="T">Type of the entity</typeparam>
-    /// <returns>List of all entities</returns>
-    public List<T> LoadAll<T>() where T : class
+    /// <returns>Array of all entities</returns>
+    public T[] LoadAll<T>() where T : class
     {
       return Table<T>().LoadAll();
     }

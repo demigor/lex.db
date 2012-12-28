@@ -209,7 +209,7 @@ namespace Lex.Db.Silverlight
       {
         var cnt = DoSaveDataBulk();
         var load = table.LoadAll();
-        Assert.AreEqual(cnt, load.Count);
+        Assert.AreEqual(cnt, load.Length);
       });
     }
 

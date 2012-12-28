@@ -431,8 +431,8 @@ namespace Lex.Db
     /// <summary>
     /// Loads all entities  
     /// </summary>
-    /// <returns>List of all entities</returns>
-    public List<T> LoadAll()
+    /// <returns>Array of all entities</returns>
+    public T[] LoadAll()
     {
       using (var scope = ReadScope())
         return KeyIndex.Load(scope.Element, Metadata);

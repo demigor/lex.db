@@ -20,8 +20,8 @@ namespace Lex.Db
     /// </summary>
     /// <typeparam name="T">Type of the entity class</typeparam>
     /// <param name="table">Table of the entity class</param>
-    /// <returns>Awaitable Task with list of entities in result</returns>
-    public static Task<List<T>> LoadAllAsync<T>(this DbTable<T> table) where T : class
+    /// <returns>Awaitable Task with array of entities in result</returns>
+    public static Task<T[]> LoadAllAsync<T>(this DbTable<T> table) where T : class
     {
       return TaskEx.Run(() => table.LoadAll());
     }
