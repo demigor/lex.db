@@ -116,17 +116,30 @@ namespace Lex.Db
   /// </summary>
   /// <typeparam name="T">Table entity class</typeparam>
   [DebuggerDisplay("{Name}")]
-  public sealed class DbTable<T> : DbTable where T : class
+  public class DbTable<T> : DbTable
   {
 #if NLOG
     static readonly Logger Log = LogManager.GetCurrentClassLogger();
 #endif
 
+      private readonly DbInstance _db;
+      private readonly Func<T> _ctor;
     internal readonly Metadata<T> Metadata = new Metadata<T>();
     internal IKeyIndex<T> KeyIndex;
     Action<T, IKeyIndex<T>> _autoGen;
+    DateTimeOffset _tableTs;
 
     Dictionary<string, IDataIndex<T>> _indexes;
+
+    public DbTable(DbInstance db, Func<T> ctor)
+    {
+        _db = db;
+        _ctor = ctor;
+    }
+
+    public DbTable(DbInstance db) : this(db, Ctor<T>.New)
+    { 
+    }
 
     /// <summary>
     /// Type of the table entity class
@@ -139,13 +152,6 @@ namespace Lex.Db
     /// Name of the table
     /// </summary>
     public override string Name { get { return _name; } internal set { _name = value; } }
-
-    readonly DbInstance _db;
-
-    internal DbTable(DbInstance db)
-    {
-      _db = db;
-    }
 
     internal void Initialize(IDbTableStorage table)
     {
@@ -168,7 +174,7 @@ namespace Lex.Db
 
     internal void Add<K>(Expression<Func<T, K>> keyBuilder, MemberInfo key, bool autoGen)
     {
-      KeyIndex = new KeyIndex<T, K>(this, keyBuilder.Compile(), key);
+      KeyIndex = new KeyIndex<T, K>(this, keyBuilder.Compile(), key, _ctor);
       Metadata.Key = DbTypes.GetDbType(keyBuilder.Body.Type);
 
       if (autoGen && key != null)
@@ -900,8 +906,6 @@ namespace Lex.Db
           i.Value.Update(key, instance);
     }
 
-    DateTimeOffset _tableTs;
-
     internal override void LoadIndex(IDbTableReader reader)
     {
       var ts = reader.Ts;
@@ -982,5 +986,20 @@ namespace Lex.Db
       using (ReadScope())
         return (K)KeyIndex.MaxKey();
     }
+  }
+
+  /// <summary>
+  /// Typed database table 
+  /// </summary>
+  /// <typeparam name="T">Table entity class</typeparam>
+  [DebuggerDisplay("{Name}")]
+  public class DbTable<TInterface, TType> : DbTable<TInterface>
+  {
+      /// <summary>
+      /// Instantiates a new <see cref="DbTable"/>
+      /// </summary>
+      /// <param name="db"></param>
+      /// <param name="ctor"></param>
+      public DbTable(DbInstance db, Func<TInterface> ctor) : base(db, ctor) { }
   }
 }

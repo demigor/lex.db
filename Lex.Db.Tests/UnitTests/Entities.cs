@@ -3,7 +3,50 @@ using System.Collections.Generic;
 
 namespace Lex.Db
 {
-  public class MyData
+  public interface IMyData
+  {
+      int Id { get; set; }
+      string Name { get; set; }
+      string LastName { get; set; }
+
+      int IntField { get; set; }
+      int? IntNField { get; set; }
+
+      long LongField { get; set; }
+      long? LongNField { get; set; }
+
+      double DoubleField { get; set; }
+      double? DoubleNField { get; set; }
+
+      decimal DecimalField { get; set; }
+      decimal? DecimalNField { get; set; }
+
+      float FloatField { get; set; }
+      float? FloatNField { get; set; }
+
+      bool BoolField { get; set; }
+      bool? BoolNField { get; set; }
+
+      DateTime DateTimeField { get; set; }
+      DateTime? DateTimeNField { get; set; }
+
+      DateTimeOffset DateTimeOffsetField { get; set; }
+      DateTimeOffset? DateTimeOffsetNField { get; set; }
+
+      TimeSpan TimeSpanField { get; set; }
+      TimeSpan? TimeSpanNField { get; set; }
+
+      Guid GuidField { get; set; }
+      Guid? GuidNField { get; set; }
+
+      List<int> ListField { get; set; }
+      Dictionary<string, int> DictField { get; set; }
+
+      TestEnum EnumField { get; set; }
+      TestEnum? EnumNField { get; set; }
+  }
+
+  public class MyData : IMyData
   {
     public int Id { get; set; }
     public string Name { get; set; }

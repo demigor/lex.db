@@ -58,6 +58,7 @@
     <Compile Include="Indexing\Lazies.cs" />
     <Compile Include="Indexing\RedBlackTree.cs" />
     <Compile Include="Mapping\DataMap.cs" />
+    <Compile Include="Mapping\InterfaceMap.cs" />
     <Compile Include="Mapping\MemberMap.cs" />
     <Compile Include="Mapping\Metadata.cs" />
     <Compile Include="Mapping\TypeMap.cs" />
