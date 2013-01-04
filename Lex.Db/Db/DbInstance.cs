@@ -132,6 +132,39 @@ namespace Lex.Db
     }
 
     /// <summary>
+    /// Maps the specified interface type in the dataase, using the type as concrete implementation where necessary
+    /// and provides mapping infrastructure
+    /// </summary>
+    /// <typeparam name="TInterface"></typeparam>
+    /// <typeparam name="TType"></typeparam>
+    /// <returns></returns>
+    public InterfaceMap<TInterface, TType> Map<TInterface, TType>() where TType : class, TInterface, new()
+    {
+        CheckNotSealed();
+
+        lock (_maps)
+        {
+            TypeMap result;
+
+            if (_maps.TryGetValue(typeof(TInterface), out result))
+            {
+                InterfaceMap<TInterface, TType> interfaceMap = (result as InterfaceMap<TInterface, TType>);
+
+                if (interfaceMap != null)
+                {
+                    return interfaceMap;
+                }
+            }
+
+            InterfaceMap<TInterface, TType> map = new InterfaceMap<TInterface, TType>(this);
+
+            _maps[typeof(TInterface)] = map;
+
+            return map;
+        }
+    }
+
+    /// <summary>
     /// Provides database table infrastructure to read/write/query entities
     /// </summary>
     /// <typeparam name="T"></typeparam>

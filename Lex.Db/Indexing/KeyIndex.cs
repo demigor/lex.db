@@ -169,16 +169,18 @@ namespace Lex.Db.Indexing
     object IKeyNode.Key { get { return Key; } }
   }
 
-  class KeyIndex<T, K> : IKeyIndex<T>, IEnumerable<KeyNode<K>> where T: class
+  class KeyIndex<T, K> : IKeyIndex<T>, IEnumerable<KeyNode<K>>
   {
+      readonly Func<T> _ctor;
     readonly Func<T, K> _getter;
     readonly Action<T, K> _setter;
     readonly RBTree<K, KeyNode<K>> _tree = new RBTree<K, KeyNode<K>>();
     readonly DbTable<T> _loader;
     readonly MemberInfo[] _keys;
 
-    public KeyIndex(DbTable<T> loader, Func<T, K> getter, MemberInfo key)
+    public KeyIndex(DbTable<T> loader, Func<T, K> getter, MemberInfo key, Func<T> ctor)
     {
+        _ctor = ctor;
       _getter = getter;
       _loader = loader;
 
@@ -223,7 +225,7 @@ namespace Lex.Db.Indexing
 
       if (provision)
       {
-        result.Result = Ctor<T>.New();
+          result.Result = _ctor();
 
         if (_setter != null)
           _setter(result.Result, node.Key);
@@ -390,10 +392,9 @@ namespace Lex.Db.Indexing
     {
       var result = new T[_tree.Count];
       var idx = 0;
-      var ctor = Ctor<T>.New;
       for (var i = _tree.First(); i != null; i = _tree.Next(i))
       {
-        var item = ctor();
+        var item = _ctor();
         _setter(item, i.Key);
         metadata.Deserialize(reader.ReadData(i.Offset, i.Length), item);
         result[idx] = item;
@@ -406,10 +407,9 @@ namespace Lex.Db.Indexing
     {
       var result = new T[_tree.Count];
       var idx = 0;
-      var ctor = Ctor<T>.New;
       for (var i = _tree.First(); i != null; i = _tree.Next(i))
       {
-        var item = ctor();
+        var item = _ctor();
         metadata.Deserialize(reader.ReadData(i.Offset, i.Length), item);
         result[idx] = item;
         idx++;

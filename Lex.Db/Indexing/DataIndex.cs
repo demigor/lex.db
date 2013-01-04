@@ -27,7 +27,7 @@ namespace Lex.Db.Indexing
   }
 
   [DebuggerDisplay("{_name} ({ToString()}) : {Count}")]
-  internal class DataIndex<T, K> : IDataIndex<T, K>, IEnumerable<DataNode<K>>, ICleanup where T : class
+  internal class DataIndex<T, K> : IDataIndex<T, K>, IEnumerable<DataNode<K>>, ICleanup
   {
     readonly string _name;
     readonly Func<T, K> _getter;
