@@ -75,6 +75,9 @@
     <Compile Include="..\UnitTests\DbTests.cs">
       <Link>UnitTests\DbTests.cs</Link>
     </Compile>
+    <Compile Include="..\UnitTests\DbTests2.cs">
+      <Link>UnitTests\DbTests2.cs</Link>
+    </Compile>
     <Compile Include="..\UnitTests\Entities.cs">
       <Link>UnitTests\Entities.cs</Link>
     </Compile>

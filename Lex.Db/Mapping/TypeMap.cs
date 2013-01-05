@@ -32,18 +32,20 @@ namespace Lex.Db
   [DebuggerDisplay("{Name}")]
   public sealed class TypeMap<T> : TypeMap where T : class
   {
-    DbInstance _db;
+    readonly DbInstance _db;
+    readonly Func<T> _ctor;
     DbTable<T> _table;
 
-    internal TypeMap(DbInstance db)
+    internal TypeMap(DbInstance db, Func<T> ctor)
     {
       _db = db;
+      _ctor = ctor;
       Reset();
     }
 
     internal override void Clear()
     {
-      _table = new DbTable<T>(_db);
+      _table = new DbTable<T>(_db, _ctor);
     }
 
     /// <summary>
@@ -198,14 +200,21 @@ namespace Lex.Db
     /// <returns>Entity type mapping to continue with</returns>
     public TypeMap<T> MapAll()
     {
-      var fields = from f in typeof(T).GetPublicInstanceFields()
-                   where f != _key
-                   && !f.Attributes.HasFlag(FieldAttributes.InitOnly)
-                   && !f.IsDefined(typeof(XmlIgnoreAttribute), false)
-                   select f;
+#if NETFX_CORE
+      if (!typeof(T).GetTypeInfo().IsInterface)
+#else
+      if (!typeof(T).IsInterface)
+#endif
+      {
+        var fields = from f in typeof(T).GetPublicInstanceFields()
+                     where f != _key
+                     && !f.Attributes.HasFlag(FieldAttributes.InitOnly)
+                     && !f.IsDefined(typeof(XmlIgnoreAttribute), false)
+                     select f;
 
-      foreach (var f in fields)
-        _table.Add(new MemberMap<T>(f));
+        foreach (var f in fields)
+          _table.Add(new MemberMap<T>(f));
+      }
 
       var properties = from p in typeof(T).GetPublicInstanceProperties()
                        where p != _key

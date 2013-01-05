@@ -223,7 +223,7 @@ namespace Lex.Db.Indexing
 
       if (provision)
       {
-        result.Result = Ctor<T>.New();
+        result.Result = _loader.Ctor();
 
         if (_setter != null)
           _setter(result.Result, node.Key);
@@ -390,7 +390,7 @@ namespace Lex.Db.Indexing
     {
       var result = new T[_tree.Count];
       var idx = 0;
-      var ctor = Ctor<T>.New;
+      var ctor = _loader.Ctor;
       for (var i = _tree.First(); i != null; i = _tree.Next(i))
       {
         var item = ctor();
@@ -406,7 +406,7 @@ namespace Lex.Db.Indexing
     {
       var result = new T[_tree.Count];
       var idx = 0;
-      var ctor = Ctor<T>.New;
+      var ctor = _loader.Ctor;
       for (var i = _tree.First(); i != null; i = _tree.Next(i))
       {
         var item = ctor();

@@ -111,9 +111,23 @@ namespace Lex.Db
     /// Maps specified entity type in database and provides mapping infrastructure
     /// </summary>
     /// <typeparam name="T">Entity type</typeparam>
-    /// <returns>Entity type to table mapping</returns>
+    /// <returns>Entity T mapping configurator</returns>
     public TypeMap<T> Map<T>() where T : class, new()
     {
+      return Map<T>(Ctor<T>.New);
+    }
+
+    /// <summary>
+    /// Maps specified entity type in database and provides mapping infrastructure
+    /// </summary>
+    /// <typeparam name="T">Entity prototype</typeparam>
+    /// <param name="ctor">Entity implementation constructor</param>
+    /// <returns>Entity T mapping configurator</returns>
+    public TypeMap<T> Map<T>(Func<T> ctor) where T : class
+    {
+      if (ctor == null)
+        throw new ArgumentNullException("ctor");
+
       CheckNotSealed();
 
       lock (_maps)
@@ -123,12 +137,25 @@ namespace Lex.Db
         if (_maps.TryGetValue(typeof(T), out result))
           return (TypeMap<T>)result;
 
-        var map = new TypeMap<T>(this);
+        var map = new TypeMap<T>(this, ctor);
 
         _maps[typeof(T)] = map;
 
         return map;
       }
+    }
+
+    /// <summary>
+    /// Maps specified entity type in database and provides mapping infrastructure
+    /// </summary>
+    /// <typeparam name="T">Entity prototype</typeparam>
+    /// <typeparam name="TClass">Entity implementation type</typeparam>
+    /// <returns>Entity T mapping configurator</returns>
+    public TypeMap<T> Map<T, TClass>()
+      where T : class
+      where TClass : T, new()
+    {
+      return Map<T>(Ctor<T, TClass>.New);
     }
 
     /// <summary>

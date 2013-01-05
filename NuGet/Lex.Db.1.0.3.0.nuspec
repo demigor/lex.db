@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
     <metadata>
         <id>Lex.Db</id>
-        <version>1.0.2.0</version>
+        <version>1.0.3.0</version>
         <title>Lex DB</title>
         <authors>Lex Lavnikov</authors>
         <owners>Lex Lavnikov</owners>
@@ -17,7 +17,7 @@
 * RBT Indexes
 * Lazy loading</description>
         <summary>Superfast, lightweight (~100K), POCO database for WP8+ &amp; WinRT, .NET4+, Silverlight 5+,  platforms.</summary>
-        <releaseNotes>Prerelease</releaseNotes>
+        <releaseNotes />
         <copyright>Alexey Lavnikov</copyright>
         <language>en-US</language>
         <dependencies>

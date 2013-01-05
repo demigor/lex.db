@@ -123,6 +123,7 @@ namespace Lex.Db
 #endif
 
     internal readonly Metadata<T> Metadata = new Metadata<T>();
+    internal readonly Func<T> Ctor;
     internal IKeyIndex<T> KeyIndex;
     Action<T, IKeyIndex<T>> _autoGen;
 
@@ -142,9 +143,10 @@ namespace Lex.Db
 
     readonly DbInstance _db;
 
-    internal DbTable(DbInstance db)
+    internal DbTable(DbInstance db, Func<T> ctor)
     {
       _db = db;
+      Ctor = ctor;
     }
 
     internal void Initialize(IDbTableStorage table)

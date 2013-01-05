@@ -3,7 +3,10 @@ using System.Collections.Generic;
 
 namespace Lex.Db
 {
-  public class MyData
+  /// <summary>
+  /// Pure POCO data entity
+  /// </summary>
+  public class MyData 
   {
     public int Id { get; set; }
     public string Name { get; set; }
@@ -52,6 +55,9 @@ namespace Lex.Db
     }
   }
 
+  /// <summary>
+  /// Test enumeration for serialization roundtrip
+  /// </summary>
   public enum TestEnum
   {
     None,
@@ -59,11 +65,50 @@ namespace Lex.Db
     EnumValue2
   }
 
+  /// <summary>
+  /// Pure POCO with references
+  /// </summary>
   public class MyDataGroup
   {
     public int Id { get; set; }
     public string Name { get; set; }
     public List<MyData> Items { get; set; }
     public MyDataGroup Parent { get; set; }
+  }
+
+  /// <summary>
+  /// Interface for interface based data entity 
+  /// </summary>
+  public interface IData
+  {
+    int Id { get; set; }
+    string Name { get; set; }
+  }
+
+  /// <summary>
+  /// Implementation for interface based data entity
+  /// </summary>
+  public class InterfaceBasedData: IData
+  {
+    public int Id { get; set; }
+    public string Name { get; set; }
+  }
+
+  /// <summary>
+  /// Prototype for prototype based data entity
+  /// </summary>
+  public abstract class AData
+  {
+    public abstract int Id { get; set; }
+    public abstract string Name { get; set; }
+  }
+
+  /// <summary>
+  /// Implementation for prototype based data entity
+  /// </summary>
+  public class PrototypeBasedData: AData
+  {
+    public override int Id { get; set; }
+    public override string Name { get; set; }
   }
 }
