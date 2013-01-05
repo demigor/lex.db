@@ -503,8 +503,8 @@ namespace Lex.Db
     /// </summary>
     /// <typeparam name="T">Type of the entity</typeparam>
     /// <typeparam name="K">Type of the PK</typeparam>
-    /// <returns>List of all current key values for specified entity type</returns>
-    public List<K> AllKeys<T, K>() where T : class
+    /// <returns>Array of all current key values for specified entity type</returns>
+    public K[] AllKeys<T, K>() where T : class
     {
       return Table<T>().AllKeys<K>();
     }
@@ -513,8 +513,8 @@ namespace Lex.Db
     /// Lists all current key values 
     /// </summary>
     /// <typeparam name="T">Type of the entity</typeparam>
-    /// <returns>Sequence of key values for specified entity type</returns>
-    public IEnumerable AllKeys<T>() where T : class
+    /// <returns>Array of all current key values for specified entity type</returns>
+    public object[] AllKeys<T>() where T : class
     {
       return Table<T>().AllKeys();
     }

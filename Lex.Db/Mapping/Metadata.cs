@@ -10,7 +10,7 @@ namespace Lex.Db.Mapping
   using Indexing;
   using Serialization;
 
-  internal class Metadata<T>
+  internal class Metadata<T> where T: class
   {
     public Metadata() { }
 

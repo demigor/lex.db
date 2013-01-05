@@ -1,13 +1,15 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 
 namespace Lex.Db.Indexing
 {
   ///<summary>
   ///Colour of the node
   ///</summary>
-  internal enum RBTreeColor : byte
+  enum RBTreeColor : byte
   {
     ///<summary>
     ///Red
@@ -20,26 +22,21 @@ namespace Lex.Db.Indexing
   }
 
   [DebuggerDisplay("{Key}")]
-  internal class RBTreeNode<TKey, TNode> where TNode : RBTreeNode<TKey, TNode>
+  class RBTreeNode<TKey, TNode> where TNode : RBTreeNode<TKey, TNode>
   {
     public TKey Key;
     public TNode Parent, Left, Right;
     public RBTreeColor Color;
   }
 
-  internal class RBTree<TKey, TNode> where TNode : RBTreeNode<TKey, TNode>, new()
+  class RBTree<TKey, TNode> : IEnumerable<TNode> where TNode : RBTreeNode<TKey, TNode>, new()
   {
-    readonly IComparer<TKey> _comparer;
+    public readonly IComparer<TKey> Comparer;
     static readonly Func<TNode> _ctor = Ctor<TNode>.New;
 
-    public readonly bool Unique;
-
-    public RBTree() : this(true) { }
-
-    public RBTree(bool unique, IComparer<TKey> comparer = null)
+    public RBTree(IComparer<TKey> comparer)
     {
-      Unique = unique;
-      _comparer = comparer ?? Comparer<TKey>.Default;
+      Comparer = comparer ?? Comparer<TKey>.Default;
     }
 
     #region Count Property
@@ -103,25 +100,12 @@ namespace Lex.Db.Indexing
     ///</summary>
     public TNode AddOrGet(TKey key)
     {
-      TNode result;
       var insert = true;
-      if (Unique)
-      {
-        result = Traverse(key, ref insert);
-        if (insert)
-          _count++;
-      }
-      else
-      {
-        insert = false;
-        result = Traverse(key, ref insert);
-        if (result == null)
-        {
-          insert = true;
-          result = Traverse(key, ref insert);
-          _count++;
-        }
-      }
+
+      var result = Traverse(key, ref insert);
+      if (insert)
+        _count++;
+
       return result;
     }
 
@@ -346,24 +330,13 @@ namespace Lex.Db.Indexing
       var x = _root;
       while (x != null)
       {
-        var cmp = _comparer.Compare(key, x.Key);
+        var cmp = Comparer.Compare(key, x.Key);
         if (cmp < 0)
           x = x.Left;
         else if (cmp > 0)
           x = x.Right;
         else
-        {
-          if (!Unique)
-          {
-            var y = Prev(x);
-            while (y != null && _comparer.Compare(key, y.Key) == 0)
-            {
-              x = y;
-              y = Prev(y);
-            }
-          }
           return x;
-        }
       }
       return null;
     }
@@ -374,18 +347,13 @@ namespace Lex.Db.Indexing
     ///</summary>
     internal TNode Traverse(TKey key, ref bool insert)
     {
-      int cmp;
-
       //walk down the tree
       TNode y = null;
       var x = _root;
       while (x != null)
       {
         y = x;
-        cmp = _comparer.Compare(key, x.Key);
-
-        if (!Unique && cmp == 0 && insert)
-          cmp = 1;
+        var cmp = Comparer.Compare(key, x.Key);
 
         if (cmp < 0)
           x = x.Left;
@@ -412,7 +380,7 @@ namespace Lex.Db.Indexing
         _root = z;
       else
       {
-        cmp = _comparer.Compare(z.Key, y.Key);
+        var cmp = Comparer.Compare(z.Key, y.Key);
         if (cmp == 0)
           cmp = 1;
 
@@ -603,7 +571,7 @@ namespace Lex.Db.Indexing
     ///<summary>
     ///Return a pointer to the smallest key greater than x
     ///</summary>
-    public TNode Next(TNode x)
+    public static TNode Next(TNode x)
     {
       TNode y;
 
@@ -663,7 +631,16 @@ namespace Lex.Db.Indexing
     ///</summary>
     public TNode First()
     {
-      var x = _root;
+      return First(_root);
+    }
+
+    ///<summary>
+    ///Get first node
+    ///This operation is O(logN) operation
+    ///</summary>
+    public static TNode First(TNode root)
+    {
+      var x = root;
       var y = default(TNode);
 
       // Keep going left until we hit a NULL
@@ -692,6 +669,324 @@ namespace Lex.Db.Indexing
         x = x.Right;
       }
       return y;
+    }
+
+    #region Enumeration logic
+
+    public TResult[] Select<TResult>(Func<TNode, TResult> map)
+    {
+      var node = First();
+      var result = new TResult[Count];
+      for (int i = 0; i < result.Length; i++)
+      {
+        result[i] = map(node);
+        node = Next(node);
+      }
+      return result;
+    }
+
+    public IEnumerator<TNode> GetEnumerator()
+    {
+      for (var i = First(); i != null; i = Next(i))
+        yield return i;
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+      return GetEnumerator();
+    }
+
+    /*
+      class TreeScanner
+      {
+        TKey _min, _max;
+        bool _minInclusive, _maxInclusive;
+        Action<TNode> _callback;
+        IComparer<TKey> _comparer;
+
+        public TreeScanner(Action<TNode> callback, IComparer<TKey> comparer)
+        {
+          _callback = callback;
+          _comparer = comparer;
+        }
+
+        public void ScanAll(TNode node)
+        {
+          while (node != null)
+          {
+            ScanAll(node.Left);
+            _callback(node);
+            node = node.Right;
+          }
+        }
+
+        public void ScanMin(TNode node, TKey min, bool inclusive)
+        {
+          _min = min;
+          _minInclusive = inclusive;
+          EnumMin(node);
+        }
+
+        public void ScanMax(TNode node, TKey max, bool inclusive)
+        {
+          _max = max;
+          _maxInclusive = inclusive;
+          EnumMax(node);
+        }
+
+        public void ScanMinMax(TNode node, TKey min, bool minInclusive, TKey max, bool maxInclusive)
+        {
+          _min = min;
+          _minInclusive = minInclusive;
+
+          _max = max;
+          _maxInclusive = maxInclusive;
+
+          EnumMinMax(node);
+        }
+
+        void EnumMax(TNode node)
+        {
+          while (node != null)
+          {
+            var cmp = _comparer.Compare(node.Key, _max);
+
+            if (cmp > 0)
+              node = node.Left;
+            else
+            {
+              ScanAll(node.Left);
+
+              if (cmp < 0)
+              {
+                _callback(node);
+                EnumMax(node.Right);
+              }
+              else
+              {
+                if (_maxInclusive)
+                  _callback(node);
+              }
+
+              break;
+            }
+          }
+        }
+
+        void EnumMin(TNode node)
+        {
+          while (node != null)
+          {
+            var cmp = _comparer.Compare(node.Key, _min);
+            if (cmp < 0)
+              node = node.Right;
+            else
+            {
+              if (cmp > 0)
+              {
+                EnumMin(node.Left);
+                _callback(node);
+              }
+              else
+              {
+                if (_minInclusive)
+                  _callback(node);
+              }
+
+              ScanAll(node.Right);
+
+              break;
+            }
+          }
+        }
+
+        void EnumMinMax(TNode node)
+        {
+          while (node != null)
+          {
+            var lowCmp = _comparer.Compare(node.Key, _min);
+
+            if (lowCmp < 0)
+              node = node.Right;
+            else
+            {
+              if (lowCmp == 0)
+              {
+                if (_minInclusive)
+                {
+                  var highCmp = _comparer.Compare(node.Key, _max);
+                  if (highCmp < 0)
+                  {
+                    _callback(node);
+                    EnumMax(node.Right);
+                  }
+                  else if (highCmp == 0 && _maxInclusive)
+                    _callback(node);
+                }
+                else
+                  EnumMax(node.Right);
+              }
+              else
+              {
+                var highCmp = _comparer.Compare(node.Key, _max);
+
+                if (highCmp > 0)
+                  EnumMinMax(node.Left);
+                else if (highCmp < 0)
+                {
+                  EnumMin(node.Left);
+                  _callback(node);
+                  EnumMax(node.Right);
+                }
+                else
+                {
+                  EnumMin(node.Left);
+
+                  if (_maxInclusive)
+                    _callback(node);
+                }
+              }
+              break;
+            }
+          }
+        }
+      }
+   */
+
+    #endregion
+
+    public IEnumerable<TNode> Enum(IndexQueryArgs<TKey> args)
+    {
+      if (args.MinInclusive == null)
+      {
+        if (args.MaxInclusive == null)
+          return this;
+
+        return EnumMax(args.Max, args.MaxInclusive.Value);
+      }
+
+      if (args.MaxInclusive == null)
+        return EnumMin(args.Min, args.MinInclusive.Value);
+
+      if (Comparer.Compare(args.Min, args.Max) <= 0)
+        return EnumMinMax(args.Min, args.MinInclusive.Value, args.Max, args.MaxInclusive.Value);
+
+      return Enumerable.Empty<TNode>();
+    }
+
+    struct FindResult
+    {
+      public readonly TNode Node;
+      public readonly int Direction;
+
+      public FindResult(int dir, TNode node = null)
+      {
+        Node = node;
+        Direction = dir;
+      }
+    }
+
+    FindResult FindMax(TKey max, bool inclusive)
+    {
+      var node = _root;
+
+      while (node != null)
+      {
+        var cmp = Comparer.Compare(node.Key, max);
+
+        if (cmp > 0)
+          node = node.Left;
+        else if (cmp < 0)
+        {
+          var right = node.Right;
+          if (right == null)
+            return new FindResult(cmp, node);
+
+          node = right;
+
+        }
+        else
+          return new FindResult(inclusive ? 0 : -1, node);
+      }
+
+      return new FindResult(-1);
+    }
+
+    FindResult FindMin(TKey min, bool inclusive)
+    {
+      var node = _root;
+
+      while (node != null)
+      {
+        var cmp = Comparer.Compare(node.Key, min);
+
+        if (cmp < 0)
+          node = node.Right;
+        else if (cmp > 0)
+        {
+          var left = node.Left;
+          if (left == null)
+            return new FindResult(cmp, node);
+
+          node = left;
+        }
+        else
+          return new FindResult(inclusive ? 0 : 1, node);
+      }
+
+      return new FindResult(1);
+    }
+
+    IEnumerable<TNode> EnumMin(TKey min, bool inclusive)
+    {
+      var result = FindMin(min, inclusive);
+
+      var start = result.Node;
+      if (start == null)
+        yield break;
+
+      if (result.Direction > 0)
+        start = Next(start);
+
+      for (var i = start; i != null; i = Next(i))
+        yield return i;
+    }
+
+    IEnumerable<TNode> EnumMax(TKey max, bool inclusive)
+    {
+      var result = FindMax(max, inclusive);
+
+      var stop = result.Node;
+      if (stop == null)
+        yield break;
+
+      if (result.Direction == 0)
+        stop = Next(stop);
+
+      for (var i = First(); i != stop; i = Next(i))
+        yield return i;
+    }
+
+    IEnumerable<TNode> EnumMinMax(TKey min, bool minInclusive, TKey max, bool maxInclusive)
+    {
+      var minResult = FindMin(min, minInclusive);
+      var start = minResult.Node;
+      if (start == null)
+        yield break;
+
+      var maxResult = FindMax(max, maxInclusive);
+      var stop = maxResult.Node;
+      if (stop == null)
+        yield break;
+
+      if (minResult.Direction > 0)
+        start = Next(start);
+
+      if (maxResult.Direction == 0)
+        stop = Next(stop);
+
+      for (var i = start; i != stop; i = Next(i))
+        yield return i;
     }
   }
 }

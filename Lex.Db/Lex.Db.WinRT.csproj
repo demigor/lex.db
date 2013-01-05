@@ -118,6 +118,7 @@
     <Compile Include="Framework\ReaderWriterLockSlim.cs" />
     <Compile Include="Indexing\DataIndex.cs" />
     <Compile Include="Indexing\Indexers.cs" />
+    <Compile Include="Indexing\Indexes.cs" />
     <Compile Include="Indexing\KeyIndex.cs" />
     <Compile Include="Indexing\Lazies.cs" />
     <Compile Include="Indexing\RedBlackTree.cs" />
@@ -153,7 +154,6 @@
     <VisualStudioVersion>11.0</VisualStudioVersion>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\WindowsXaml\v$(VisualStudioVersion)\Microsoft.Windows.UI.Xaml.CSharp.targets" />
-  <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

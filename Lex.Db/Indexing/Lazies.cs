@@ -7,20 +7,22 @@ namespace Lex.Db
   /// <summary>
   /// Provides support for lazy initialization
   /// </summary>
-  /// <typeparam name="T">Specifies the type of entity that is being lazily initialized</typeparam>
-  public abstract class Lazy<T>
+  /// <typeparam name="T">Specifies the type of entity that is being lazily loaded</typeparam>
+  public abstract class Lazy<T> where T: class
   {
     T _result;
-    Func<T> _loader;
+    object _pk;
+    DbTable<T> _table;
     Exception _error;
 
     /// <summary>
     /// Initializes a new instance of the Lazy class. When lazy initialization occurs, the specified initialization function is used.
     /// </summary>
-    /// <param name="loader">The delegate that is invoked to produce the lazily initialized value when it is needed</param>
-    protected Lazy(Func<T> loader)
+    /// <param name="table">The delegate that is invoked to produce the lazily initialized value when it is needed</param>
+    protected Lazy(DbTable<T> table, object pk)
     {
-      _loader = loader;
+      _pk = pk;
+      _table = table;
     }
 
     /// <summary>
@@ -36,7 +38,7 @@ namespace Lex.Db
 
     T GetValue()
     {
-      if (_loader == null)
+      if (_table == null)
       {
         if (_error != null)
           throw _error;
@@ -46,7 +48,7 @@ namespace Lex.Db
 
       try
       {
-        _result = _loader();
+        _result = _table.LoadByKey(_pk);
       }
       catch (Exception e)
       {
@@ -55,23 +57,24 @@ namespace Lex.Db
       }
       finally
       {
-        _loader = null;
+        _pk = null;
+        _table = null;
       }
       return _result;
     }
   }
 
   /// <summary>
-  /// Provides support for lazy entity loading as well as access to index value concisting from one component
+  /// Provides support for lazy entity loading as well as access to index value consisting from one component
   /// </summary>
   /// <typeparam name="T">Specifies the type of entity that is being lazily loaded</typeparam>
   /// <typeparam name="I1">Type of the index component</typeparam>
-  public sealed class Lazy<T, I1> : Lazy<T>
+  public sealed class Lazy<T, I1> : Lazy<T> where T: class
   {
     readonly I1 _key;
 
-    internal Lazy(I1 key, Func<T> loader)
-      : base(loader)
+    internal Lazy(DbTable<T> table, object pk, I1 key)
+      : base(table, pk)
     {
       _key = key;
     }
@@ -83,62 +86,68 @@ namespace Lex.Db
   }
 
   /// <summary>
-  /// Provides support for lazy entity loading as well as access to index value concisting from two components
+  /// Provides support for lazy entity loading as well as access to index value consisting from two components
   /// </summary>
   /// <typeparam name="T">Specifies the type of entity that is being lazily loaded</typeparam>
   /// <typeparam name="I1">Type of the first index component</typeparam>
   /// <typeparam name="I2">Type of the second index component</typeparam>
-  public sealed class Lazy<T, I1, I2> : Lazy<T>
+  public sealed class Lazy<T, I1, I2> : Lazy<T> where T: class
   {
-    readonly Indexer<I1, I2> _source;
+    readonly I1 _key1;
+    readonly I2 _key2;
 
-    internal Lazy(Indexer<I1, I2> source, Func<T> loader)
-      : base(loader)
+    internal Lazy(DbTable<T> table, object pk, Indexer<I1, I2> source)
+      : base(table, pk)
     {
-      _source = source;
+      _key1 = source.Key1;
+      _key2 = source.Key2;
     }
 
     /// <summary>
     /// First index component
     /// </summary>
-    public I1 Key1 { get { return _source.Key1; } }
+    public I1 Key1 { get { return _key1; } }
 
     /// <summary>
     /// Second index component
     /// </summary>
-    public I2 Key2 { get { return _source.Key2; } }
+    public I2 Key2 { get { return _key2; } }
   }
 
   /// <summary>
-  /// Provides support for lazy entity loading as well as access to index value concisting from three components
+  /// Provides support for lazy entity loading as well as access to index value consisting from three components
   /// </summary>
   /// <typeparam name="T">Specifies the type of entity that is being lazily loaded</typeparam>
   /// <typeparam name="I1">Type of the first index component</typeparam>
   /// <typeparam name="I2">Type of the second index component</typeparam>
   /// <typeparam name="I3">Type of the third index component</typeparam>
-  public sealed class Lazy<T, I1, I2, I3> : Lazy<T>
+  public sealed class Lazy<T, I1, I2, I3> : Lazy<T> where T: class
   {
-    readonly Indexer<I1, I2, I3> _source;
+    readonly I1 _key1;
+    readonly I2 _key2;
+    readonly I3 _key3;
 
-    internal Lazy(Indexer<I1, I2, I3> source, Func<T> loader)
-      : base(loader)
+    internal Lazy(DbTable<T> table, object pk, Indexer<I1, I2, I3> source)
+      : base(table, pk)
     {
-      _source = source;
+      _key1 = source.Key1;
+      _key2 = source.Key2;
+      _key3 = source.Key3;
     }
 
     /// <summary>
     /// First index component
     /// </summary>
-    public I1 Key1 { get { return _source.Key1; } }
+    public I1 Key1 { get { return _key1; } }
 
     /// <summary>
     /// Second index component
     /// </summary>
-    public I2 Key2 { get { return _source.Key2; } }
+    public I2 Key2 { get { return _key2; } }
 
     /// <summary>
     /// Third index component
     /// </summary>
-    public I3 Key3 { get { return _source.Key3; } }
+    public I3 Key3 { get { return _key3; } }
   }
 }

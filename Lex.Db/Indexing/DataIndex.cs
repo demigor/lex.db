@@ -10,20 +10,18 @@ namespace Lex.Db.Indexing
 {
   using Serialization;
 
-  internal interface IDataIndex<T> : IIndex<T>
+  interface IDataIndex<T> : IIndex<T> where T : class
   {
     void Update(IKeyNode key, T item);
   }
 
-  internal interface IDataIndex<T, in K> : IDataIndex<T>
+  interface IDataIndex<T, K> : IDataIndex<T>, IIndex<T, K> where T : class
   {
-    IEnumerable<Lazy<T>> LazyLoad(K key);
-    IEnumerable<T> Load(K key);
   }
 
   internal class DataNode<K> : RBTreeNode<K, DataNode<K>>
   {
-    public IKeyNode KeyNode;
+    public HashSet<IKeyNode> Keys = new HashSet<IKeyNode>();
   }
 
   [DebuggerDisplay("{_name} ({ToString()}) : {Count}")]
@@ -32,25 +30,23 @@ namespace Lex.Db.Indexing
     readonly string _name;
     readonly Func<T, K> _getter;
     readonly MemberInfo[] _keys;
-    readonly IComparer<K> _comparer;
     readonly RBTree<K, DataNode<K>> _tree;
-    readonly DbTable<T> _loader;
-    readonly Func<DataNode<K>, Lazy<T>> _lazyCtor;
-    readonly Func<DataNode<K>, T> _ctor;
+    readonly DbTable<T> _table;
+    readonly Func<K, object, Lazy<T>> _lazyCtor;
 
-    public DataIndex(DbTable<T> loader, string name, Func<T, K> getter, IComparer<K> comparer, Func<DataNode<K>, Lazy<T>> lazyCtor, Func<DataNode<K>, T> ctor, MemberInfo[] members)
+    public DataIndex(DbTable<T> loader, string name, Func<T, K> getter, IComparer<K> comparer, Func<K, object, Lazy<T>> lazyCtor, MemberInfo[] members)
     {
       _name = name;
       _keys = members;
       _getter = getter;
-      _loader = loader;
-      _comparer = comparer;
+      _table = loader;
       _lazyCtor = lazyCtor;
-      _ctor = ctor;
-      _tree = new RBTree<K, DataNode<K>>(false, comparer);
+      _tree = new RBTree<K, DataNode<K>>(comparer);
     }
 
     public int Count { get { return _tree.Count; } }
+
+    public DbTable<T> Table { get { return _table; } }
 
     public string Name { get { return _name; } }
 
@@ -63,16 +59,18 @@ namespace Lex.Db.Indexing
       var node = (DataNode<K>)keyNode[this];
       if (node != null)
       {
-        Debug.Assert(node.KeyNode == keyNode);
+        Debug.Assert(node.Keys.Contains(keyNode));
 
-        if (_comparer.Compare(value, node.Key) == 0)
+        if (_tree.Comparer.Compare(value, node.Key) == 0)
           return;
 
-        _tree.Remove(node);
+        node.Keys.Remove(keyNode);
+        if (node.Keys.Count == 0)
+          _tree.Remove(node);
       }
 
-      node = _tree.Add(value);
-      node.KeyNode = keyNode;
+      node = _tree.AddOrGet(value);
+      node.Keys.Add(keyNode);
       keyNode[this] = node;
     }
 
@@ -100,12 +98,15 @@ namespace Lex.Db.Indexing
     {
       writer.Write((sbyte)node.Color);
       _serializer(writer, node.Key);
-      writer.Write(node.KeyNode.Offset);
+
+      writer.Write(node.Keys.Count);
+      foreach (var i in node.Keys)
+        writer.Write(i.Offset);
     }
 
     public void Read(DataReader reader)
     {
-      _tree.Root = ReadNode(reader, _loader.KeyIndex.KeyMap, null);
+      _tree.Root = ReadNode(reader, _table.KeyIndex.KeyMap, null);
     }
 
     DataNode<K> ReadNode(DataReader reader, Dictionary<long, IKeyNode> keyMap, DataNode<K> parent)
@@ -117,11 +118,17 @@ namespace Lex.Db.Indexing
       {
         Parent = parent,
         Color = (RBTreeColor)color,
-        Key = _deserializer(reader),
-        KeyNode = keyMap[reader.ReadInt64()]
+        Key = _deserializer(reader)
       };
 
-      result.KeyNode[this] = result;
+      var keysCount = reader.ReadInt32();
+      for (var i = 0; i < keysCount; i++)
+      {
+        var keyNode = keyMap[reader.ReadInt64()];
+        result.Keys.Add(keyNode);
+        keyNode[this] = result;
+      }
+
       result.Left = ReadNode(reader, keyMap, result);
       result.Right = ReadNode(reader, keyMap, result);
 
@@ -130,37 +137,12 @@ namespace Lex.Db.Indexing
 
     public IEnumerator<DataNode<K>> GetEnumerator()
     {
-      var scan = _tree.First();
-      while (scan != null)
-      {
-        yield return scan;
-        scan = _tree.Next(scan);
-      }
+      return _tree.GetEnumerator();
     }
 
     IEnumerator IEnumerable.GetEnumerator()
     {
       return GetEnumerator();
-    }
-
-    IEnumerable<DataNode<K>> Enumerate(K key)
-    {
-      var node = _tree.Find(key);
-      if (node == null)
-        yield break;
-
-      var scan = node;
-      while (scan != null && _comparer.Compare(scan.Key, key) == 0)
-      {
-        node = scan;
-        scan = _tree.Prev(scan);
-      }
-
-      while (node != null && _comparer.Compare(node.Key, key) == 0)
-      {
-        yield return node;
-        node = _tree.Next(node);
-      }
     }
 
     public void Purge()
@@ -178,19 +160,38 @@ namespace Lex.Db.Indexing
       return string.Join(", ", _keys.Select(i => i.Name));
     }
 
-    public IEnumerable<Lazy<T>> LazyLoad()
+    IEnumerable<L> ExecuteQuery<L>(IndexQueryArgs<K> args, Func<K, IKeyNode, L> selector)
     {
-      return from node in this select _lazyCtor(node);
+      var index = _table.KeyIndex;
+      var query = from i in _tree.Enum(args)
+                  from k in i.Keys
+                  select selector(i.Key, k);
+
+      if (args.Skip != null)
+        query = query.Skip(args.Skip.Value);
+
+      if (args.Take != null)
+        query = query.Take(args.Take.Value);
+
+      return query;
     }
 
-    public IEnumerable<Lazy<T>> LazyLoad(K key)
+    public int ExecuteCount(IndexQueryArgs<K> args)
     {
-      return Enumerate(key).Select(_lazyCtor);
+      using (_table.ReadScope())
+        return ExecuteQuery(args, (k, pk) => pk).Count();
     }
 
-    public IEnumerable<T> Load(K key)
+    public List<L> ExecuteToList<L>(IndexQueryArgs<K> args, Func<K, IKeyNode, L> selector)
     {
-      return Enumerate(key).Select(_ctor);
+      using (_table.ReadScope())
+        return ExecuteQuery(args, selector).ToList();
+    }
+
+    public List<T> ExecuteToList(IndexQueryArgs<K> args)
+    {
+      using (var scope = _table.ReadScope())
+        return ExecuteQuery(args, (k, pk) => _table.LoadByKeyNode(scope, pk)).ToList();
     }
   }
 }
