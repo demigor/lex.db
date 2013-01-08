@@ -111,6 +111,15 @@ namespace Lex.Db.WindowsStorage
 
       public DateTimeOffset Ts { get { return _ts; } }
 
+      public DbTableInfo GetInfo()
+      {
+        return new DbTableInfo
+        {
+          DataSize = _readStream.Length,
+          IndexSize = (long)_indexStream.Size
+        };
+      }
+
       public byte[] ReadIndex()
       {
         if (_indexStream.Size == 0)

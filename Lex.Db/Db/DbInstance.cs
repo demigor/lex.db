@@ -84,6 +84,26 @@ namespace Lex.Db
       return null;
     }
 
+    public DbTableInfo GetInfo()
+    {
+      CheckSealed();
+
+      _lock.EnterReadLock();
+      try
+      {
+        var result = new DbTableInfo();
+
+        foreach (var t in _tables)
+          result += t.Value.GetInfo();
+
+        return result;
+      }
+      finally
+      {
+        _lock.ExitReadLock();
+      }
+    }
+
     /// <summary>
     /// Indicates whether specified entity type is mapped in database
     /// </summary>
@@ -175,6 +195,9 @@ namespace Lex.Db
       return (DbTable<T>)result;
     }
 
+    /// <summary>
+    /// global db read/write lock
+    /// </summary>
     readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
 
     [ThreadStatic]
@@ -590,7 +613,11 @@ namespace Lex.Db
       _lock.EnterWriteLock();
       try
       {
-        _schema.Purge();
+        if (_tables == null)
+          _schema.Purge();
+        else
+          foreach (var t in _tables)
+            t.Value.Purge();
       }
       finally
       {

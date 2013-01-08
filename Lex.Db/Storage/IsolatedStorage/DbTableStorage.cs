@@ -135,6 +135,15 @@ namespace Lex.Db.IsolatedStorage
 
       public DateTimeOffset Ts { get { return _ts; } }
 
+      public DbTableInfo GetInfo()
+      {
+        return new DbTableInfo
+        {
+          DataSize = _readStream.Length,
+          IndexSize = _indexStream.Length
+        };
+      }
+
       public byte[] ReadIndex()
       {
         if (_indexStream.Length == 0)

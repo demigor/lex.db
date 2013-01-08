@@ -104,11 +104,17 @@ namespace Lex.Db
     /// </summary>
     /// <typeparam name="K">Type of the key</typeparam>
     /// <param name="keys">Enumeration of entity PK values</param>
-    /// <returns></returns>
+    /// <returns>Returns number of deleted by key entities</returns>
     public abstract int DeleteByKeys<K>(IEnumerable<K> keys);
 
     internal abstract void LoadIndex(IDbTableReader reader);
     internal abstract void SaveIndex(IDbTableWriter writer, bool crop);
+
+    /// <summary>
+    /// Returns table size information 
+    /// </summary>
+    /// <returns>DbTableInfo instance filled with size info</returns>
+    public abstract DbTableInfo GetInfo();
   }
 
   /// <summary>
@@ -771,6 +777,20 @@ namespace Lex.Db
     public override void Flush()
     {
       Storage.Flush();
+    }
+
+    /// <summary>
+    /// Returns size information about the table
+    /// </summary>
+    /// <returns>DbTableInfo instance filled with size info</returns>
+    public override DbTableInfo GetInfo()
+    {
+      using (var scope = ReadScope())
+      {
+        var result = scope.Element.GetInfo();
+        result.EffectiveDataSize = KeyIndex.GetFileSize(); 
+        return result;
+      }
     }
 
     /// <summary>

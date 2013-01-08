@@ -219,6 +219,13 @@ namespace Lex.Db.Silverlight
       table.Compact();
     }
 
+    [TestMethod]
+    public void CheckInfo()
+    {
+      var info1 = table.GetInfo();
+      var info2 = db.GetInfo();
+    }
+
 
     [TestMethod]
     public void RountripNulls()
@@ -242,6 +249,9 @@ namespace Lex.Db.Silverlight
       Assert.AreEqual(obj.EnumNField, newObj.EnumNField);
       Assert.AreEqual(obj.Name, newObj.Name);
 
+      var info = table.GetInfo();
+      Assert.AreNotEqual(0, info.DataSize);
+      Assert.AreNotEqual(0, info.IndexSize);
     }
 
     #region Bool Rountrip Tests

@@ -232,6 +232,26 @@ namespace Lex.Db
     {
       return TaskEx.Run(() => db.Compact());
     }
+
+    /// <summary>
+    /// Asynchronously determines table sizes
+    /// </summary>
+    /// <param name="table">Table to inspect</param>
+    /// <returns>Awaitable Task of inspect operation</returns>
+    public static Task<DbTableInfo> GetInfoAsync(this DbTable table)
+    {
+      return TaskEx.Run(() => table.GetInfo());
+    }
+
+    /// <summary>
+    /// Asynchronously determines database sizes
+    /// </summary>
+    /// <param name="db">Database instance to inspect</param>
+    /// <returns>Awaitable Task of inspect operation</returns>
+    public static Task GetInfoAsync(this DbInstance db)
+    {
+      return TaskEx.Run(() => db.GetInfo());
+    }
   }
 }
 

@@ -31,7 +31,7 @@ namespace Lex.Db.FileSystem
         {
           return new FileStream(name, FileMode.OpenOrCreate, FileAccess.Read, FileShare.Read);
         }
-        catch 
+        catch
         {
           Thread.Sleep(100);
         }
@@ -46,7 +46,7 @@ namespace Lex.Db.FileSystem
         {
           return new FileStream(name, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
         }
-        catch 
+        catch
         {
           Thread.Sleep(100);
         }
@@ -132,6 +132,15 @@ namespace Lex.Db.FileSystem
       }
 
       public DateTimeOffset Ts { get { return _ts; } }
+
+      public DbTableInfo GetInfo()
+      {
+        return new DbTableInfo
+        {
+          DataSize = _readStream.Length,
+          IndexSize = _indexStream.Length
+        };
+      }
 
       public byte[] ReadIndex()
       {
