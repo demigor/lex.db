@@ -115,13 +115,14 @@ namespace Lex.Db
     /// <typeparam name="K">Type of the PK</typeparam>
     /// <param name="keyBuilder">Primary key expression</param>
     /// <param name="autoGen">Indicates automatic generation of PK values (int, long, Guid types only)</param>
+    /// <param name="comparer">Optional primary key comparer</param>
     /// <returns>Entity type mapping to continue with</returns>
-    public TypeMap<T> Key<K>(Expression<Func<T, K>> keyBuilder, bool autoGen = false)
+    public TypeMap<T> Key<K>(Expression<Func<T, K>> keyBuilder, bool autoGen = false, IComparer<K> comparer = null)
     {
       if (_key != null)
         throw new InvalidOperationException("Key is already defined");
 
-      _table.Add(keyBuilder, _key = ExtractMember(keyBuilder, MemberUsage.KeyIndex), autoGen);
+      _table.Add(keyBuilder, _key = ExtractMember(keyBuilder, MemberUsage.KeyIndex), autoGen, comparer);
 
       return this;
     }
@@ -133,10 +134,11 @@ namespace Lex.Db
     /// <typeparam name="K">Type of the PK</typeparam>
     /// <param name="keyBuilder">Primary key expression</param>
     /// <param name="autoGen">Indicates automatic generation of PK values (int, long, Guid types only)</param>
+    /// <param name="comparer">Optional primary key comparer</param>
     /// <returns>Entity type mapping to continue with</returns>
-    public TypeMap<T> Automap<K>(Expression<Func<T, K>> keyBuilder, bool autoGen = false)
+    public TypeMap<T> Automap<K>(Expression<Func<T, K>> keyBuilder, bool autoGen = false, IComparer<K> comparer = null)
     {
-      return Key(keyBuilder, autoGen).MapAll();
+      return Key(keyBuilder, autoGen, comparer).MapAll();
     }
 
     /*

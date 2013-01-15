@@ -10,7 +10,7 @@ namespace Lex.Db.Mapping
   using Indexing;
   using Serialization;
 
-  internal class Metadata<T>
+  class Metadata<T> where T : class
   {
     public Metadata() { }
 
@@ -76,23 +76,36 @@ namespace Lex.Db.Mapping
       //
     }
 
-    public bool Read(DataReader reader)
+    const int Signature = 0x0058454C;
+
+    public DbFormat Read(DataReader reader)
     {
       var hash = reader.ReadUInt32();
 
       if (hash == 0)
         throw new ArgumentException("Invalid index stream");
 
+      var result = DbFormat.Initial;
+
+      // Special signature hash
+      if (hash == Signature)
+      {
+        result = (DbFormat)reader.ReadUInt32();
+        hash = reader.ReadUInt32();
+      }
+
       if (hash == _hash)
       {
         Skip(reader);
         ReadProperties(reader);
-        return false;
+      }
+      else
+      {
+        Upgrade(new Metadata<T>(reader));
+        ReadProperties(reader);
       }
 
-      Upgrade(new Metadata<T>(reader));
-      ReadProperties(reader);
-      return true;
+      return result;
     }
 
     public void ClearProperties()
@@ -112,6 +125,8 @@ namespace Lex.Db.Mapping
 
     public void Write(DataWriter writer)
     {
+      writer.Write(Signature);
+      writer.Write((int)DbFormat.Current);
       writer.Write(_hash);
       writer.Write(_blob);
       WriteProperties(writer);

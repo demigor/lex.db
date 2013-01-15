@@ -16,10 +16,10 @@ namespace Lex.Db.Indexing
     public readonly I1 Key1;
     public readonly I2 Key2;
 
-    static readonly Action<DataWriter, I1> _serializer1 = Serializers.GetWriter<I1>();
-    static readonly Func<DataReader, I1> _deserializer1 = Serializers.GetReader<I1>();
-    static readonly Action<DataWriter, I2> _serializer2 = Serializers.GetWriter<I2>();
-    static readonly Func<DataReader, I2> _deserializer2 = Serializers.GetReader<I2>();
+    static readonly Action<DataWriter, I1> _serializer1 = Serializer<I1>.Writer;
+    static readonly Func<DataReader, I1> _deserializer1 = Serializer<I1>.Reader;
+    static readonly Action<DataWriter, I2> _serializer2 = Serializer<I2>.Writer;
+    static readonly Func<DataReader, I2> _deserializer2 = Serializer<I2>.Reader;
 
     internal static void Serialize(DataWriter writer, Indexer<I1, I2> value)
     {
@@ -67,12 +67,12 @@ namespace Lex.Db.Indexing
       Key3 = key3;
     }
 
-    static readonly Action<DataWriter, I1> _serializer1 = Serializers.GetWriter<I1>();
-    static readonly Func<DataReader, I1> _deserializer1 = Serializers.GetReader<I1>();
-    static readonly Action<DataWriter, I2> _serializer2 = Serializers.GetWriter<I2>();
-    static readonly Func<DataReader, I2> _deserializer2 = Serializers.GetReader<I2>();
-    static readonly Action<DataWriter, I3> _serializer3 = Serializers.GetWriter<I3>();
-    static readonly Func<DataReader, I3> _deserializer3 = Serializers.GetReader<I3>();
+    static readonly Action<DataWriter, I1> _serializer1 = Serializer<I1>.Writer;
+    static readonly Func<DataReader, I1> _deserializer1 = Serializer<I1>.Reader;
+    static readonly Action<DataWriter, I2> _serializer2 = Serializer<I2>.Writer;
+    static readonly Func<DataReader, I2> _deserializer2 = Serializer<I2>.Reader;
+    static readonly Action<DataWriter, I3> _serializer3 = Serializer<I3>.Writer;
+    static readonly Func<DataReader, I3> _deserializer3 = Serializer<I3>.Reader;
 
     internal static void Serialize(DataWriter writer, Indexer<I1, I2, I3> value)
     {

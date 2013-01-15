@@ -42,6 +42,7 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Indexing\Indexes.cs" />
     <Compile Include="Properties\Version.cs" />
     <Compile Include="Core\Awaiter.cs" />
     <Compile Include="Core\CtorOfT.cs" />

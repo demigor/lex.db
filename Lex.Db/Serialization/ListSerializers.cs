@@ -6,8 +6,8 @@ namespace Lex.Db.Serialization
 {
   class ListSerializers<T>
   {
-    static readonly Action<DataWriter, T> _serializer = Serializers.GetWriter<T>();
-    static readonly Func<DataReader, T> _deserializer = Serializers.GetReader<T>();
+    static readonly Action<DataWriter, T> _serializer = Serializer<T>.Writer;
+    static readonly Func<DataReader, T> _deserializer = Serializer<T>.Reader;
 
     internal static void WriteHashSet(DataWriter writer, HashSet<T> value)
     {

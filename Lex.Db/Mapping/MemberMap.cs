@@ -1,14 +1,22 @@
 ﻿using System;
-using System.IO;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 
 namespace Lex.Db
 {
-  using System.Collections.Generic;
   using Serialization;
 
-  internal class MemberMap
+  enum DbFormat : int
+  {
+    /// <summary>
+    /// Original DB Format, data indexes are non-unique, upgrade needed
+    /// </summary>
+    Initial = 0x0,
+    Current = 0x1
+  }
+
+  class MemberMap
   {
     public MemberMap(DataReader reader)
     {
@@ -97,7 +105,7 @@ namespace Lex.Db
     public int Id;
   }
 
-  internal class MemberMap<T> : MemberMap
+  class MemberMap<T> : MemberMap
   {
     public MemberMap(MemberInfo member, Expression target = null, ParameterExpression self = null) : base(member, target, self) { }
 
@@ -106,7 +114,7 @@ namespace Lex.Db
     public Action<DataReader, T> Deserialize;
   }
 
-  internal class RefMemberMap<T,R> : MemberMap<T>
+  class RefMemberMap<T,R> : MemberMap<T>
   {
     public RefMemberMap(MemberInfo member)
       : base(member, null, null)

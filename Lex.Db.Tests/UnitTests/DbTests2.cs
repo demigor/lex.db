@@ -75,11 +75,11 @@ namespace Lex.Db.Silverlight
             table.Save(new InterfaceBasedData { Name = "TeST" + i });
       });
 
-      var list1 = table.LoadAll("LastName", "Test5");
-      var list2 = table.LoadAll("LastNameText", "TEst5");
+      var list1count = table.IndexQuery<string>("LastName").Key("Test5").Count();
+      var list2count = table.IndexQuery<string>("LastNameText").Key("TEst5").Count();
 
-      Assert.AreEqual(list1.Count, 100);
-      Assert.AreEqual(list2.Count, 200);
+      Assert.AreEqual(list1count, 100);
+      Assert.AreEqual(list2count, 200);
     }
 
     [TestMethod]
@@ -172,11 +172,11 @@ namespace Lex.Db.Silverlight
             table.Save(new PrototypeBasedData { Name = "TeST" + i });
       });
 
-      var list1 = table.LoadAll("LastName", "Test5");
-      var list2 = table.LoadAll("LastNameText", "TEst5");
+      var list1count = table.IndexQueryByKey("LastName", "Test5").Count();
+      var list2count = table.IndexQueryByKey("LastNameText", "TEst5").Count();
 
-      Assert.AreEqual(list1.Count, 100);
-      Assert.AreEqual(list2.Count, 200);
+      Assert.AreEqual(list1count, 100);
+      Assert.AreEqual(list2count, 200);
     }
 
     [TestMethod]

@@ -29,13 +29,13 @@ namespace Lex.Db.Sample1
 
         {
           // Query by secondary index (calculated field)
-          var persons = db.Persons.LoadAll("FullName", "Lex Lavnikov");
+          var persons = db.Persons.IndexQueryByKey("FullName", "Lex Lavnikov").ToList();
           WriteToConsole("By secondary key 'Lex Lavnikov'", persons);
         }
 
         {
           // Query by secondary index (normal field)
-          var persons = db.Persons.LoadAll("LastName", "Papa");
+          var persons = db.Persons.IndexQueryByKey("LastName", "Papa").ToList();
           WriteToConsole("By secondary key 'Papa'", persons);
         }
 

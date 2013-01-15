@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Diagnostics;
 #if NETFX_CORE
 using Microsoft.VisualStudio.TestPlatform.UnitTestFramework;
 #else
@@ -14,12 +15,18 @@ using Microsoft.Silverlight.Testing;
 
 namespace Lex.Db.Silverlight
 {
-  [TestClass]
-#if SILVERLIGHT
-  public class DbTests : WorkItemTest
-#else
-  public class DbTests
+#if !SILVERLIGHT
+  [AttributeUsage(AttributeTargets.Method)]
+  public class AsynchronousAttribute : Attribute { }
+
+  public class WorkItemTest
+  {
+    public void TestComplete() { }
+  }
 #endif
+
+  [TestClass]
+  public class DbTests : WorkItemTest
   {
     public TestContext TestContext { get; set; }
 
@@ -144,11 +151,77 @@ namespace Lex.Db.Silverlight
             table.Save(new MyData { Name = "TeST" + i });
       });
 
-      var list1 = table.LoadAll("LastName", "Test5");
-      var list2 = table.LoadAll("LastNameText", "TEst5");
+      var list1count = table.IndexQueryByKey("LastName", "Test5").Count();
+      var list2count = table.IndexQueryByKey("LastNameText", "TEst5").Count();
 
-      Assert.AreEqual(list1.Count, 100);
-      Assert.AreEqual(list2.Count, 200);
+      Assert.AreEqual(list1count, 100);
+      Assert.AreEqual(list2count, 200);
+    }
+
+    [TestMethod]
+    public void IndexingDetails()
+    {
+      var db = new DbInstance(@"My Database\Indexing2");
+
+      db.Map<MyData>().Automap(i => i.Id, true).WithIndex("Test", i => i.IntField);
+      db.Initialize();
+
+      var table = db.Table<MyData>();
+      table.Purge();
+
+      db.BulkWrite(() =>
+      {
+        table.Save(new MyData { IntField = 1 });
+        table.Save(new MyData { IntField = 1 });
+        table.Save(new MyData { IntField = 1 });
+        table.Save(new MyData { IntField = 1 });
+        table.Save(new MyData { IntField = 1 });
+        table.Save(new MyData { IntField = 4 });
+        table.Save(new MyData { IntField = 4 });
+        table.Save(new MyData { IntField = 4 });
+        table.Save(new MyData { IntField = 4 });
+        table.Save(new MyData { IntField = 4 });
+        table.Save(new MyData { IntField = 3 });
+        table.Save(new MyData { IntField = 3 });
+        table.Save(new MyData { IntField = 3 });
+        table.Save(new MyData { IntField = 3 });
+        table.Save(new MyData { IntField = 3 });
+        table.Save(new MyData { IntField = 4 });
+        table.Save(new MyData { IntField = 5 });
+        table.Save(new MyData { IntField = 6 });
+        table.Save(new MyData { IntField = 6 });
+        table.Save(new MyData { IntField = 6 });
+        table.Save(new MyData { IntField = 6 });
+        table.Save(new MyData { IntField = 6 });
+        table.Save(new MyData { IntField = 6 });
+        table.Save(new MyData { IntField = 7 });
+        table.Save(new MyData { IntField = 8 });
+        table.Save(new MyData { IntField = 8 });
+        table.Save(new MyData { IntField = 8 });
+        table.Save(new MyData { IntField = 8 });
+        table.Save(new MyData { IntField = 8 });
+        table.Save(new MyData { IntField = 9 });
+      });
+
+      var list1 = table.LoadAll();
+
+      var index = table.IndexQuery<int>("Test");
+
+      Assert.AreEqual(index.Key(1).Count(), list1.Count(i => i.IntField == 1));
+      Assert.AreEqual(index.Key(8).Count(), list1.Count(i => i.IntField == 8));
+
+      Assert.AreEqual(index.GreaterThan(6, true).LessThan(8).Count(), list1.Count(i => i.IntField >= 6 && i.IntField < 8));
+
+      IdSequenceEqual(index.GreaterThan(6).LessThan(8).ToList(), list1.Where(i => i.IntField > 6 && i.IntField < 8));
+      IdSequenceEqual(index.LessThan(8).ToList(), list1.Where(i => i.IntField < 8));
+      IdSequenceEqual(index.GreaterThan(6, true).ToList(), list1.Where(i => i.IntField >= 6));
+      IdSequenceEqual(index.GreaterThan(7, true).LessThan(7).ToList(), list1.Where(i => i.IntField >= 7 && i.IntField < 7));
+      IdSequenceEqual(index.GreaterThan(7).LessThan(7, true).ToList(), list1.Where(i => i.IntField > 7 && i.IntField <= 7));
+    }
+
+    static void IdSequenceEqual(IEnumerable<MyData> a, IEnumerable<MyData> b)
+    {
+      Assert.IsTrue(a.OrderBy(i => i.Id).Select(i => i.Id).SequenceEqual(b.OrderBy(i => i.Id).Select(i => i.Id)));
     }
 
     [TestMethod]

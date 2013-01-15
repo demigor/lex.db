@@ -6,10 +6,10 @@ namespace Lex.Db.Serialization
 {
   class DictSerializers<K, V>
   {
-    static readonly Action<DataWriter, K> _keySerializer = Serializers.GetWriter<K>();
-    static readonly Func<DataReader, K> _keyDeserializer = Serializers.GetReader<K>();
-    static readonly Action<DataWriter, V> _valueSerializer = Serializers.GetWriter<V>();
-    static readonly Func<DataReader, V> _valueDeserializer = Serializers.GetReader<V>();
+    static readonly Action<DataWriter, K> _keySerializer = Serializer<K>.Writer;
+    static readonly Func<DataReader, K> _keyDeserializer = Serializer<K>.Reader;
+    static readonly Action<DataWriter, V> _valueSerializer = Serializer<V>.Writer;
+    static readonly Func<DataReader, V> _valueDeserializer = Serializer<V>.Reader;
 
     public static void WriteDictionary(DataWriter writer, Dictionary<K, V> value)
     {

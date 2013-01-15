@@ -154,22 +154,7 @@ namespace Lex.Db.Serialization
       throw new NotSupportedException();
     }
 
-    public static Action<DataWriter, K> GetWriter<K>()
-    {
-      var writer = Expression.Parameter(typeof(DataWriter));
-      var value = Expression.Parameter(typeof(K));
-
-      return Expression.Lambda<Action<DataWriter, K>>(WriteValue(writer, value), writer, value).Compile();
-    }
-
-    public static Func<DataReader, K> GetReader<K>()
-    {
-      var reader = Expression.Parameter(typeof(DataReader));
-
-      return Expression.Lambda<Func<DataReader, K>>(ReadValue(reader, typeof(K)), reader).Compile();
-    }
-
-    public static void RegisterType<K, S>(short streamId)
+    internal static void RegisterType<K, S>(short streamId)
     {
       if (Enum.IsDefined(typeof(KnownDbType), streamId))
         throw new ArgumentException("streamId");
@@ -260,6 +245,7 @@ namespace Lex.Db.Serialization
     }
 
     #endregion
+
     #region int serialization
 
     public static int ReadInt(DataReader reader)
@@ -506,6 +492,27 @@ namespace Lex.Db.Serialization
         return Expression.Convert(callRead, type);
 
       return callRead;
+    }
+  }
+
+  static class Serializer<K>
+  {
+    public static readonly Action<DataWriter, K> Writer = GetWriter();
+    public static readonly Func<DataReader, K> Reader = GetReader();
+
+    static Action<DataWriter, K> GetWriter()
+    {
+      var writer = Expression.Parameter(typeof(DataWriter));
+      var value = Expression.Parameter(typeof(K));
+
+      return Expression.Lambda<Action<DataWriter, K>>(Serializers.WriteValue(writer, value), writer, value).Compile();
+    }
+
+    static Func<DataReader, K> GetReader()
+    {
+      var reader = Expression.Parameter(typeof(DataReader));
+
+      return Expression.Lambda<Func<DataReader, K>>(Serializers.ReadValue(reader, typeof(K)), reader).Compile();
     }
   }
 

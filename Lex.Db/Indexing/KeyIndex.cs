@@ -1,8 +1,7 @@
 ﻿using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -11,21 +10,7 @@ namespace Lex.Db.Indexing
   using Mapping;
   using Serialization;
 
-  interface IIndex<T>
-  {
-    MemberInfo[] Keys { get; }
-
-    IEnumerable<Lazy<T>> LazyLoad();
-
-    void Read(DataReader reader);
-    void Write(DataWriter writer);
-    void Purge();
-
-    string Name { get; }
-    int Count { get; }
-  }
-
-  interface IKeyIndex<T> : IIndex<T>
+  interface IKeyIndex<T> : IIndex<T> where T : class
   {
     Type KeyType { get; }
     long GetFileSize();
@@ -35,19 +20,30 @@ namespace Lex.Db.Indexing
 
     IKeyNode Update(T instance, int length);
     bool Remove(T instance);
-    bool RemoveByKey(object key);
 
-    KeyInfo<T> Find(T instance);
-    KeyInfo<T> FindByKey(object key, bool provision = false);
+    Location<T> Find(T instance);
+    Location<T> GetLocation(IKeyNode node);
 
     Dictionary<long, IKeyNode> KeyMap { get; set; }
 
-    IEnumerable MakeKeyList();
-    object MinKey();
-    object MaxKey();
+    object[] MakeKeyList();
   }
 
-  class KeyInfo<T>
+  interface IKeyIndex<T, K> : IKeyIndex<T>, IIndex<T, K> where T : class
+  {
+    K MinKey { get; }
+    K MaxKey { get; }
+
+    new K[] MakeKeyList();
+    Location<T> FindByKey(K key, bool provision = false);
+    bool RemoveByKey(K key);
+  }
+
+  /// <summary>
+  /// Data block location info
+  /// </summary>
+  /// <typeparam name="T">Provisioned instance to load</typeparam>
+  class Location<T>
   {
     public long Offset;
     public int Length;
@@ -57,7 +53,7 @@ namespace Lex.Db.Indexing
   interface IKeyNode
   {
     long Offset { get; }
-    long Length { get; }
+    int Length { get; }
     object Key { get; }
     object this[object key] { get; set; }
   }
@@ -164,23 +160,24 @@ namespace Lex.Db.Indexing
     }
 
     long IKeyNode.Offset { get { return Offset; } }
-    long IKeyNode.Length { get { return Length; } }
+    int IKeyNode.Length { get { return Length; } }
 
     object IKeyNode.Key { get { return Key; } }
   }
 
-  class KeyIndex<T, K> : IKeyIndex<T>, IEnumerable<KeyNode<K>> where T: class
+  class KeyIndex<T, K> : IKeyIndex<T, K>, IEnumerable<KeyNode<K>> where T : class
   {
     readonly Func<T, K> _getter;
     readonly Action<T, K> _setter;
-    readonly RBTree<K, KeyNode<K>> _tree = new RBTree<K, KeyNode<K>>();
-    readonly DbTable<T> _loader;
+    readonly RBTree<K, KeyNode<K>> _tree;
+    readonly DbTable<T> _table;
     readonly MemberInfo[] _keys;
 
-    public KeyIndex(DbTable<T> loader, Func<T, K> getter, MemberInfo key)
+    public KeyIndex(DbTable<T> table, Func<T, K> getter, MemberInfo key, IComparer<K> comparer)
     {
+      _tree = new RBTree<K, KeyNode<K>>(comparer);
       _getter = getter;
-      _loader = loader;
+      _table = table;
 
       if (key != null)
         _setter = MakeSetter(key);
@@ -198,24 +195,31 @@ namespace Lex.Db.Indexing
       return Expression.Lambda<Action<T, K>>(assign, obj, key).Compile();
     }
 
+    public DbTable<T> Table { get { return _table; } }
+
     string IIndex<T>.Name { get { return null; } }
 
     public Type KeyType { get { return typeof(K); } }
 
     MemberInfo[] IIndex<T>.Keys { get { return _keys; } }
 
-    public KeyInfo<T> Find(T instance)
+    public Location<T> Find(T instance)
     {
       return FindByKey(_getter(instance));
     }
 
-    public KeyInfo<T> FindByKey(K key, bool provision = false)
+    public Location<T> FindByKey(K key, bool provision = false)
     {
       var node = _tree.Find(key);
       if (node == null)
         return null;
 
-      var result = new KeyInfo<T>
+      return GetLocation(node, provision);
+    }
+
+    Location<T> GetLocation(KeyNode<K> node, bool provision)
+    {
+      var result = new Location<T>
       {
         Offset = node.Offset,
         Length = node.Length
@@ -223,7 +227,7 @@ namespace Lex.Db.Indexing
 
       if (provision)
       {
-        result.Result = _loader.Ctor();
+        result.Result = _table.Ctor();
 
         if (_setter != null)
           _setter(result.Result, node.Key);
@@ -232,9 +236,9 @@ namespace Lex.Db.Indexing
       return result;
     }
 
-    KeyInfo<T> IKeyIndex<T>.FindByKey(object key, bool provision)
+    Location<T> IKeyIndex<T>.GetLocation(IKeyNode node)
     {
-      return FindByKey((K)key, provision);
+      return GetLocation((KeyNode<K>)node, true);
     }
 
     public void Write(DataWriter writer)
@@ -242,8 +246,8 @@ namespace Lex.Db.Indexing
       WriteNode(writer, _tree.Root);
     }
 
-    static readonly Action<DataWriter, K> _serializer = Serializers.GetWriter<K>();
-    static readonly Func<DataReader, K> _deserializer = Serializers.GetReader<K>();
+    static readonly Action<DataWriter, K> _serializer = Serializer<K>.Writer;
+    static readonly Func<DataReader, K> _deserializer = Serializer<K>.Reader;
 
     static void WriteNode(DataWriter writer, KeyNode<K> node)
     {
@@ -286,7 +290,7 @@ namespace Lex.Db.Indexing
       return result;
     }
 
-    public void Read(DataReader reader)
+    public void Read(DataReader reader, DbFormat format)
     {
       try
       {
@@ -299,11 +303,6 @@ namespace Lex.Db.Indexing
         _map = new DataMap<K>(_tree);
         throw;
       }
-    }
-
-    bool IKeyIndex<T>.RemoveByKey(object key)
-    {
-      return RemoveByKey((K)key);
     }
 
     public void Purge()
@@ -388,63 +387,55 @@ namespace Lex.Db.Indexing
 
     T[] LoadWithKeys(IDbTableReader reader, Metadata<T> metadata)
     {
-      var result = new T[_tree.Count];
-      var idx = 0;
-      var ctor = _loader.Ctor;
-      for (var i = _tree.First(); i != null; i = _tree.Next(i))
+      var ctor = _table.Ctor;
+      return _tree.Select(i =>
       {
         var item = ctor();
         _setter(item, i.Key);
         metadata.Deserialize(reader.ReadData(i.Offset, i.Length), item);
-        result[idx] = item;
-        idx++;
-      }
-      return result;
+        return item;
+      });
     }
 
     T[] LoadNoKeys(IDbTableReader reader, Metadata<T> metadata)
     {
-      var result = new T[_tree.Count];
-      var idx = 0;
-      var ctor = _loader.Ctor;
-      for (var i = _tree.First(); i != null; i = _tree.Next(i))
+      var ctor = _table.Ctor;
+      return _tree.Select(i =>
       {
         var item = ctor();
         metadata.Deserialize(reader.ReadData(i.Offset, i.Length), item);
-        result[idx] = item;
-        idx++;
-      }
-      return result;
+        return item;
+      });
     }
 
     public void Compact(IDbTableWriter writer)
     {
       long offset = 0;
 
-      for (var i = _tree.First(); i != null; i = _tree.Next(i))
+      foreach (var i in _tree)
       {
         var length = i.Length;
         writer.CopyData(i.Offset, offset, length);
         i.Offset = offset;
         offset += length;
       }
-      
+
       _map = new DataMap<K>(_tree);
     }
 
-    public IEnumerable MakeKeyList()
+    object[] IKeyIndex<T>.MakeKeyList()
     {
-      return this.Select(i => i.Key).ToList();
+      return _tree.Select(i => (object)i.Key);
+    }
+
+    public K[] MakeKeyList()
+    {
+      return _tree.Select(i => i.Key);
     }
 
     public IEnumerator<KeyNode<K>> GetEnumerator()
     {
-      var scan = _tree.First();
-      while (scan != null)
-      {
-        yield return scan;
-        scan = _tree.Next(scan);
-      }
+      return _tree.GetEnumerator();
     }
 
     IEnumerator IEnumerable.GetEnumerator()
@@ -452,37 +443,60 @@ namespace Lex.Db.Indexing
       return GetEnumerator();
     }
 
-    public IEnumerable<Lazy<T>> LazyLoad()
+    public K MinKey
     {
-      return from node in this select (Lazy<T>)new Lazy<T, K>(node.Key, () => _loader.LoadByKey(node.Key));
+      get
+      {
+        var result = _tree.First();
+        if (result == null)
+          return default(K);
+
+        return result.Key;
+      }
     }
 
-    public K GetMinKey()
+    public K MaxKey
     {
-      var result = _tree.First();
-      if (result == null)
-        return default(K);
+      get
+      {
+        var result = _tree.Last();
+        if (result == null)
+          return default(K);
 
-      return result.Key;
+        return result.Key;
+      }
     }
 
-    public K GetMaxKey()
+    IEnumerable<L> ExecuteQuery<L>(IndexQueryArgs<K> args, Func<K, IKeyNode, L> selector)
     {
-      var result = _tree.Last();
-      if (result == null)
-        return default(K);
+      var query = from i in _tree.Enum(args)
+                  select selector(i.Key, i);
 
-      return result.Key;
+      if (args.Skip != null)
+        query = query.Skip(args.Skip.GetValueOrDefault());
+
+      if (args.Take != null)
+        query = query.Take(args.Take.GetValueOrDefault());
+
+      return query;
     }
 
-    object IKeyIndex<T>.MinKey()
+    public int ExecuteCount(IndexQueryArgs<K> args)
     {
-      return GetMinKey();
+      using (_table.ReadScope())
+        return ExecuteQuery(args, (k, pk) => pk).Count();
     }
 
-    object IKeyIndex<T>.MaxKey()
+    public List<T> ExecuteToList(IndexQueryArgs<K> args)
     {
-      return GetMaxKey(); 
+      using (var scope = _table.ReadScope())
+        return ExecuteQuery(args, (k, pk) => _table.LoadByKeyNode(scope, pk)).ToList();
+    }
+
+    public List<L> ExecuteToList<L>(IndexQueryArgs<K> args, Func<K, IKeyNode, L> selector)
+    {
+      using (_table.ReadScope())
+        return ExecuteQuery(args, selector).ToList();
     }
   }
 }

@@ -43,7 +43,7 @@ namespace Lex.Db
     /// <typeparam name="K">Type of the PK</typeparam>
     /// <param name="table">Table of the entity class</param>
     /// <returns>Awaitable Task with list of PK values in result</returns>
-    public static Task<List<K>> AllKeysAsync<K>(this DbTable table)
+    public static Task<K[]> AllKeysAsync<K>(this DbTable table)
     {
       return TaskEx.Run(() => table.AllKeys<K>());
     }
@@ -53,23 +53,9 @@ namespace Lex.Db
     /// </summary>
     /// <param name="table">Table of the entity class</param>
     /// <returns>Awaitable Task with enumeration of untyped PK values in result</returns>
-    public static Task<IEnumerable> AllKeysAsync(this DbTable table)
+    public static Task<object[]> AllKeysAsync(this DbTable table)
     {
       return TaskEx.Run(() => table.AllKeys());
-    }
-
-    /// <summary>
-    /// Asynchronously loads entities by specified index and value 
-    /// </summary>
-    /// <typeparam name="T">Type of the entity class</typeparam>
-    /// <typeparam name="I1">Type of the indexed value</typeparam>
-    /// <param name="table">Table of the entity class</param>
-    /// <param name="index">Name of the index</param>
-    /// <param name="key">Typed index value to search for</param>
-    /// <returns>Awaitable Task with list of found entities in result</returns>
-    public static Task<List<T>> LoadAllAsync<T, I1>(this DbTable<T> table, string index, I1 key) where T : class
-    {
-      return TaskEx.Run(() => table.LoadAll<I1>(index, key));
     }
 
     /// <summary>
@@ -97,6 +83,42 @@ namespace Lex.Db
     public static Task<IEnumerable<T>> LoadByKeysAsync<T, K>(this DbTable<T> table, IEnumerable<K> keys, bool yieldNotFound = false) where T : class
     {
       return TaskEx.Run(() => table.LoadByKeys(keys, yieldNotFound));
+    }
+
+    /// <summary>
+    /// Asynchronously materializes indexed query result
+    /// </summary>
+    /// <typeparam name="T">Type of the entity class</typeparam>
+    /// <typeparam name="K">Type of the index</typeparam>
+    /// <param name="query">Indexed query to execute</param>
+    /// <returns>Awaitable Task with enumeration of loaded entities in result</returns>
+    public static Task<List<T>> ToListAsync<T, K>(this IIndexQuery<T, K> query) where T : class
+    {
+      return TaskEx.Run(() => query.ToList());
+    }
+
+    /// <summary>
+    /// Asynchronously materializes indexed query lazy result
+    /// </summary>
+    /// <typeparam name="T">Type of the entity class</typeparam>
+    /// <typeparam name="K">Type of the index</typeparam>
+    /// <param name="query">Indexed query to execute</param>
+    /// <returns>Awaitable Task with enumeration of loaded entities in result</returns>
+    public static Task<List<Lazy<T, K>>> ToLazyListAsync<T, K>(this IIndexQuery<T, K> query) where T : class
+    {
+      return TaskEx.Run(() => query.ToLazyList());
+    }
+
+    /// <summary>
+    /// Asynchronously materializes indexed query result
+    /// </summary>
+    /// <typeparam name="T">Type of the entity class</typeparam>
+    /// <typeparam name="K">Type of the index</typeparam>
+    /// <param name="query">Indexed query to count result</param>
+    /// <returns>Awaitable Task with number of entities in result</returns>
+    public static Task<int> CountAsync<T, K>(this IIndexQuery<T, K> query) where T : class
+    {
+      return TaskEx.Run(() => query.Count());
     }
 
     /// <summary>

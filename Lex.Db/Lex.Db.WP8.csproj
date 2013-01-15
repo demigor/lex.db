@@ -99,6 +99,7 @@
     <Compile Include="Framework\ReaderWriterLockSlim.cs" />
     <Compile Include="Indexing\DataIndex.cs" />
     <Compile Include="Indexing\Indexers.cs" />
+    <Compile Include="Indexing\Indexes.cs" />
     <Compile Include="Indexing\KeyIndex.cs" />
     <Compile Include="Indexing\Lazies.cs" />
     <Compile Include="Indexing\RedBlackTree.cs" />

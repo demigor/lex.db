@@ -67,13 +67,13 @@ namespace Lex.Db
     /// </summary>
     /// <typeparam name="K">Type of the key</typeparam>
     /// <returns>Typed list of key values</returns>
-    public abstract List<K> AllKeys<K>();
+    public abstract K[] AllKeys<K>();
 
     /// <summary>
     /// Gathers all currently used PK values from PK index
     /// </summary>
     /// <returns>Untyped IEnumerable of key values</returns>
-    public abstract IEnumerable AllKeys();
+    public abstract object[] AllKeys();
 
     /// <summary>
     /// Determines minimal PK value from PK index,
@@ -174,9 +174,9 @@ namespace Lex.Db
 
     #region Metadata ctors
 
-    internal void Add<K>(Expression<Func<T, K>> keyBuilder, MemberInfo key, bool autoGen)
+    internal void Add<K>(Expression<Func<T, K>> keyBuilder, MemberInfo key, bool autoGen, IComparer<K> comparer = null)
     {
-      KeyIndex = new KeyIndex<T, K>(this, keyBuilder.Compile(), key);
+      KeyIndex = new KeyIndex<T, K>(this, keyBuilder.Compile(), key, comparer);
       Metadata.Key = DbTypes.GetDbType(keyBuilder.Body.Type);
 
       if (autoGen && key != null)
@@ -211,7 +211,7 @@ namespace Lex.Db
       var member = obj.Member(key);
 
       var indexLong = Expression.Convert(index, typeof(KeyIndex<T, long>));
-      var lastValue = Expression.Call(indexLong, typeof(KeyIndex<T, long>).GetPublicInstanceMethod("GetMaxKey"));
+      var lastValue = Expression.Property(indexLong, "MaxKey");
       var setter = Expression.Assign(member, Expression.Add(lastValue, Expression.Constant(1L)));
 
       var ifBlock = Expression.IfThen(Expression.Equal(member, Expression.Constant(0L)), setter);
@@ -231,7 +231,7 @@ namespace Lex.Db
       var member = obj.Member(key);
 
       var indexInt = Expression.Convert(index, typeof(KeyIndex<T, int>));
-      var lastValue = Expression.Call(indexInt, typeof(KeyIndex<T, int>).GetPublicInstanceMethod("GetMaxKey"));
+      var lastValue = Expression.Property(indexInt, "MaxKey");
       var setter = Expression.Assign(member, Expression.Add(lastValue, Expression.Constant(1)));
 
       var ifBlock = Expression.IfThen(Expression.Equal(member, Expression.Constant(0)), setter);
@@ -290,12 +290,36 @@ namespace Lex.Db
 
     #region Index ctors
 
+    internal Lazy<T, I1> LazyCtor<I1>(I1 key, IKeyNode node)
+    {
+      return new Lazy<T, I1>(this, node.Key, key);
+    }
+
+    internal Lazy<T, I1, I2> LazyCtor<I1, I2>(Indexer<I1, I2> key, IKeyNode node)
+    {
+      return new Lazy<T, I1, I2>(this, node.Key, key);
+    }
+
+    internal Lazy<T, I1, I2, I3> LazyCtor<I1, I2, I3>(Indexer<I1, I2, I3> key, IKeyNode node)
+    {
+      return new Lazy<T, I1, I2, I3>(this, node.Key, key);
+    }
+
     Dictionary<string, IDataIndex<T>> Indexes
     {
       get
       {
         return _indexes ?? (_indexes = new Dictionary<string, IDataIndex<T>>(StringComparer.OrdinalIgnoreCase));
       }
+    }
+
+    internal IKeyIndex<T, K> GetPrimaryIndex<K>()
+    {
+      var result = KeyIndex as IKeyIndex<T, K>;
+      if (result == null)
+        throw new ArgumentException(string.Format("Primary Index {0} mismatch ({1} expected)", typeof(K).Name, KeyIndex.KeyType.Name));
+
+      return result;
     }
 
     internal IDataIndex<T> GetIndex(string name)
@@ -308,22 +332,71 @@ namespace Lex.Db
       return result;
     }
 
+    public IIndexQuery<T, K> Query<K>()
+    {
+      return new IndexQuery<T, K>(GetPrimaryIndex<K>());
+    }
+
     internal IDataIndex<T, I1> GetIndex<I1>(string name)
     {
-      var idx = GetIndex(name);
-      if (idx == null)
-        return null;
-
-      var result = idx as IDataIndex<T, I1>;
+      var result = GetIndex(name) as IDataIndex<T, I1>;
       if (result == null)
-        throw new ArgumentException(string.Format("Index '{0}' type mismatch", name));
+        throw new ArgumentException(string.Format("Index {0}<{1}> not found", name, typeof(I1).Name));
 
       return result;
     }
 
-    IDataIndex<T> CreateIndex<I1>(string name, Func<T, I1> getter, IComparer<I1> comparer, MemberInfo[] members, Func<DataNode<I1>, Lazy<T>> lazyCtor)
+    public IIndexQuery<T, I1> IndexQuery<I1>(string name)
     {
-      return new DataIndex<T, I1>(this, name, getter, comparer ?? Comparer<I1>.Default, lazyCtor, i => LoadByKey(i.KeyNode.Key), members);
+      return new IndexQuery<T, I1>(GetIndex<I1>(name));
+    }
+
+    public IIndexQuery<T, I1> IndexQueryByKey<I1>(string name, I1 key)
+    {
+      return IndexQuery<I1>(name).Key(key);
+    }
+
+    internal IDataIndex<T, Indexer<I1, I2>> GetIndex<I1, I2>(string name)
+    {
+      var result = GetIndex(name) as IDataIndex<T, Indexer<I1, I2>>;
+      if (result == null)
+        throw new ArgumentException(string.Format("Index {0}<{1}, {2}> not found", name, typeof(I1).Name, typeof(I2).Name));
+
+      return result;
+    }
+
+    public IIndexQuery<T, I1, I2> IndexQuery<I1, I2>(string name)
+    {
+      return new IndexQuery<T, I1, I2>(GetIndex<I1, I2>(name));
+    }
+
+    public IIndexQuery<T, I1, I2> IndexQueryByKey<I1, I2>(string name, I1 keyPart1, I2 keyPart2)
+    {
+      return IndexQuery<I1, I2>(name).Key(keyPart1, keyPart2);
+    }
+
+    internal IDataIndex<T, Indexer<I1, I2, I3>> GetIndex<I1, I2, I3>(string name)
+    {
+      var result = GetIndex(name) as IDataIndex<T, Indexer<I1, I2, I3>>;
+      if (result == null)
+        throw new ArgumentException(string.Format("Index {0}<{1}, {2}, {3}> not found", name, typeof(I1).Name, typeof(I2).Name, typeof(I3).Name));
+
+      return result;
+    }
+
+    public IIndexQuery<T, I1, I2, I3> IndexQuery<I1, I2, I3>(string name)
+    {
+      return new IndexQuery<T, I1, I2, I3>(GetIndex<I1, I2, I3>(name));
+    }
+
+    public IIndexQuery<T, I1, I2, I3> IndexQueryByKey<I1, I2, I3>(string name, I1 keyPart1, I2 keyPart2, I3 keyPart3)
+    {
+      return IndexQuery<I1, I2, I3>(name).Key(keyPart1, keyPart2, keyPart3);
+    }
+
+    IDataIndex<T> CreateIndex<I1>(string name, Func<T, I1> getter, IComparer<I1> comparer, MemberInfo[] members, Func<I1, object, Lazy<T>> lazyCtor)
+    {
+      return new DataIndex<T, I1>(this, name, getter, comparer ?? Comparer<I1>.Default, lazyCtor, members);
     }
 
     internal void CreateIndex<I1>(string name, Func<T, I1> getter, MemberInfo member, IComparer<I1> comparer)
@@ -332,7 +405,7 @@ namespace Lex.Db
         getter,
         comparer,
         new[] { member },
-        i => new Lazy<T, I1>(i.Key, () => LoadByKey(i.KeyNode.Key)));
+        (k, pk) => new Lazy<T, I1>(this, pk, k));
     }
 
     internal void CreateIndex<I1, I2>(string name, MemberInfo member1, IComparer<I1> comparer1, MemberInfo member2, IComparer<I2> comparer2)
@@ -341,7 +414,7 @@ namespace Lex.Db
         BuildGetter<I1, I2>(member1, member2),
         new Indexer<I1, I2>.Comparer(comparer1, comparer2),
         new[] { member1, member2 },
-        i => new Lazy<T, I1, I2>(i.Key, () => LoadByKey(i.KeyNode.Key)));
+        (k, pk) => new Lazy<T, I1, I2>(this, pk, k));
     }
 
     internal void CreateIndex<I1, I2, I3>(string name, MemberInfo member1, IComparer<I1> comparer1, MemberInfo member2, IComparer<I2> comparer2, MemberInfo member3, IComparer<I3> comparer3)
@@ -350,7 +423,7 @@ namespace Lex.Db
         BuildGetter<I1, I2, I3>(member1, member2, member3),
         new Indexer<I1, I2, I3>.Comparer(comparer1, comparer2, comparer3),
         new[] { member1, member2, member3 },
-        i => new Lazy<T, I1, I2, I3>(i.Key, () => LoadByKey(i.KeyNode.Key)));
+        (k, pk) => new Lazy<T, I1, I2, I3>(this, pk, k));
     }
 
     static Func<T, Indexer<I1, I2>> BuildGetter<I1, I2>(MemberInfo member1, MemberInfo member2)
@@ -384,7 +457,7 @@ namespace Lex.Db
 
     #region Scopes
 
-    class Scope<E> : IDisposable
+    internal class Scope<E> : IDisposable
     {
       public readonly ITransactionScope Transaction;
       public readonly E Element;
@@ -401,7 +474,7 @@ namespace Lex.Db
       }
     }
 
-    Scope<IDbTableReader> ReadScope()
+    internal Scope<IDbTableReader> ReadScope()
     {
       var scope = _db.ReadScope();
       return new Scope<IDbTableReader>(scope, scope.GetReader(this));
@@ -420,17 +493,19 @@ namespace Lex.Db
     /// </summary>
     /// <typeparam name="K">Type of the PK</typeparam>
     /// <returns>List of all current key values</returns>
-    public override List<K> AllKeys<K>()
+    public override K[] AllKeys<K>()
     {
+      var idx = GetPrimaryIndex<K>();
+
       using (ReadScope())
-        return (List<K>)KeyIndex.MakeKeyList();
+        return idx.MakeKeyList();
     }
 
     /// <summary>
     /// Lists all current keys 
     /// </summary>
     /// <returns>Sequence of key values</returns>
-    public override IEnumerable AllKeys()
+    public override object[] AllKeys()
     {
       using (ReadScope())
         return KeyIndex.MakeKeyList();
@@ -447,139 +522,6 @@ namespace Lex.Db
     }
 
     /// <summary>
-    /// Loads entities by specified index and key value 
-    /// </summary>
-    /// <returns>List of all entities with specified key value</returns>
-    public List<T> LoadAll<I1>(string index, I1 key)
-    {
-      var idx = GetIndex<I1>(index);
-      if (idx == null)
-        throw new InvalidOperationException(string.Format("Index {0} not found", index));
-
-      using (ReadScope())
-        return idx.Load(key).ToList();
-    }
-
-    /// <summary>
-    /// Lazy load via primary key
-    /// </summary>
-    /// <typeparam name="K">Primary key type</typeparam>
-    /// <returns>List of lazy instances</returns>
-    public List<Lazy<T, K>> LazyLoad<K>()
-    {
-      using (ReadScope())
-        return KeyIndex.LazyLoad().Cast<Lazy<T, K>>().ToList();
-    }
-
-    /// <summary>
-    /// Lazy load via normal index
-    /// </summary>
-    /// <typeparam name="I1">Index type parameter</typeparam>
-    /// <param name="index">Name of the index (case insensitive)</param>
-    /// <returns>List of lazy instances</returns>
-    public List<Lazy<T, I1>> LazyLoad<I1>(string index)
-    {
-      var idx = GetIndex<I1>(index);
-      if (idx == null)
-        throw new ArgumentException("index");
-
-      using (ReadScope())
-        return idx.LazyLoad().Cast<Lazy<T, I1>>().ToList();
-    }
-
-    /// <summary>
-    /// Lazy load via normal index
-    /// </summary>
-    /// <typeparam name="I1">Index type parameter</typeparam>
-    /// <param name="index">Name of the index (case insensitive)</param>
-    /// <param name="key">Key value</param>
-    /// <returns>List of lazy instances</returns>
-    public List<Lazy<T, I1>> LazyLoad<I1>(string index, I1 key)
-    {
-      var idx = GetIndex<I1>(index);
-      if (idx == null)
-        throw new ArgumentException("index");
-
-      using (ReadScope())
-        return idx.LazyLoad(key).Cast<Lazy<T, I1>>().ToList();
-    }
-
-    /// <summary>
-    /// Lazy load via normal index
-    /// </summary>
-    /// <typeparam name="I1">Index type first parameter</typeparam>
-    /// <typeparam name="I2">Index type second parameter</typeparam>
-    /// <param name="index">Name of the index (case insensitive)</param>
-    /// <param name="key1">Value for first key component</param>
-    /// <param name="key2">Value for second key component</param>
-    /// <returns>List of lazy instances</returns>
-    public List<Lazy<T, I1, I2>> LazyLoad<I1, I2>(string index, I1 key1, I2 key2)
-    {
-      var idx = GetIndex<Indexer<I1, I2>>(index);
-      if (idx == null)
-        throw new ArgumentException("index");
-
-      using (ReadScope())
-        return idx.LazyLoad(new Indexer<I1, I2>(key1, key2)).Cast<Lazy<T, I1, I2>>().ToList();
-    }
-
-    /// <summary>
-    /// Lazy load via normal index by two columns
-    /// </summary>
-    /// <typeparam name="I1">Index type first parameter</typeparam>
-    /// <typeparam name="I2">Index type second parameter</typeparam>
-    /// <param name="index">Name of the index (case insensitive)</param>
-    /// <returns>List of lazy instances</returns>
-    public List<Lazy<T, I1, I2>> LazyLoad<I1, I2>(string index)
-    {
-      var idx = GetIndex(index);
-      if (idx == null)
-        throw new ArgumentException("index");
-
-      using (ReadScope())
-        return idx.LazyLoad().Cast<Lazy<T, I1, I2>>().ToList();
-    }
-
-    /// <summary>
-    /// Lazy load via normal index
-    /// </summary>
-    /// <typeparam name="I1">Index type first parameter</typeparam>
-    /// <typeparam name="I2">Index type second parameter</typeparam>
-    /// <typeparam name="I3">Index type second parameter</typeparam>
-    /// <param name="index">Name of the index (case insensitive)</param>
-    /// <param name="key1">First component of key value</param>
-    /// <param name="key2">Second component of key value</param>
-    /// <param name="key3">Third component of key value</param>
-    /// <returns>List of lazy instances</returns>
-    public List<Lazy<T, I1, I2, I3>> LazyLoad<I1, I2, I3>(string index, I1 key1, I2 key2, I3 key3)
-    {
-      var idx = GetIndex<Indexer<I1, I2, I3>>(index);
-      if (idx == null)
-        throw new ArgumentException("index");
-
-      using (ReadScope())
-        return idx.LazyLoad(new Indexer<I1, I2, I3>(key1, key2, key3)).Cast<Lazy<T, I1, I2, I3>>().ToList();
-    }
-
-    /// <summary>
-    /// Lazy load via normal index by three columns
-    /// </summary>
-    /// <typeparam name="I1">Index type first parameter</typeparam>
-    /// <typeparam name="I2">Index type second parameter</typeparam>
-    /// <typeparam name="I3">Index type third parameter</typeparam>
-    /// <param name="index">Name of the index (case insensitive)</param>
-    /// <returns>List of lazy instances</returns>
-    public List<Lazy<T, I1, I2, I3>> LazyLoad<I1, I2, I3>(string index)
-    {
-      var idx = GetIndex(index);
-      if (idx == null)
-        throw new ArgumentException("index");
-
-      using (ReadScope())
-        return idx.LazyLoad().Cast<Lazy<T, I1, I2, I3>>().ToList();
-    }
-
-    /// <summary>
     /// Loads an entity by specified PK value
     /// </summary>
     /// <typeparam name="K">Type of the primary key</typeparam>
@@ -587,39 +529,28 @@ namespace Lex.Db
     /// <returns>Entity identified by the PK value, if any</returns>
     public T LoadByKey<K>(K key)
     {
+      var idx = GetPrimaryIndex<K>();
+
       using (var scope = ReadScope())
-      {
-        var info = KeyIndex.FindByKey(key, true);
-        if (info == null)
-          return default(T);
-
-        Metadata.Deserialize(new DataReader(new MStream(scope.Element.ReadData(info.Offset, info.Length))), info.Result);
-
-        return info.Result;
-      }
+        return LoadByKeyInfo(scope, idx.FindByKey(key, true));
     }
 
-    IEnumerable<T> LoadByKeysCore<K>(IEnumerable<K> keys, bool yieldNotFound)
+    internal T LoadByKeyNode(Scope<IDbTableReader> scope, IKeyNode node)
     {
-      using (var scope = ReadScope())
-      {
-        var reader = scope.Element;
+      if (node == null)
+        return default(T);
 
-        foreach (var key in keys)
-        {
-          var info = KeyIndex.FindByKey(key, true);
-          if (info == null)
-          {
-            if (yieldNotFound)
-              yield return default(T);
-          }
-          else
-          {
-            Metadata.Deserialize(new DataReader(new MStream(reader.ReadData(info.Offset, info.Length))), info.Result);
-            yield return info.Result;
-          }
-        }
-      }
+      return LoadByKeyInfo(scope, KeyIndex.GetLocation(node));
+    }
+
+    T LoadByKeyInfo(Scope<IDbTableReader> scope, Location<T> info)
+    {
+      if (info == null)
+        return default(T);
+
+      Metadata.Deserialize(new DataReader(new MStream(scope.Element.ReadData(info.Offset, info.Length))), info.Result);
+
+      return info.Result;
     }
 
     /// <summary>
@@ -634,7 +565,27 @@ namespace Lex.Db
       if (keys == null)
         throw new ArgumentNullException();
 
-      return LoadByKeysCore(keys, yieldNotFound);
+      var idx = GetPrimaryIndex<K>();
+
+      using (var scope = ReadScope())
+      {
+        var reader = scope.Element;
+
+        foreach (var key in keys)
+        {
+          var info = idx.FindByKey(key, true);
+          if (info == null)
+          {
+            if (yieldNotFound)
+              yield return default(T);
+          }
+          else
+          {
+            Metadata.Deserialize(new DataReader(new MStream(reader.ReadData(info.Offset, info.Length))), info.Result);
+            yield return info.Result;
+          }
+        }
+      }
     }
 
     /// <summary>
@@ -726,10 +677,10 @@ namespace Lex.Db
     void ReadIndexes(Stream stream)
     {
       var reader = new DataReader(stream);
-      Metadata.Read(reader);
+      var format = Metadata.Read(reader);
       try
       {
-        KeyIndex.Read(reader);
+        KeyIndex.Read(reader, format);
       }
       catch (InvalidOperationException)
       {
@@ -743,7 +694,7 @@ namespace Lex.Db
 
         do
         {
-          GetIndex(name).Read(reader);
+          GetIndex(name).Read(reader, format);
           name = reader.ReadString();
         } while (name != "");
 
@@ -788,7 +739,7 @@ namespace Lex.Db
       using (var scope = ReadScope())
       {
         var result = scope.Element.GetInfo();
-        result.EffectiveDataSize = KeyIndex.GetFileSize(); 
+        result.EffectiveDataSize = KeyIndex.GetFileSize();
         return result;
       }
     }
@@ -801,8 +752,10 @@ namespace Lex.Db
     /// <returns>True if entity was deleted</returns>
     public override bool DeleteByKey<K>(K key)
     {
+      var idx = GetPrimaryIndex<K>();
+
       using (var scope = WriteScope())
-        if (KeyIndex.RemoveByKey(key))
+        if (idx.RemoveByKey(key))
         {
           scope.Transaction.Modified(this);
           return true;
@@ -822,9 +775,11 @@ namespace Lex.Db
       if (keys == null)
         throw new ArgumentNullException();
 
+      var idx = GetPrimaryIndex<K>();
+
       using (var scope = WriteScope())
       {
-        var result = keys.Count(key => KeyIndex.RemoveByKey(key));
+        var result = keys.Count(key => idx.RemoveByKey(key));
 
         if (result > 0)
           scope.Transaction.Modified(this, true);
@@ -918,8 +873,8 @@ namespace Lex.Db
       writer.WriteData(data, offset, length);
 
       if (_indexes != null)
-        foreach (var i in _indexes)
-          i.Value.Update(key, instance);
+        foreach (var i in _indexes.Values)
+          i.Update(key, instance);
     }
 
     DateTimeOffset _tableTs;
@@ -989,8 +944,10 @@ namespace Lex.Db
     /// <returns>Minimal PK value</returns>
     public override K GetMinKey<K>()
     {
+      var idx = GetPrimaryIndex<K>();
+
       using (ReadScope())
-        return (K)KeyIndex.MinKey();
+        return idx.MinKey;
     }
 
     /// <summary>
@@ -1001,8 +958,10 @@ namespace Lex.Db
     /// <returns>Maximal PK value</returns>
     public override K GetMaxKey<K>()
     {
+      var idx = GetPrimaryIndex<K>();
+
       using (ReadScope())
-        return (K)KeyIndex.MaxKey();
+        return idx.MaxKey;
     }
   }
 }
