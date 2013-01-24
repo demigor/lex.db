@@ -14,7 +14,7 @@
 * Supports isolated storage, files &amp; local app data folders.
 * Table structure auto-upgrade
 * Concurrent database access (SL OOB multiple instance support)
-* RBT Indexes
+* Red Black Tree Indexes
 * Lazy loading</description>
         <summary>Superfast, lightweight (~100K), POCO database for WP8+ &amp; WinRT, .NET4+, Silverlight 5+,  platforms.</summary>
         <releaseNotes />
