@@ -1,8 +1,14 @@
-﻿#if SILVERLIGHT && !WINDOWS_PHONE
+﻿#if SILVERLIGHT 
 
-using System.Diagnostics;                // for TraceInformation ...
+/*
+ * This class is new for Silverlight CLR, for WP8 it fixes unstable original implementation. 
+ */ 
 
-namespace System.Threading
+using System;                // for TraceInformation ...
+using System.Diagnostics;
+using System.Threading;
+
+namespace Lex.Db
 {
   enum LockRecursionPolicy
   {

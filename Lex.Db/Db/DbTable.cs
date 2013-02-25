@@ -477,13 +477,29 @@ namespace Lex.Db
     internal Scope<IDbTableReader> ReadScope()
     {
       var scope = _db.ReadScope();
-      return new Scope<IDbTableReader>(scope, scope.GetReader(this));
+      try
+      {
+        return new Scope<IDbTableReader>(scope, scope.GetReader(this));
+      }
+      catch
+      {
+        scope.Dispose();
+        throw;
+      }
     }
 
     Scope<IDbTableWriter> WriteScope(bool autoReload = true)
     {
       var scope = _db.WriteScope();
-      return new Scope<IDbTableWriter>(scope, scope.GetWriter(this, autoReload));
+      try
+      {
+        return new Scope<IDbTableWriter>(scope, scope.GetWriter(this, autoReload));
+      }
+      catch
+      {
+        scope.Dispose();
+        throw;
+      }
     }
 
     #endregion
