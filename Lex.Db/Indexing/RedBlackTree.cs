@@ -892,7 +892,7 @@ namespace Lex.Db.Indexing
       }
     }
 
-    FindResult FindMax(TKey max, bool inclusive)
+    FindResult FindMax(TKey max)
     {
       var node = _root;
 
@@ -912,13 +912,13 @@ namespace Lex.Db.Indexing
 
         }
         else
-          return new FindResult(inclusive ? 0 : -1, node);
+          return new FindResult(0, node);
       }
 
       return new FindResult(-1);
     }
 
-    FindResult FindMin(TKey min, bool inclusive)
+    FindResult FindMin(TKey min)
     {
       var node = _root;
 
@@ -937,7 +937,7 @@ namespace Lex.Db.Indexing
           node = left;
         }
         else
-          return new FindResult(inclusive ? 0 : 1, node);
+          return new FindResult(0, node);
       }
 
       return new FindResult(1);
@@ -945,13 +945,13 @@ namespace Lex.Db.Indexing
 
     IEnumerable<TNode> EnumMin(TKey min, bool inclusive)
     {
-      var result = FindMin(min, inclusive);
+      var result = FindMin(min);
 
       var start = result.Node;
       if (start == null)
         yield break;
 
-      if (result.Direction > 0)
+      if (result.Direction == 0 && !inclusive)
         start = Next(start);
 
       for (var i = start; i != null; i = Next(i))
@@ -960,13 +960,13 @@ namespace Lex.Db.Indexing
 
     IEnumerable<TNode> EnumMax(TKey max, bool inclusive)
     {
-      var result = FindMax(max, inclusive);
+      var result = FindMax(max);
 
       var stop = result.Node;
       if (stop == null)
         yield break;
 
-      if (result.Direction == 0)
+      if (result.Direction < 0 || inclusive)
         stop = Next(stop);
 
       for (var i = First(); i != stop; i = Next(i))
@@ -975,20 +975,20 @@ namespace Lex.Db.Indexing
 
     IEnumerable<TNode> EnumMinMax(TKey min, bool minInclusive, TKey max, bool maxInclusive)
     {
-      var minResult = FindMin(min, minInclusive);
+      var minResult = FindMin(min);
       var start = minResult.Node;
       if (start == null)
         yield break;
 
-      var maxResult = FindMax(max, maxInclusive);
+      var maxResult = FindMax(max);
       var stop = maxResult.Node;
       if (stop == null)
         yield break;
 
-      if (minResult.Direction > 0)
+      if (minResult.Direction == 0 && !minInclusive)
         start = Next(start);
 
-      if (maxResult.Direction == 0)
+      if (maxResult.Direction < 0 || maxInclusive)
         stop = Next(stop);
 
       for (var i = start; i != stop; i = Next(i))

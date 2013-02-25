@@ -8,10 +8,9 @@ namespace Lex.Db
   /// Provides support for lazy initialization
   /// </summary>
   /// <typeparam name="T">Specifies the type of entity that is being lazily loaded</typeparam>
-  public abstract class Lazy<T> where T: class
+  public abstract class Lazy<T> where T : class
   {
     T _result;
-    object _pk;
     DbTable<T> _table;
     Exception _error;
 
@@ -21,9 +20,14 @@ namespace Lex.Db
     /// <param name="table">The delegate that is invoked to produce the lazily initialized value when it is needed</param>
     protected Lazy(DbTable<T> table, object pk)
     {
-      _pk = pk;
+      PK = pk;
       _table = table;
     }
+
+    /// <summary>
+    /// Primary key used to lazy load the entity
+    /// </summary>  
+    public readonly object PK;
 
     /// <summary>
     /// Gets the lazily loaded entity of the current Lazy instance.
@@ -48,7 +52,7 @@ namespace Lex.Db
 
       try
       {
-        _result = _table.LoadByKey(_pk);
+        _result = _table.LoadByKey(PK);
       }
       catch (Exception e)
       {
@@ -57,7 +61,6 @@ namespace Lex.Db
       }
       finally
       {
-        _pk = null;
         _table = null;
       }
       return _result;
@@ -69,20 +72,18 @@ namespace Lex.Db
   /// </summary>
   /// <typeparam name="T">Specifies the type of entity that is being lazily loaded</typeparam>
   /// <typeparam name="I1">Type of the index component</typeparam>
-  public sealed class Lazy<T, I1> : Lazy<T> where T: class
+  public sealed class Lazy<T, I1> : Lazy<T> where T : class
   {
-    readonly I1 _key;
+    /// <summary>
+    /// Index component
+    /// </summary>
+    public readonly I1 Key;
 
     internal Lazy(DbTable<T> table, object pk, I1 key)
       : base(table, pk)
     {
-      _key = key;
+      Key = key;
     }
-
-    /// <summary>
-    /// Index component
-    /// </summary>
-    public I1 Key { get { return _key; } }
   }
 
   /// <summary>
@@ -91,27 +92,24 @@ namespace Lex.Db
   /// <typeparam name="T">Specifies the type of entity that is being lazily loaded</typeparam>
   /// <typeparam name="I1">Type of the first index component</typeparam>
   /// <typeparam name="I2">Type of the second index component</typeparam>
-  public sealed class Lazy<T, I1, I2> : Lazy<T> where T: class
+  public sealed class Lazy<T, I1, I2> : Lazy<T> where T : class
   {
-    readonly I1 _key1;
-    readonly I2 _key2;
-
     internal Lazy(DbTable<T> table, object pk, Indexer<I1, I2> source)
       : base(table, pk)
     {
-      _key1 = source.Key1;
-      _key2 = source.Key2;
+      Key1 = source.Key1;
+      Key2 = source.Key2;
     }
-
+  
     /// <summary>
     /// First index component
     /// </summary>
-    public I1 Key1 { get { return _key1; } }
+    public readonly I1 Key1;
 
     /// <summary>
     /// Second index component
     /// </summary>
-    public I2 Key2 { get { return _key2; } }
+    public readonly I2 Key2;
   }
 
   /// <summary>
@@ -121,33 +119,29 @@ namespace Lex.Db
   /// <typeparam name="I1">Type of the first index component</typeparam>
   /// <typeparam name="I2">Type of the second index component</typeparam>
   /// <typeparam name="I3">Type of the third index component</typeparam>
-  public sealed class Lazy<T, I1, I2, I3> : Lazy<T> where T: class
+  public sealed class Lazy<T, I1, I2, I3> : Lazy<T> where T : class
   {
-    readonly I1 _key1;
-    readonly I2 _key2;
-    readonly I3 _key3;
-
     internal Lazy(DbTable<T> table, object pk, Indexer<I1, I2, I3> source)
       : base(table, pk)
     {
-      _key1 = source.Key1;
-      _key2 = source.Key2;
-      _key3 = source.Key3;
+      Key1 = source.Key1;
+      Key2 = source.Key2;
+      Key3 = source.Key3;
     }
 
     /// <summary>
     /// First index component
     /// </summary>
-    public I1 Key1 { get { return _key1; } }
-
+    public readonly I1 Key1;
+    
     /// <summary>
     /// Second index component
     /// </summary>
-    public I2 Key2 { get { return _key2; } }
-
+    public readonly I2 Key2;
+    
     /// <summary>
     /// Third index component
     /// </summary>
-    public I3 Key3 { get { return _key3; } }
+    public readonly I3 Key3;
   }
 }
