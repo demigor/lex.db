@@ -1,25 +1,20 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
-#if NETFX_CORE
+#if NETFX_CORE || WINDOWS_PHONE
 using Microsoft.VisualStudio.TestPlatform.UnitTestFramework;
 #else
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-#if WINDOWS_PHONE
-using Microsoft.Phone.Testing;
-#elif SILVERLIGHT
+using System.Threading.Tasks;
+#if SILVERLIGHT
 using Microsoft.Silverlight.Testing;
 #endif
 #endif
 
-namespace Lex.Db.Silverlight
+namespace Lex.Db
 {
   [TestClass]
-#if SILVERLIGHT
   public class DbTests2 : WorkItemTest
-#else
-  public class DbTests2
-#endif
   {
     public TestContext TestContext { get; set; }
 
@@ -80,6 +75,22 @@ namespace Lex.Db.Silverlight
 
       Assert.AreEqual(list1count, 100);
       Assert.AreEqual(list2count, 200);
+
+      var list3count = table.IndexQuery<string>("LastName").GreaterThan("Test5").Count();
+      var list4count = table.IndexQuery<string>("LastName").LessThan("Test6").Count();
+      var list5count = table.IndexQuery<string>("LastName").LessThan("Test6").GreaterThan("Test5").Count();
+
+      Assert.AreEqual(900, list3count);
+      Assert.AreEqual(1200, list4count);
+      Assert.AreEqual(100, list5count);
+
+      var list6count = table.IndexQuery<string>("LastName").GreaterThan("Test5", true).Count();
+      var list7count = table.IndexQuery<string>("LastName").LessThan("Test6", true).Count();
+      var list8count = table.IndexQuery<string>("LastName").LessThan("Test6", true).GreaterThan("Test5", true).Count();
+
+      Assert.AreEqual(1000, list6count);
+      Assert.AreEqual(1300, list7count);
+      Assert.AreEqual(300, list8count);
     }
 
     [TestMethod]
@@ -104,7 +115,7 @@ namespace Lex.Db.Silverlight
         var obj = table.LoadByKey(key);
 
         Assert.AreEqual(newObj.Name, obj.Name);
-#if !NETFX_CORE
+#if !(NETFX_CORE || WINDOWS_PHONE)
         TestContext.WriteLine("Completed: " + (DateTime.Now - swatch).TotalMilliseconds);
 #endif
       });
@@ -201,10 +212,16 @@ namespace Lex.Db.Silverlight
         var obj = table.LoadByKey(key);
 
         Assert.AreEqual(newObj.Name, obj.Name);
-#if !NETFX_CORE
+#if !(NETFX_CORE || WINDOWS_PHONE)
         TestContext.WriteLine("Completed: " + (DateTime.Now - swatch).TotalMilliseconds);
 #endif
       });
+    }
+
+    public class Person
+    {
+      public int PersonID;
+      public string Forename, Surname;
     }
   }
 }

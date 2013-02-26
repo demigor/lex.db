@@ -33,20 +33,39 @@ namespace Lex.Db.Tests.WP8
 
       // Language display initialization
       InitializeLanguage();
+
+      // Show graphics profiling information while debugging.
+      if (Debugger.IsAttached)
+      {
+        // Display the current frame rate counters.
+        Application.Current.Host.Settings.EnableFrameRateCounter = true;
+
+        // Show the areas of the app that are being redrawn in each frame.
+        //Application.Current.Host.Settings.EnableRedrawRegions = true;
+
+        // Enable non-production analysis visualization mode,
+        // which shows areas of a page that are handed off to GPU with a colored overlay.
+        //Application.Current.Host.Settings.EnableCacheVisualization = true;
+
+        // Prevent the screen from turning off while under the debugger by disabling
+        // the application's idle detection.
+        // Caution:- Use this under debug mode only. Application that disables user idle detection will continue to run
+        // and consume battery power when the user is not using the phone.
+        PhoneApplicationService.Current.UserIdleDetectionMode = IdleDetectionMode.Disabled;
+      }
+
     }
 
     // Code to execute when the application is launching (eg, from Start)
     // This code will not execute when the application is reactivated
     private void Application_Launching(object sender, LaunchingEventArgs e)
     {
-      //RootVisual = UnitTestSystem.CreateTestPage();
     }
 
     // Code to execute when the application is activated (brought to foreground)
     // This code will not execute when the application is first launched
     private void Application_Activated(object sender, ActivatedEventArgs e)
     {
-
     }
 
     // Code to execute when the application is deactivated (sent to background)
@@ -91,8 +110,6 @@ namespace Lex.Db.Tests.WP8
     {
       if (phoneApplicationInitialized)
         return;
-
-
 
       // Create the frame but don't set it as RootVisual yet; this allows the splash
       // screen to remain active until the application is ready to render.

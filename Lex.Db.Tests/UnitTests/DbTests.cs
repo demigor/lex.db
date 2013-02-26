@@ -2,20 +2,18 @@
 using System.Linq;
 using System.Collections.Generic;
 using System.Diagnostics;
-#if NETFX_CORE
+#if NETFX_CORE || WINDOWS_PHONE
 using Microsoft.VisualStudio.TestPlatform.UnitTestFramework;
 #else
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-#if WINDOWS_PHONE
-using Microsoft.Phone.Testing;
-#elif SILVERLIGHT
+#if SILVERLIGHT
 using Microsoft.Silverlight.Testing;
 #endif
 #endif
 
-namespace Lex.Db.Silverlight
+namespace Lex.Db
 {
-#if !SILVERLIGHT
+#if WINDOWS_PHONE || !SILVERLIGHT
   [AttributeUsage(AttributeTargets.Method)]
   public class AsynchronousAttribute : Attribute { }
 
@@ -246,7 +244,7 @@ namespace Lex.Db.Silverlight
         var obj = table.LoadByKey(key);
 
         Assert.AreEqual(newObj.Name, obj.Name);
-#if !NETFX_CORE
+#if !(NETFX_CORE || WINDOWS_PHONE)
         TestContext.WriteLine("Completed: " + (DateTime.Now - swatch).TotalMilliseconds);
 #endif
       });

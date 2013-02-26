@@ -1,19 +1,21 @@
-﻿using System.Windows;
+﻿using System.Threading;
 using Microsoft.Phone.Controls;
-using Microsoft.Phone.Testing;
+using Microsoft.VisualStudio.TestPlatform.Core;
+using Microsoft.VisualStudio.TestPlatform.TestExecutor;
+using vstest_executionengine_platformbridge;
 
 namespace Lex.Db.Tests.WP8
 {
   public partial class MainPage : PhoneApplicationPage
   {
+    // Constructor
     public MainPage()
     {
       InitializeComponent();
-    }
 
-    private void PhoneApplicationPage_Loaded_1(object sender, RoutedEventArgs e)
-    {
-      Content = UnitTestSystem.CreateTestPage();
+      var wrapper = new TestExecutorServiceWrapper();
+      new Thread(new ServiceMain((param0, param1) => wrapper.SendMessage((ContractName)param0, param1)).Run).Start();
+
     }
   }
 }
