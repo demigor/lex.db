@@ -223,5 +223,42 @@ namespace Lex.Db
       public int PersonID;
       public string Forename, Surname;
     }
+
+    [TestMethod]
+    public void TestGordon()
+    {
+      var db = new DbInstance("gordon.db");
+      db.Map<Person>().Automap(i => i.PersonID, true).WithIndex("Surname", i => i.Surname);
+      db.Initialize();
+
+      var table = db.Table<Person>();
+
+      table.Purge();
+
+      Person newPerson1 = new Person { Forename = "Joe", Surname = "Bloggs" };
+      Person newPerson2 = new Person { Forename = "James", Surname = "Smith" };
+      Person newPerson3 = new Person { Forename = "David", Surname = "Peterson" };
+      Person newPerson4 = new Person { Forename = "Steve", Surname = "Gordon" };
+      Person newPerson5 = new Person { Forename = "David", Surname = "Gordon" };
+      Person newPerson6 = new Person { Forename = "Colin", Surname = "Gordon" };
+      Person newPerson7 = new Person { Forename = "Michael", Surname = "Gordon" };
+
+      var newPeople = new[]{ 
+                newPerson1, 
+                newPerson2, 
+                newPerson3, 
+                newPerson4, 
+                newPerson5, 
+                newPerson6, 
+                newPerson7 };
+
+      table.Save(newPeople);
+                                       
+      var index = table.IndexQuery<string>("Surname");
+      // HIJKLMNOPQRS
+
+      var queryindex = index.GreaterThan("H", true).LessThan("T", true).ToLazyList();
+      Assert.AreEqual(2, queryindex.Count);
+    }
   }
 }

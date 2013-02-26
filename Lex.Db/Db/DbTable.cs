@@ -332,6 +332,11 @@ namespace Lex.Db
       return result;
     }
 
+    /// <summary>
+    /// Gets primary index query constructor
+    /// </summary>
+    /// <typeparam name="K">Type of the primary key</typeparam>
+    /// <returns>Primary index query constructor</returns>
     public IIndexQuery<T, K> Query<K>()
     {
       return new IndexQuery<T, K>(GetPrimaryIndex<K>());
@@ -346,11 +351,24 @@ namespace Lex.Db
       return result;
     }
 
+    /// <summary>
+    /// Returns new named index query constructor
+    /// </summary>
+    /// <typeparam name="I1">Type of the indexed component</typeparam>
+    /// <param name="name">Name of the index</param>
+    /// <returns>New index query constructor</returns>
     public IIndexQuery<T, I1> IndexQuery<I1>(string name)
     {
       return new IndexQuery<T, I1>(GetIndex<I1>(name));
     }
 
+    /// <summary>
+    /// Returns new named index query constructor, set to look for supplied key 
+    /// </summary>
+    /// <typeparam name="I1">Type of the indexed component</typeparam>
+    /// <param name="name">Name of the index</param>
+    /// <param name="key">Key value to filter using index</param>
+    /// <returns>New index query constructor, set to look for specified key</returns>
     public IIndexQuery<T, I1> IndexQueryByKey<I1>(string name, I1 key)
     {
       return IndexQuery<I1>(name).Key(key);
@@ -365,11 +383,27 @@ namespace Lex.Db
       return result;
     }
 
+    /// <summary>
+    /// Returns new named index query constructor
+    /// </summary>
+    /// <typeparam name="I1">Type of the first indexed component</typeparam>
+    /// <typeparam name="I2">Type of the second indexed component</typeparam>
+    /// <param name="name">Name of the index</param>
+    /// <returns>New named index query constructor</returns>
     public IIndexQuery<T, I1, I2> IndexQuery<I1, I2>(string name)
     {
       return new IndexQuery<T, I1, I2>(GetIndex<I1, I2>(name));
     }
 
+    /// <summary>
+    /// Returns named index query constructor, set to look for supplied key components
+    /// </summary>
+    /// <typeparam name="I1">Type of the first indexed component</typeparam>
+    /// <typeparam name="I2">Type of the second indexed component</typeparam>
+    /// <param name="name">Name of the index</param>
+    /// <param name="keyPart1">First part of the key to filter using index</param>
+    /// <param name="keyPart2">Second part of the key to filter using index</param>
+    /// <returns>New named index query constructor, set to look for supplied key components</returns>
     public IIndexQuery<T, I1, I2> IndexQueryByKey<I1, I2>(string name, I1 keyPart1, I2 keyPart2)
     {
       return IndexQuery<I1, I2>(name).Key(keyPart1, keyPart2);
@@ -384,11 +418,30 @@ namespace Lex.Db
       return result;
     }
 
+     /// <summary>
+    /// Returns new named index query constructor
+    /// </summary>
+    /// <typeparam name="I1">Type of the first indexed component</typeparam>
+    /// <typeparam name="I2">Type of the second indexed component</typeparam>
+    /// <typeparam name="I3">Type of the third indexed component</typeparam>
+    /// <param name="name">Name of the index</param>
+    /// <returns>New named index query constructor</returns>
     public IIndexQuery<T, I1, I2, I3> IndexQuery<I1, I2, I3>(string name)
     {
       return new IndexQuery<T, I1, I2, I3>(GetIndex<I1, I2, I3>(name));
     }
 
+    /// <summary>
+    /// Returns named index query constructor, set to look for supplied key components
+    /// </summary>
+    /// <typeparam name="I1">Type of the first indexed component</typeparam>
+    /// <typeparam name="I2">Type of the second indexed component</typeparam>
+    /// <typeparam name="I3">Type of the third indexed component</typeparam>
+    /// <param name="name">Name of the index</param>
+    /// <param name="keyPart1">First part of the key to filter using index</param>
+    /// <param name="keyPart2">Second part of the key to filter using index</param>
+    /// <param name="keyPart3">Third part of the key to filter using index</param>
+    /// <returns>New named index query constructor, set to look for supplied key components</returns>
     public IIndexQuery<T, I1, I2, I3> IndexQueryByKey<I1, I2, I3>(string name, I1 keyPart1, I2 keyPart2, I3 keyPart3)
     {
       return IndexQuery<I1, I2, I3>(name).Key(keyPart1, keyPart2, keyPart3);

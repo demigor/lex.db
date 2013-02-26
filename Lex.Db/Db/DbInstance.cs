@@ -84,6 +84,10 @@ namespace Lex.Db
       return null;
     }
 
+    /// <summary>
+    /// Gets database instance storage statistics
+    /// </summary>
+    /// <returns>Database instance storage statistics</returns>
     public DbTableInfo GetInfo()
     {
       CheckSealed();

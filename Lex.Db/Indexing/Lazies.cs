@@ -14,11 +14,7 @@ namespace Lex.Db
     DbTable<T> _table;
     Exception _error;
 
-    /// <summary>
-    /// Initializes a new instance of the Lazy class. When lazy initialization occurs, the specified initialization function is used.
-    /// </summary>
-    /// <param name="table">The delegate that is invoked to produce the lazily initialized value when it is needed</param>
-    protected Lazy(DbTable<T> table, object pk)
+    internal Lazy(DbTable<T> table, object pk)
     {
       PK = pk;
       _table = table;

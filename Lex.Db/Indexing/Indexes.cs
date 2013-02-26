@@ -129,7 +129,7 @@ namespace Lex.Db
     /// <summary>
     /// Returns entities with filtered key values
     /// </summary>
-    /// <param name="key">Key value</param>
+    /// <param name="predicate">Predicate function to filter entities</param>
     /// <returns>A new query that returns entities with filtered key values.</returns>
     IIndexQuery<T, I1> Where(Func<I1, bool> predicate);
   }
@@ -184,7 +184,7 @@ namespace Lex.Db
     /// <summary>
     /// Returns entities with filtered key values
     /// </summary>
-    /// <param name="key">Key value</param>
+    /// <param name="predicate">Predicate function to filter entities</param>
     /// <returns>A new query that returns entities with filtered key values.</returns>
     IIndexQuery<T, I1, I2> Where(Func<I1, I2, bool> predicate);
   }
@@ -241,7 +241,7 @@ namespace Lex.Db
     /// <summary>
     /// Returns entities with filtered key values
     /// </summary>
-    /// <param name="key">Key value</param>
+    /// <param name="predicate">Predicate function to filter entities</param>
     /// <returns>A new query that returns entities with filtered key values.</returns>
     IIndexQuery<T, I1, I2, I3> Where(Func<I1, I2, I3, bool> predicate);
   }

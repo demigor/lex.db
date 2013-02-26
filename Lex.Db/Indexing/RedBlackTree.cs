@@ -880,119 +880,78 @@ namespace Lex.Db.Indexing
       return filter == null ? source : source.Where(i => filter(i.Key));
     }
 
-    struct FindResult
-    {
-      public readonly TNode Node;
-      public readonly int Direction;
-
-      public FindResult(int dir, TNode node = null)
-      {
-        Node = node;
-        Direction = dir;
-      }
-    }
-
-    FindResult FindMax(TKey max)
+    int Find(TKey value, out TNode result)
     {
       var node = _root;
+      var last = node;
+      var cmp = 0;
 
       while (node != null)
       {
-        var cmp = Comparer.Compare(node.Key, max);
+        last = node;
+        cmp = Comparer.Compare(node.Key, value);
 
         if (cmp > 0)
           node = node.Left;
         else if (cmp < 0)
-        {
-          var right = node.Right;
-          if (right == null)
-            return new FindResult(cmp, node);
-
-          node = right;
-
-        }
+          node = node.Right;
         else
-          return new FindResult(0, node);
+        {
+          result = node;
+          return 0;
+        }
       }
 
-      return new FindResult(-1);
+      result = last;
+      return cmp;
     }
 
-    FindResult FindMin(TKey min)
+    bool FindMax(TKey max, bool inclusive, out TNode node)
     {
-      var node = _root;
+      var cmp = Find(max, out node);
+      if (node == null)
+        return false;
 
-      while (node != null)
-      {
-        var cmp = Comparer.Compare(node.Key, min);
+      if (cmp < 0 || cmp == 0 && inclusive)
+        node = Next(node);
 
-        if (cmp < 0)
-          node = node.Right;
-        else if (cmp > 0)
-        {
-          var left = node.Left;
-          if (left == null)
-            return new FindResult(cmp, node);
+      return true;
+    }
 
-          node = left;
-        }
-        else
-          return new FindResult(0, node);
-      }
+    bool FindMin(TKey min, bool inclusive, out TNode node)
+    {
+      var cmp = Find(min, out node);
+      if (node == null)
+        return false;
 
-      return new FindResult(1);
+      if (cmp < 0 || cmp == 0 && !inclusive)
+        node = Next(node);
+
+      return true;
     }
 
     IEnumerable<TNode> EnumMin(TKey min, bool inclusive)
     {
-      var result = FindMin(min);
-
-      var start = result.Node;
-      if (start == null)
-        yield break;
-
-      if (result.Direction == 0 && !inclusive)
-        start = Next(start);
-
-      for (var i = start; i != null; i = Next(i))
-        yield return i;
+      TNode start;
+      if (FindMin(min, inclusive, out start))
+        for (var i = start; i != null; i = Next(i))
+          yield return i;
     }
 
     IEnumerable<TNode> EnumMax(TKey max, bool inclusive)
     {
-      var result = FindMax(max);
-
-      var stop = result.Node;
-      if (stop == null)
-        yield break;
-
-      if (result.Direction < 0 || inclusive)
-        stop = Next(stop);
-
-      for (var i = First(); i != stop; i = Next(i))
-        yield return i;
+      TNode stop;
+      if (FindMax(max, inclusive, out stop))
+        for (var i = First(); i != stop; i = Next(i))
+          yield return i;
     }
 
     IEnumerable<TNode> EnumMinMax(TKey min, bool minInclusive, TKey max, bool maxInclusive)
     {
-      var minResult = FindMin(min);
-      var start = minResult.Node;
-      if (start == null)
-        yield break;
-
-      var maxResult = FindMax(max);
-      var stop = maxResult.Node;
-      if (stop == null)
-        yield break;
-
-      if (minResult.Direction == 0 && !minInclusive)
-        start = Next(start);
-
-      if (maxResult.Direction < 0 || maxInclusive)
-        stop = Next(stop);
-
-      for (var i = start; i != stop; i = Next(i))
-        yield return i;
+      TNode start, stop;
+      if (FindMin(min, minInclusive, out start) && FindMax(max, maxInclusive, out stop))
+        for (var i = start; i != stop; i = Next(i))
+          yield return i;
     }
   }
 }
