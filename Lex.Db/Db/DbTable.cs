@@ -122,7 +122,7 @@ namespace Lex.Db
   /// </summary>
   /// <typeparam name="T">Table entity class</typeparam>
   [DebuggerDisplay("{Name}")]
-  public sealed class DbTable<T> : DbTable where T : class
+  public sealed class DbTable<T> : DbTable, IEnumerable<T> where T : class
   {
 #if NLOG
     static readonly Logger Log = LogManager.GetCurrentClassLogger();
@@ -1031,6 +1031,17 @@ namespace Lex.Db
 
       using (ReadScope())
         return idx.MaxKey;
+    }
+
+    IEnumerator<T> IEnumerable<T>.GetEnumerator()
+    {
+      using (var scope = ReadScope())
+        return KeyIndex.Enum(scope.Element, Metadata).GetEnumerator();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+      return ((IEnumerable<T>)this).GetEnumerator();
     }
   }
 }

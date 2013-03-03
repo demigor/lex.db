@@ -17,6 +17,7 @@ namespace Lex.Db.Indexing
 
     void Compact(IDbTableWriter compacter);
     T[] Load(IDbTableReader reader, Metadata<T> metadata);
+    IEnumerable<T> Enum(IDbTableReader reader, Metadata<T> metadata);
 
     IKeyNode Update(T instance, int length);
     bool Remove(T instance);
@@ -382,30 +383,48 @@ namespace Lex.Db.Indexing
 
     public T[] Load(IDbTableReader reader, Metadata<T> metadata)
     {
-      return _setter == null ? LoadNoKeys(reader, metadata) : LoadWithKeys(reader, metadata);
+      return _tree.Select(new Loader(reader, metadata, _table.Ctor, _setter).Map());
     }
 
-    T[] LoadWithKeys(IDbTableReader reader, Metadata<T> metadata)
+    public IEnumerable<T> Enum(IDbTableReader reader, Metadata<T> metadata)
     {
-      var ctor = _table.Ctor;
-      return _tree.Select(i =>
+      return Enumerable.Select(_tree, new Loader(reader, metadata, _table.Ctor, _setter).Map());
+    }
+
+    struct Loader
+    {
+      Func<T> _ctor;
+      IDbTableReader _reader;
+      Metadata<T> _metadata;
+      Action<T, K> _setter;
+
+      public Loader(IDbTableReader reader, Metadata<T> metadata, Func<T> ctor, Action<T, K> setter)
       {
-        var item = ctor();
+        _reader = reader;
+        _metadata = metadata;
+        _ctor = ctor;
+        _setter = setter;
+      }
+
+      public Func<KeyNode<K>, T> Map()
+      {
+        return _setter == null ? (Func<KeyNode<K>, T>)LoadNoKey : LoadWithKey;
+      }
+
+      T LoadWithKey(KeyNode<K> i)
+      {
+        var item = _ctor();
         _setter(item, i.Key);
-        metadata.Deserialize(reader.ReadData(i.Offset, i.Length), item);
+        _metadata.Deserialize(_reader.ReadData(i.Offset, i.Length), item);
         return item;
-      });
-    }
+      }
 
-    T[] LoadNoKeys(IDbTableReader reader, Metadata<T> metadata)
-    {
-      var ctor = _table.Ctor;
-      return _tree.Select(i =>
+      T LoadNoKey(KeyNode<K> i)
       {
-        var item = ctor();
-        metadata.Deserialize(reader.ReadData(i.Offset, i.Length), item);
+        var item = _ctor();
+        _metadata.Deserialize(_reader.ReadData(i.Offset, i.Length), item);
         return item;
-      });
+      }
     }
 
     public void Compact(IDbTableWriter writer)
