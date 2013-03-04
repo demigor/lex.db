@@ -16,21 +16,44 @@ namespace Lex.Db
     {
       return type.GetTypeInfo().ImplementedInterfaces;
     }
-    
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Type[] GetGenericArguments(this Type type)
     {
       return type.GenericTypeArguments;
     }
 
+    static IEnumerable<TypeInfo> GetTypeHierarchy(this Type type)
+    {
+      var stop = typeof(object);
+
+      do
+      {
+        var info = type.GetTypeInfo();
+
+        yield return info;
+
+        type = info.BaseType;
+        
+        if (type == null)
+          break;
+
+      } while (type != stop);
+    }
+
     public static MethodInfo GetMethod(this Type type, string name)
     {
-      return type.GetTypeInfo().DeclaredMethods.SingleOrDefault(i => i.IsPublic && i.Name == name); // add hierarchy
+      return (from t in GetTypeHierarchy(type)
+              from m in t.GetDeclaredMethods(name)
+              select m).SingleOrDefault();
     }
 
     public static MethodInfo GetMethod(this Type type, string name, params Type[] args)
     {
-      return type.GetTypeInfo().DeclaredMethods.SingleOrDefault(i => i.IsPublic && i.Name == name && CheckArgs(i.GetParameters(), args)); // add hierarchy
+      return (from t in GetTypeHierarchy(type)
+              from m in t.GetDeclaredMethods(name)
+              where CheckArgs(m.GetParameters(), args)
+              select m).SingleOrDefault();
     }
 
     static bool CheckArgs(ParameterInfo[] parameterInfo, Type[] args)
@@ -47,7 +70,7 @@ namespace Lex.Db
 
     public static ConstructorInfo GetConstructor(this Type type, params Type[] args)
     {
-      return type.GetTypeInfo().DeclaredConstructors.SingleOrDefault(i => i.IsPublic && CheckArgs(i.GetParameters(), args)); // add hierarchy
+      return type.GetTypeInfo().DeclaredConstructors.SingleOrDefault(i => i.IsPublic && CheckArgs(i.GetParameters(), args));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -81,13 +104,13 @@ namespace Lex.Db
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static T GetCustomAttribute<T>(this Type type) where T: Attribute 
+    public static T GetCustomAttribute<T>(this Type type) where T : Attribute
     {
-       return type.GetTypeInfo().GetCustomAttribute<T>();
+      return type.GetTypeInfo().GetCustomAttribute<T>();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsAssignableFrom(this Type type, Type source) 
+    public static bool IsAssignableFrom(this Type type, Type source)
     {
       return type.GetTypeInfo().IsAssignableFrom(source.GetTypeInfo());
     }
@@ -131,7 +154,10 @@ namespace Lex.Db
     public static IEnumerable<MethodInfo> GetStaticMethods(this Type type)
     {
 #if NETFX_CORE
-      return type.GetTypeInfo().DeclaredMethods.Where(i => i.IsStatic); // add hierarchy
+      return from t in GetTypeHierarchy(type)
+             from m in t.DeclaredMethods
+             where m.IsStatic
+             select m;
 #else
       return type.GetMethods(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
 #endif
@@ -140,7 +166,10 @@ namespace Lex.Db
     public static MethodInfo GetPublicStaticMethod(this Type type, string name)
     {
 #if NETFX_CORE
-      return type.GetTypeInfo().DeclaredMethods.SingleOrDefault(i => i.Name == name && i.IsStatic && i.IsPublic); // add hierarchy
+      return (from t in GetTypeHierarchy(type)
+              from m in t.GetDeclaredMethods(name)
+              where m.IsStatic
+              select m).SingleOrDefault();
 #else
       return type.GetMethod(name, BindingFlags.Static | BindingFlags.Public);
 #endif
@@ -149,7 +178,10 @@ namespace Lex.Db
     public static MethodInfo GetPublicInstanceMethod(this Type type, string name)
     {
 #if NETFX_CORE
-      return type.GetTypeInfo().DeclaredMethods.SingleOrDefault(i => i.Name == name && !i.IsStatic && i.IsPublic); // add hierarchy
+      return (from t in GetTypeHierarchy(type)
+              from m in t.GetDeclaredMethods(name)
+              where !m.IsStatic
+              select m).SingleOrDefault();
 #else
       return type.GetMethod(name, BindingFlags.Instance | BindingFlags.Public);
 #endif
@@ -158,7 +190,10 @@ namespace Lex.Db
     public static MethodInfo GetStaticMethod(this Type type, string name)
     {
 #if NETFX_CORE
-      return type.GetTypeInfo().DeclaredMethods.SingleOrDefault(i => i.Name == name && i.IsStatic); // add hierarchy
+      return (from t in GetTypeHierarchy(type)
+              from m in t.DeclaredMethods
+              where m.IsStatic && m.Name == name
+              select m).SingleOrDefault();
 #else
       return type.GetMethod(name, BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
 #endif
@@ -167,7 +202,10 @@ namespace Lex.Db
     public static MethodInfo GetPrivateInstanceMethod(this Type type, string name)
     {
 #if NETFX_CORE
-      return type.GetTypeInfo().DeclaredMethods.SingleOrDefault(i => i.Name == name && !i.IsStatic && i.IsPrivate); // add hierarchy
+      return (from t in GetTypeHierarchy(type)
+              from m in t.DeclaredMethods
+              where m.IsPrivate && !m.IsStatic && m.Name == name
+              select m).SingleOrDefault();
 #else
       return type.GetMethod(name, BindingFlags.Instance | BindingFlags.NonPublic);
 #endif
@@ -176,7 +214,10 @@ namespace Lex.Db
     public static IEnumerable<FieldInfo> GetPublicInstanceFields(this Type type)
     {
 #if NETFX_CORE
-      return type.GetTypeInfo().DeclaredFields.Where(i => !i.IsStatic && i.IsPublic); // add hierarchy
+      return from t in GetTypeHierarchy(type)
+             from f in t.DeclaredFields
+             where f.IsPublic && !f.IsStatic
+             select f;
 #else
       return type.GetFields(BindingFlags.Public | BindingFlags.Instance);
 #endif
@@ -185,7 +226,11 @@ namespace Lex.Db
     public static IEnumerable<PropertyInfo> GetPublicInstanceProperties(this Type type)
     {
 #if NETFX_CORE
-      return type.GetTypeInfo().DeclaredProperties.Where(i => i.GetMethod != null && !i.GetMethod.IsStatic && i.GetMethod.IsPublic); // add hierarchy
+      return from t in GetTypeHierarchy(type)
+             from p in t.DeclaredProperties
+             let get = p.GetMethod
+             where get != null && get.IsPublic && !get.IsStatic
+             select p;
 #else
       return type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
 #endif
