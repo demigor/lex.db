@@ -418,7 +418,7 @@ namespace Lex.Db
       return result;
     }
 
-     /// <summary>
+    /// <summary>
     /// Returns new named index query constructor
     /// </summary>
     /// <typeparam name="I1">Type of the first indexed component</typeparam>
@@ -1033,15 +1033,16 @@ namespace Lex.Db
         return idx.MaxKey;
     }
 
-    IEnumerator<T> IEnumerable<T>.GetEnumerator()
+    public IEnumerator<T> GetEnumerator()
     {
       using (var scope = ReadScope())
-        return KeyIndex.Enum(scope.Element, Metadata).GetEnumerator();
+        foreach (var i in KeyIndex.Enum(scope.Element, Metadata))
+          yield return i;
     }
 
     IEnumerator IEnumerable.GetEnumerator()
     {
-      return ((IEnumerable<T>)this).GetEnumerator();
+      return GetEnumerator();
     }
   }
 }
