@@ -61,7 +61,7 @@ namespace Lex.Db.Indexing
 
   interface ICleanup
   {
-    bool Cleanup(object stuff);
+    bool Cleanup(IKeyNode sender, object stuff);
   }
 
   class PropertyBag
@@ -141,7 +141,7 @@ namespace Lex.Db.Indexing
       PropertyBag.Clean(ref _root, (k, v) =>
       {
         var c = k as ICleanup;
-        return c != null && c.Cleanup(v);
+        return c != null && c.Cleanup(this, v);
       });
     }
 

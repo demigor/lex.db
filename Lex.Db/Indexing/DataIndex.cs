@@ -125,7 +125,7 @@ namespace Lex.Db.Indexing
 
       var key = _deserializer(reader);
       var node = _tree.AddOrGet(key);
-      
+
       var keyNode = keyMap[reader.ReadInt64()];
       node.Keys.Add(keyNode);
       keyNode[this] = node;
@@ -175,9 +175,10 @@ namespace Lex.Db.Indexing
       _tree.Root = null;
     }
 
-    bool ICleanup.Cleanup(object stuff)
+    bool ICleanup.Cleanup(IKeyNode sender, object stuff)
     {
-      return _tree.Remove((DataNode<K>)stuff);
+      var node = (DataNode<K>)stuff;
+      return node.Keys.Remove(sender) && (node.Keys.Count == 0) && _tree.Remove(node);
     }
 
     public override string ToString()
