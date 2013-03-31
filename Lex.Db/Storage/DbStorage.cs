@@ -12,12 +12,12 @@ namespace Lex.Db
 #if SILVERLIGHT
     readonly IsolatedStorageFile _storage = IsolatedStorageFile.GetUserStoreForApplication();
 #endif
-    public IDbSchemaStorage OpenSchema(string path)
+    public IDbSchemaStorage OpenSchema(string path, object home)
     {
       path = Path.Combine("Lex.Db", path);
 
 #if NETFX_CORE
-      return new WindowsStorage.DbSchemaStorage(path);
+      return new WindowsStorage.DbSchemaStorage(path, home as Windows.Storage.StorageFolder);
 #else
 
 #if SILVERLIGHT

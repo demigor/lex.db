@@ -1033,6 +1033,10 @@ namespace Lex.Db
         return idx.MaxKey;
     }
 
+    /// <summary>
+    /// Retrieves an object that can iterate through the individual entities in this table.
+    /// </summary>
+    /// <returns>An enumerator object.</returns>
     public IEnumerator<T> GetEnumerator()
     {
       using (var scope = ReadScope())

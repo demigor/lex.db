@@ -27,6 +27,21 @@ namespace Lex.Db
       _schema = Storage.OpenSchema(path);
     }
 
+#if NETFX_CORE
+    /// <summary>
+    /// Creates database instance with specified path
+    /// </summary>
+    /// <param name="path">Path to database storage folder (relative to home)</param>
+    /// <param name="home">Home folder</param>
+    public DbInstance(string path, Windows.Storage.StorageFolder home)
+    {
+      if (home == null)
+        throw new ArgumentNullException("home");
+
+      _schema = Storage.OpenSchema(path, home);
+    }
+#endif
+
     void CheckNotSealed()
     {
       if (_sealed)

@@ -2,7 +2,7 @@
 {
   interface IDbStorage
   {
-    IDbSchemaStorage OpenSchema(string path);
+    IDbSchemaStorage OpenSchema(string path, object home = null);
 
     bool IncreaseQuotaTo(long quota);
 

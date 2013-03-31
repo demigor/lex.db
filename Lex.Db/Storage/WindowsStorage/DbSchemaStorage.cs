@@ -6,13 +6,14 @@ namespace Lex.Db.WindowsStorage
 {
   class DbSchemaStorage : IDbSchemaStorage
   {
-    static readonly StorageFolder _localData = ApplicationData.Current.LocalFolder;
     readonly List<DbTableStorage> _tables = new List<DbTableStorage>();
     readonly string _path;
+    readonly StorageFolder _home;
 
-    public DbSchemaStorage(string path)
+    public DbSchemaStorage(string path, StorageFolder home)
     {
       _path = path;
+      _home = home ?? ApplicationData.Current.LocalFolder;
     }
 
     public string Path { get { return _path; } }
@@ -21,7 +22,7 @@ namespace Lex.Db.WindowsStorage
 
     void Open(Awaiter awaiter)
     {
-      _folder = awaiter.Await(_localData.CreateFolderAsync(_path, CreationCollisionOption.OpenIfExists));
+      _folder = awaiter.Await(_home.CreateFolderAsync(_path, CreationCollisionOption.OpenIfExists));
     }
 
     public void Open()

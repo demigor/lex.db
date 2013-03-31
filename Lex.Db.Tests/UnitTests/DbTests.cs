@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.Diagnostics;
+
 #if NETFX_CORE || WINDOWS_PHONE
 using Microsoft.VisualStudio.TestPlatform.UnitTestFramework;
 #else
@@ -69,6 +69,16 @@ namespace Lex.Db
       var db = new DbInstance(@"My Database\My Schema");
       db.Initialize();
     }
+
+#if NETFX_CORE
+    [TestMethod]
+    public void OpenDbComplexPath2()
+    {
+      var db = new DbInstance(@"My Database\My Schema", Windows.Storage.ApplicationData.Current.TemporaryFolder);
+      db.Initialize();
+    }
+
+#endif
 
     [TestMethod]
     //    [ExpectedException(typeof(InvalidOperationException))]
