@@ -598,5 +598,48 @@ namespace Lex.Db
     }
 
     #endregion
+
+    #region Bugfixes
+
+    #region github issue #9
+    
+    public class TemplateModel
+    {
+      public int Id { get; set; }
+      public string ForeignIds { get; set; }
+      public string Name { get; set; }
+      public int Type { get; set; }
+    }
+
+    void TestDeleteBugfix()
+    {
+      var db = new DbInstance("test.fix1");
+
+      //mapping done before init
+      db.Map<TemplateModel>().Automap(i => i.Id, false).WithIndex<int>("Type", i => i.Type);
+
+      db.Initialize();
+
+      //testing this in a method
+      db.Table<TemplateModel>().Save(new TemplateModel { Id = 66, Name = "test", Type = 3 });
+      db.Table<TemplateModel>().Save(new TemplateModel { Id = 67, Name = "test2", Type = 3 });
+      //The Type is 3 for both records 
+      //The first indexQuery returns 2 records, OK!
+      var indexQuery = db.Table<TemplateModel>().IndexQueryByKey<int>("Type", 3).ToList();
+
+      db.Table<TemplateModel>().DeleteByKey<int>(67);
+
+      //allItems returns 1 record, OK!
+      var allItems = db.Table<TemplateModel>().LoadAll().ToList();
+
+      //indexQuery2 returns 0 records, wrong!
+      var indexQuery2 = db.Table<TemplateModel>().IndexQueryByKey<int>("Type", 3).ToList();
+
+      Assert.AreEqual(1, indexQuery2.Count());
+    }
+
+    #endregion
+    
+    #endregion
   }
 }
