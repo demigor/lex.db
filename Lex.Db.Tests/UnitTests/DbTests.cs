@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.TestPlatform.UnitTestFramework;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 #if SILVERLIGHT
 using Microsoft.Silverlight.Testing;
+using System.IO.IsolatedStorage;
 #endif
 #endif
 
@@ -77,7 +78,16 @@ namespace Lex.Db
       var db = new DbInstance(@"My Database\My Schema", Windows.Storage.ApplicationData.Current.TemporaryFolder);
       db.Initialize();
     }
-
+#else
+    [TestMethod]
+#if SILVERLIGHT
+    [ExpectedException(typeof(IsolatedStorageException))] // SL without ElevatedPriviliges does not allow absolute path access
+#endif
+    public void OpenDbComplexPath2()
+    {
+      var db = new DbInstance(@"d:\test.db");
+      db.Initialize();
+    }
 #endif
 
     [TestMethod]
@@ -602,7 +612,7 @@ namespace Lex.Db
     #region Bugfixes
 
     #region github issue #9
-    
+
     public class TemplateModel
     {
       public int Id { get; set; }
@@ -639,7 +649,7 @@ namespace Lex.Db
     }
 
     #endregion
-    
+
     #endregion
   }
 }
