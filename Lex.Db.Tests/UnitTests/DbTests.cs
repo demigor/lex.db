@@ -79,14 +79,22 @@ namespace Lex.Db
       db.Initialize();
     }
 #else
-    [TestMethod]
-#if SILVERLIGHT
-    [ExpectedException(typeof(IsolatedStorageException))] // SL without ElevatedPriviliges does not allow absolute path access
-#endif
     public void OpenDbComplexPath2()
     {
-      var db = new DbInstance(@"d:\test.db");
-      db.Initialize();
+      try
+      {
+        var db = new DbInstance(@"d:\test.db");
+        db.Initialize();
+      } 
+#if SILVERLIGHT 
+      catch (System.IO.IsolatedStorage.IsolatedStorageException) 
+      {
+        // SL without ElevatedPriviliges does not allow absolute path access
+      }
+#endif
+      finally 
+      {
+      }
     }
 #endif
 
