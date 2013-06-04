@@ -4,11 +4,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Xml.Serialization;
 
 namespace Lex.Db
 {
-  using System.IO;
   using Serialization;
 
   /// <summary>
@@ -23,6 +21,56 @@ namespace Lex.Db
     internal abstract Type KeyType { get; }
     internal abstract void Clear();
     internal abstract DbTable Initialize(IDbTableStorage table);
+
+    protected static Type _xmlIgnoreAttribute, _ignoreDataMemberAttribute;
+
+
+#if NETFX_CORE
+    
+    protected static bool IsIgnored(IEnumerable<Attribute> attributes)
+    {
+      if (attributes != null)
+        foreach (var attribute in attributes)
+          if (IsIgnored(attribute.GetType()))
+            return true;
+
+      return false;
+    }
+
+#else
+
+    protected static bool IsIgnored(object[] attributes)
+    {
+      for (var i = 0; i < attributes.Length; i++)
+        if (IsIgnored(attributes[i].GetType()))
+          return true;
+
+      return false;
+    }
+
+#endif
+
+    protected static bool IsIgnored(Type type)
+    {
+      if (type == _xmlIgnoreAttribute || type == _ignoreDataMemberAttribute)
+        return true;
+
+      var typeName = type.FullName;
+
+      if (typeName == "System.Runtime.Serialization.IgnoreDataMemberAttribute")
+      {
+        _ignoreDataMemberAttribute = type;
+        return true;
+      }
+
+      if (typeName == "System.Xml.Serialization.XmlIgnoreAttribute")
+      {
+        _xmlIgnoreAttribute = type;
+        return true;
+      }
+
+      return false;
+    }
   }
 
   /// <summary>
@@ -211,7 +259,7 @@ namespace Lex.Db
         var fields = from f in typeof(T).GetPublicInstanceFields()
                      where f != _key
                      && !f.Attributes.HasFlag(FieldAttributes.InitOnly)
-                     && !f.IsDefined(typeof(XmlIgnoreAttribute), false)
+                     && !IsIgnored(f.GetCustomAttributes(false))
                      select f;
 
         foreach (var f in fields)
@@ -221,7 +269,7 @@ namespace Lex.Db
       var properties = from p in typeof(T).GetPublicInstanceProperties()
                        where p != _key
                        && p.CanRead && p.CanWrite && p.GetGetMethod().IsPublic && p.GetSetMethod().IsPublic
-                       && !p.IsDefined(typeof(XmlIgnoreAttribute), false)
+                       && !IsIgnored(p.GetCustomAttributes(false))
                        select p;
 
       foreach (var p in properties)
