@@ -28,6 +28,13 @@ namespace Lex.Db.Indexing
     Dictionary<long, IKeyNode> KeyMap { get; set; }
 
     object[] MakeKeyList();
+
+    IEnumerable<T> LoadByObjectKeys(IEnumerable<object> keys, bool yieldNotFound);
+    T LoadByObjectKey(object key);
+
+    bool DeleteByObjectKey(object key);
+
+    int DeleteByObjectKeys(IEnumerable<object> keys);
   }
 
   interface IKeyIndex<T, K> : IKeyIndex<T>, IIndex<T, K> where T : class
@@ -360,9 +367,9 @@ namespace Lex.Db.Indexing
       return RemoveByKey(_getter(instance));
     }
 
-    public bool RemoveByKey(K k)
+    public bool RemoveByKey(K key)
     {
-      var node = _tree.Find(k);
+      var node = _tree.Find(key);
       if (node == null)
         return false;
 
@@ -372,6 +379,14 @@ namespace Lex.Db.Indexing
       node.Clean();
 
       return true;
+    }
+
+    public object CheckKey(object key)
+    {
+      if (key is T)
+        return key;
+
+      return (K)key;
     }
 
     public long GetFileSize()
@@ -516,6 +531,26 @@ namespace Lex.Db.Indexing
     {
       using (_table.ReadScope())
         return ExecuteQuery(args, selector).ToList();
+    }
+
+    public IEnumerable<T> LoadByObjectKeys(IEnumerable<object> keys, bool yieldNotFound)
+    {
+      return _table.LoadByKeysCore(this, keys.OfType<K>(), yieldNotFound);
+    }
+
+    public T LoadByObjectKey(object key)
+    {
+      return _table.LoadByKeyCore(this, (K)key);
+    }
+
+    public bool DeleteByObjectKey(object key)
+    {
+      return _table.DeleteByKeyCore(this, (K)key);
+    }
+
+    public int DeleteByObjectKeys(IEnumerable<object> keys)
+    {
+      return _table.DeleteByKeysCore(this, keys.OfType<K>());
     }
   }
 }

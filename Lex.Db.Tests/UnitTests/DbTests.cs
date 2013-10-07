@@ -658,6 +658,33 @@ namespace Lex.Db
 
     #endregion
 
+    #region github issue #10
+
+     [TestMethod]
+    public void TestLoadByKeyObj()
+    {
+      var obj = new MyData { GuidField = Guid.NewGuid() };
+
+      table.Save(obj);
+
+      var newObj = table.LoadByKey((object)obj.Id);
+
+      Assert.AreEqual(obj.GuidField, newObj.GuidField);
+    }
+
+     [TestMethod]
+     public void TestDeleteByKeyObj()
+     {
+       var obj = new MyData { GuidField = Guid.NewGuid() };
+
+       table.Save(obj);
+
+      Assert.IsTrue(table.DeleteByKey((object)obj.Id));
+
+     }
+
+    #endregion
+
     #endregion
   }
 }

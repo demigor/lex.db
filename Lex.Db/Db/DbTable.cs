@@ -100,12 +100,26 @@ namespace Lex.Db
     public abstract bool DeleteByKey<K>(K key);
 
     /// <summary>
+    /// Deletes single entity by PK value
+    /// </summary>
+    /// <param name="key">Entity PK value</param>
+    /// <returns>Returns true if record was deleted, false otherwise</returns>
+    public abstract bool DeleteByKey(object key);
+
+    /// <summary>
     /// Deletes set of entities, determined by their PK values
     /// </summary>
     /// <typeparam name="K">Type of the key</typeparam>
     /// <param name="keys">Enumeration of entity PK values</param>
     /// <returns>Returns number of deleted by key entities</returns>
     public abstract int DeleteByKeys<K>(IEnumerable<K> keys);
+
+    /// <summary>
+    /// Deletes set of entities, determined by their PK values
+    /// </summary>
+    /// <param name="keys">Enumeration of entity PK values</param>
+    /// <returns>Returns number of deleted by key entities</returns>
+    public abstract int DeleteByKeys(IEnumerable<object> keys);
 
     internal abstract void LoadIndex(IDbTableReader reader);
     internal abstract void SaveIndex(IDbTableWriter writer, bool crop);
@@ -590,6 +604,11 @@ namespace Lex.Db
         return KeyIndex.Load(scope.Element, Metadata);
     }
 
+    public T LoadByKey(object key)
+    {
+      return KeyIndex.LoadByObjectKey(key);
+    }
+
     /// <summary>
     /// Loads an entity by specified PK value
     /// </summary>
@@ -598,8 +617,11 @@ namespace Lex.Db
     /// <returns>Entity identified by the PK value, if any</returns>
     public T LoadByKey<K>(K key)
     {
-      var idx = GetPrimaryIndex<K>();
+      return LoadByKeyCore<K>(GetPrimaryIndex<K>(), key);
+    }
 
+    internal T LoadByKeyCore<K>(IKeyIndex<T, K> idx, K key)
+    {
       using (var scope = ReadScope())
         return LoadByKeyInfo(scope, idx.FindByKey(key, true));
     }
@@ -629,13 +651,32 @@ namespace Lex.Db
     /// <param name="keys">Sequence of keys to load</param>
     /// <param name="yieldNotFound">Specifies that missed keys will be returned as nulls</param>
     /// <returns>List of corresponding instances</returns>
+    public IEnumerable<T> LoadByKeys(IEnumerable<object> keys, bool yieldNotFound = false)
+    {
+      if (keys == null)
+        throw new ArgumentNullException();
+
+      return KeyIndex.LoadByObjectKeys(keys, yieldNotFound);
+    }
+
+
+    /// <summary>
+    /// Bulk load specified instances by key
+    /// </summary>
+    /// <typeparam name="K">Type of the primary key</typeparam>
+    /// <param name="keys">Sequence of keys to load</param>
+    /// <param name="yieldNotFound">Specifies that missed keys will be returned as nulls</param>
+    /// <returns>List of corresponding instances</returns>
     public IEnumerable<T> LoadByKeys<K>(IEnumerable<K> keys, bool yieldNotFound = false)
     {
       if (keys == null)
         throw new ArgumentNullException();
 
-      var idx = GetPrimaryIndex<K>();
+      return LoadByKeysCore(GetPrimaryIndex<K>(), keys, yieldNotFound);
+    }
 
+    internal IEnumerable<T> LoadByKeysCore<K>(IKeyIndex<T, K> idx, IEnumerable<K> keys, bool yieldNotFound = false)
+    {
       using (var scope = ReadScope())
       {
         var reader = scope.Element;
@@ -656,6 +697,7 @@ namespace Lex.Db
         }
       }
     }
+
 
     /// <summary>
     /// Refreshes specified entity from disk
@@ -821,8 +863,11 @@ namespace Lex.Db
     /// <returns>True if entity was deleted</returns>
     public override bool DeleteByKey<K>(K key)
     {
-      var idx = GetPrimaryIndex<K>();
+      return DeleteByKeyCore<K>(GetPrimaryIndex<K>(), key);
+    }
 
+    internal bool DeleteByKeyCore<K>(IKeyIndex<T, K> idx, K key)
+    {
       using (var scope = WriteScope())
         if (idx.RemoveByKey(key))
         {
@@ -832,6 +877,25 @@ namespace Lex.Db
 
       return false;
     }
+
+    public override bool DeleteByKey(object key)
+    {
+      return KeyIndex.DeleteByObjectKey(key);
+    }
+
+    /// <summary>
+    /// Deletes entities specified by key sequence 
+    /// </summary>
+    /// <param name="keys">Key sequence to delete</param>
+    /// <returns>Count of the deleted entities</returns>
+    public override int DeleteByKeys(IEnumerable<object> keys)
+    {
+      if (keys == null)
+        throw new ArgumentNullException();
+
+      return KeyIndex.DeleteByObjectKeys(keys);
+    }
+
 
     /// <summary>
     /// Deletes entities specified by key sequence 
@@ -844,8 +908,11 @@ namespace Lex.Db
       if (keys == null)
         throw new ArgumentNullException();
 
-      var idx = GetPrimaryIndex<K>();
+      return DeleteByKeysCore<K>(GetPrimaryIndex<K>(), keys);
+    }
 
+    internal int DeleteByKeysCore<K>(IKeyIndex<T, K> idx, IEnumerable<K> keys)
+    {
       using (var scope = WriteScope())
       {
         var result = keys.Count(key => idx.RemoveByKey(key));

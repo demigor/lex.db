@@ -148,7 +148,7 @@ namespace Lex.Db.WindowsStorage
         _awaiter.Dispose();
       }
 
-      protected virtual void Dispose()
+      protected virtual void Dispose()                                      
       {
         _indexStream.Dispose();
         _readStream.Dispose();

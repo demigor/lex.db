@@ -451,13 +451,14 @@ namespace Lex.Db
     /// Loads an entity of specified entity type by specified PK value
     /// </summary>
     /// <typeparam name="T">Type of the entity</typeparam>
-    /// <param name="key">PK value as object</param>
+    /// <typeparam name="K">Type of the PK</typeparam>
+    /// <param name="key">PK value</param>
     /// <returns>Entity identified by the PK value, if any</returns>
-    public T LoadByKey<T>(object key) where T : class
+    public T LoadByKey<T, K>(K key) where T : class
     {
       return Table<T>().LoadByKey(key);
     }
-
+    
     /// <summary>
     /// Loads an entity of specified entity type by specified PK value
     /// </summary>
@@ -465,9 +466,35 @@ namespace Lex.Db
     /// <typeparam name="K">Type of the PK</typeparam>
     /// <param name="key">PK value</param>
     /// <returns>Entity identified by the PK value, if any</returns>
-    public T LoadByKey<T, K>(K key) where T : class
+    public T LoadByKey<T>(object key) where T : class
     {
       return Table<T>().LoadByKey(key);
+    }
+
+
+    /// <summary>
+    /// Bulk load specified instances by key
+    /// </summary>
+    /// <typeparam name="T">Type of the entity</typeparam>
+    /// <typeparam name="K">Type of the PK</typeparam>
+    /// <param name="keys">Sequence of keys to load</param>
+    /// <param name="yieldNotFound">Specifies that missed keys will be returned as nulls</param>
+    /// <returns>List of corresponding instances</returns>
+    public IEnumerable<T> LoadByKeys<T, K>(IEnumerable<K> keys, bool yieldNotFound = false) where T : class
+    {
+      return Table<T>().LoadByKeys(keys, yieldNotFound);
+    }
+
+    /// <summary>
+    /// Bulk load specified instances by key
+    /// </summary>
+    /// <typeparam name="T">Type of the entity</typeparam>
+    /// <param name="keys">Sequence of keys to load</param>
+    /// <param name="yieldNotFound">Specifies that missed keys will be returned as nulls</param>
+    /// <returns>List of corresponding instances</returns>
+    public IEnumerable<T> LoadByKeys<T>(IEnumerable<object> keys, bool yieldNotFound = false) where T : class
+    {
+      return Table<T>().LoadByKeys(keys, yieldNotFound);
     }
 
     /// <summary>
@@ -521,16 +548,16 @@ namespace Lex.Db
     {
       return Table<T>().DeleteByKeys(keys);
     }
-
+    
     /// <summary>
-    /// Deletes entity specified by PK value
+    /// Deletes entities specified by key sequence
     /// </summary>
     /// <typeparam name="T">Type of the entity</typeparam>
-    /// <param name="key">Key of entity to delete</param>
-    /// <returns>True if entity was deleted</returns>
-    public bool DeleteByKey<T>(object key) where T : class
+    /// <param name="keys">Sequence of key values to specify entities to delete</param>
+    /// <returns>Returns count of the deleted entities</returns>
+    public int DeleteByKeys<T>(IEnumerable<object> keys) where T : class
     {
-      return Table<T>().DeleteByKey(key);
+      return Table<T>().DeleteByKeys(keys);
     }
 
     /// <summary>
@@ -545,6 +572,16 @@ namespace Lex.Db
       return Table<T>().DeleteByKey(key);
     }
 
+    /// <summary>
+    /// Deletes entity specified by PK value
+    /// </summary>
+    /// <typeparam name="T">Type of the entity</typeparam>
+    /// <param name="key">Key of entity to delete</param>
+    /// <returns>True if entity was deleted</returns>
+    public bool DeleteByKey<T>(object key) where T : class
+    {
+      return Table<T>().DeleteByKey(key);
+    }
     /// <summary>
     /// Deletes specified entity
     /// </summary>

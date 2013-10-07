@@ -23,7 +23,7 @@ namespace Lex.Db.Sample1
 
         {
           // Query by primary index
-          var person = db.LoadByKey<Person>("ll");
+          var person = db.Table<Person>().LoadByKey("ll");
           WriteToConsole("By primary key 'll'", person);
         }
 

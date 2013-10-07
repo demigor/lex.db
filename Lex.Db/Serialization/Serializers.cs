@@ -7,6 +7,7 @@ using System.Reflection;
 
 namespace Lex.Db.Serialization
 {
+  using System.Collections.ObjectModel;
   using Indexing;
 
   /// <summary>
@@ -129,6 +130,9 @@ namespace Lex.Db.Serialization
       if (baseK == typeof(List<>))
         return typeof(ListSerializers<>).MakeGenericType(type.GetGenericArguments()).GetStaticMethod("WriteList");
 
+      if (baseK == typeof(ObservableCollection<>))
+        return typeof(ListSerializers<>).MakeGenericType(type.GetGenericArguments()).GetStaticMethod("WriteCollection");
+
       if (baseK == typeof(Dictionary<,>))
         return typeof(DictSerializers<,>).MakeGenericType(type.GetGenericArguments()).GetStaticMethod("WriteDictionary");
 
@@ -147,6 +151,9 @@ namespace Lex.Db.Serialization
 
       if (baseK == typeof(List<>))
         return typeof(ListSerializers<>).MakeGenericType(type.GetGenericArguments()).GetStaticMethod("ReadList");
+
+      if (baseK == typeof(ObservableCollection<>))
+        return typeof(ListSerializers<>).MakeGenericType(type.GetGenericArguments()).GetStaticMethod("ReadCollection");
 
       if (baseK == typeof(Dictionary<,>))
         return typeof(DictSerializers<,>).MakeGenericType(type.GetGenericArguments()).GetStaticMethod("ReadDictionary");

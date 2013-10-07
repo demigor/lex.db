@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace Lex.Db
 {
@@ -44,6 +45,7 @@ namespace Lex.Db
 
     public List<int> ListField { get; set; }
     public Dictionary<string, int> DictField { get; set; }
+    public ObservableCollection<int> CollectionField { get; set; }
 
     public TestEnum EnumField { get; set; }
     public TestEnum? EnumNField { get; set; }
@@ -52,6 +54,7 @@ namespace Lex.Db
     {
       ListField = new List<int>();
       DictField = new Dictionary<string, int>();
+      CollectionField = new ObservableCollection<int>();
     }
   }
 

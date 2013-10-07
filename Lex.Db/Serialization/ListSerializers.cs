@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 
 namespace Lex.Db.Serialization
@@ -45,6 +46,19 @@ namespace Lex.Db.Serialization
         result.Add(_deserializer(reader));
 
       return result;
+    }
+
+    internal static ObservableCollection<T> ReadCollection(DataReader reader)
+    {
+      return new ObservableCollection<T>(ReadArray(reader));
+    }
+
+    internal static void WriteCollection(DataWriter writer, ObservableCollection<T> value)
+    {
+      writer.Write(value.Count);
+
+      foreach (var i in value)
+        _serializer(writer, i);
     }
 
     internal static void WriteArray(DataWriter writer, T[] value)
