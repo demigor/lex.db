@@ -15,6 +15,8 @@
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
     <BaseIntermediateOutputPath>obj\net45</BaseIntermediateOutputPath>
+    <ProductVersion>10.0.0</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -25,6 +27,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -35,15 +38,16 @@
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
     <DocumentationFile>..\bin\Release\Net45\Lex.Db.xml</DocumentationFile>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Framework\OSFileStream.cs" />
     <Compile Include="Indexing\Indexes.cs" />
     <Compile Include="Properties\Version.cs" />
-    <Compile Include="Core\Awaiter.cs" />
     <Compile Include="Core\CtorOfT.cs" />
     <Compile Include="Core\Hash.cs" />
     <Compile Include="Core\TypeHelper.cs" />
@@ -82,8 +86,6 @@
     <Compile Include="Storage\Interfaces\IDbTableStorage.cs" />
     <Compile Include="Storage\IsolatedStorage\DbSchemaStorage.cs" />
     <Compile Include="Storage\IsolatedStorage\DbTableStorage.cs" />
-    <Compile Include="Storage\WindowsStorage\DbSchemaStorage.cs" />
-    <Compile Include="Storage\WindowsStorage\DbTableStorage.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,15 +8,23 @@ using System.Reflection;
 
 namespace Lex.Db.Mapping
 {
-  using Indexing;
   using Serialization;
 
-  class Metadata<T> where T : class
+  public interface IMetadata
+  {
+    string Name { get; }
+    Type Key { get; }
+    int MemberCount { get; }
+    IEnumerable<IMemberMap> Members { get; }
+  }
+
+  class Metadata<T> : IMetadata where T : class
   {
     public Metadata() { }
 
-    public Metadata(DataReader reader)
+    public Metadata(DataReader reader, uint hash = 0)
     {
+      _hash = hash;
       Key = DbType.Read(reader);
 
       var count = reader.ReadInt32();
@@ -26,6 +35,30 @@ namespace Lex.Db.Mapping
         _members.Add(map.Id, map);
       }
     }
+
+    public static Metadata<T> ReadMetadata(Stream stream)
+    {
+      using (var reader = new DataReader(stream))
+      {
+        var hash = reader.ReadUInt32();
+
+        if (hash == 0)
+          throw new ArgumentException("Invalid index stream");
+
+        var result = DbFormat.Initial;
+
+        // Special signature hash
+        if (hash == Signature)
+        {
+          result = (DbFormat)reader.ReadUInt32();
+          hash = reader.ReadUInt32();
+        }
+
+        return new Metadata<T>(reader, hash);
+      }
+    }
+
+    public int MemberCount { get { return _members.Count; } }
 
     public DbType Key;
 
@@ -66,6 +99,13 @@ namespace Lex.Db.Mapping
         _members.Remove(key);
     }
 
+    public void Assign(Metadata<T> source)
+    {
+      Key = source.Key;
+      _hash = source._hash;
+      _members = source._members;
+    }
+
     public void Clear()
     {
       _members.Clear();
@@ -76,7 +116,7 @@ namespace Lex.Db.Mapping
       //
     }
 
-    const int Signature = 0x0058454C;
+    internal const int Signature = 0x0058454C;
 
     public DbFormat Read(DataReader reader)
     {
@@ -198,8 +238,18 @@ namespace Lex.Db.Mapping
 
       _hash = Hash.Compute(_blob);
 
-      foreach (var member in _members.Values)
-        member.Deserialize = MakeReadMethod(member);
+      var idx = 0;
+
+      if (typeof(T) == typeof(object[]))
+        foreach (var member in _members.Values)
+        {
+          member.Deserialize = MakeDynamicReadMethod(member, idx);
+          idx++;
+        }
+      else
+        foreach (var member in _members.Values)
+          member.Deserialize = MakeReadMethod(member);
+
 
       Serialize = MakeWriteMethod();
     }
@@ -293,6 +343,19 @@ namespace Lex.Db.Mapping
       return Expression.Lambda<Action<DataReader, T>>(body, reader, obj).Compile();
     }
 
+    static Action<DataReader, T> MakeDynamicReadMethod(MemberMap member, int idx)
+    {
+      var reader = Expression.Parameter(typeof(DataReader), "reader");
+      var obj = Expression.Parameter(typeof(T), "obj");
+
+      var body = Serializers.ReadValue(reader, member.MemberType);
+
+      body = Expression.Assign(Expression.ArrayAccess(obj, Expression.Constant(idx)), Expression.Convert(body, typeof(object)));
+
+      return Expression.Lambda<Action<DataReader, T>>(body, reader, obj).Compile();
+    }
+
+
     #endregion
 
     public Action<Interceptor<T>, DataWriter, T> Serialize;
@@ -307,5 +370,14 @@ namespace Lex.Db.Mapping
     {
       Deserialize(new DataReader(new MStream(data)), item);
     }
+
+    #region IMetadata Members
+
+    Type IMetadata.Key { get { return Key.Type; } }
+    public IEnumerable<IMemberMap> Members { get { return _members.Values; } }
+
+    public string Name { get; set; }
+
+    #endregion
   }
 }

@@ -15,21 +15,37 @@ namespace Lex.Db
     public IDbSchemaStorage OpenSchema(string path, object home)
     {
       path = Path.Combine("Lex.Db", path);
+      var root = home as string;
 
 #if NETFX_CORE
-      return new WindowsStorage.DbSchemaStorage(path, home as Windows.Storage.StorageFolder);
-#else
+      if (root == null) 
+      {
+        var folder = home as Windows.Storage.StorageFolder;
+        if (folder != null)
+          root = folder.Path;
+        else
+          root = Windows.Storage.ApplicationData.Current.LocalFolder.Path;
+      }
 
-#if SILVERLIGHT
-#if !WINDOWS_PHONE
-      if (Application.Current.HasElevatedPermissions)
-        return new FileSystem.DbSchemaStorage(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), path));
-#endif
+      return new FileSystem.DbSchemaStorage(Path.Combine(root, path));
+#elif WINDOWS_PHONE
+      return new IsolatedStorage.DbSchemaStorage(_storage, path);
+#elif SILVERLIGHT
+      
+      if (Application.Current.HasElevatedPermissions) 
+      {
+        if (root == null)
+          root = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+
+        return new FileSystem.DbSchemaStorage(Path.Combine(root, path));
+      }
+
       return new IsolatedStorage.DbSchemaStorage(_storage, path);
 #else
+      if (root == null)
+        root = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
 
-      return new FileSystem.DbSchemaStorage(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), path));
-#endif
+      return new FileSystem.DbSchemaStorage(Path.Combine(root, path));
 #endif
     }
 

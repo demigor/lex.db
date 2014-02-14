@@ -121,8 +121,8 @@ namespace Lex.Db
     /// <returns>Returns number of deleted by key entities</returns>
     public abstract int DeleteByKeys(IEnumerable<object> keys);
 
-    internal abstract void LoadIndex(IDbTableReader reader);
-    internal abstract void SaveIndex(IDbTableWriter writer, bool crop);
+    internal abstract void Read(IDbTableReader reader);
+    internal abstract void Write(IDbTableWriter writer, bool crop);
 
     /// <summary>
     /// Returns table size information 
@@ -789,14 +789,8 @@ namespace Lex.Db
     {
       var reader = new DataReader(stream);
       var format = Metadata.Read(reader);
-      try
-      {
-        KeyIndex.Read(reader, format);
-      }
-      catch (InvalidOperationException)
-      {
-        Metadata.ClearProperties();
-      }
+
+      KeyIndex.Read(reader, format);
 
       var name = reader.ReadString();
       if (name != "" && _indexes != null)
@@ -972,9 +966,9 @@ namespace Lex.Db
     {
       using (var compacter = Storage.BeginCompact())
       {
-        LoadIndex(compacter);
+        Read(compacter);
         KeyIndex.Compact(compacter);
-        SaveIndex(compacter, true);
+        Write(compacter, true);
       }
     }
 
@@ -1015,7 +1009,7 @@ namespace Lex.Db
 
     DateTimeOffset _tableTs;
 
-    internal override void LoadIndex(IDbTableReader reader)
+    internal override void Read(IDbTableReader reader)
     {
       var ts = reader.Ts;
 
@@ -1034,15 +1028,14 @@ namespace Lex.Db
       }
     }
 
-    internal override void SaveIndex(IDbTableWriter writer, bool crop)
+    internal override void Write(IDbTableWriter writer, bool crop)
     {
       var s = WriteIndex();
-      writer.WriteIndex(s.GetBuffer(), (int)s.Length);
+
+      _tableTs = writer.WriteIndex(s.GetBuffer(), (int)s.Length);
 
       if (crop)
         writer.CropData(KeyIndex.GetFileSize());
-
-      _tableTs = writer.Ts;
     }
 
     /// <summary>

@@ -23,6 +23,7 @@
     <DefineConstants>TRACE;DEBUG;TPL4;NET40</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -32,6 +33,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>..\bin\Release\Net4\Lex.Db.xml</DocumentationFile>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CompilerServices.AsyncTargetingPack.Net4">
@@ -41,7 +43,6 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Core\Awaiter.cs" />
     <Compile Include="Core\CtorOfT.cs" />
     <Compile Include="Core\Hash.cs" />
     <Compile Include="Core\TypeHelper.cs" />
@@ -50,6 +51,7 @@
     <Compile Include="Db\DbTableAsync.cs" />
     <Compile Include="Db\ITransactionScope.cs" />
     <Compile Include="Framework\BufferedStream.cs" />
+    <Compile Include="Framework\OSFileStream.cs" />
     <Compile Include="Framework\ReaderWriterLockSlim.cs" />
     <Compile Include="Indexing\DataIndex.cs" />
     <Compile Include="Indexing\Indexers.cs" />
@@ -82,8 +84,6 @@
     <Compile Include="Storage\Interfaces\IDbTableStorage.cs" />
     <Compile Include="Storage\IsolatedStorage\DbSchemaStorage.cs" />
     <Compile Include="Storage\IsolatedStorage\DbTableStorage.cs" />
-    <Compile Include="Storage\WindowsStorage\DbSchemaStorage.cs" />
-    <Compile Include="Storage\WindowsStorage\DbTableStorage.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

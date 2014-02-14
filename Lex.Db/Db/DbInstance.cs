@@ -1,19 +1,22 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Reflection;
 
 namespace Lex.Db
 {
+  using Mapping;
+
   /// <summary>
   /// Database access and management
   /// </summary>
   public class DbInstance : IDisposable
   {
     static readonly IDbStorage Storage = new DbStorage();
-    readonly IDbSchemaStorage _schema;
-    bool _sealed, _disposed;
+    internal readonly IDbSchemaStorage _schema;
+    internal bool _sealed, _disposed;
 
     Dictionary<Type, TypeMap> _maps = new Dictionary<Type, TypeMap>();
     Dictionary<Type, DbTable> _tables;
@@ -22,9 +25,10 @@ namespace Lex.Db
     /// Creates database instance with specified path
     /// </summary>
     /// <param name="path">Path to database storage folder (relative to default app storage)</param>
-    public DbInstance(string path)
+    /// <param name="home">Home folder (optional)</param> 
+    public DbInstance(string path, string home = null)
     {
-      _schema = Storage.OpenSchema(path);
+      _schema = Storage.OpenSchema(path, home);
     }
 
 #if NETFX_CORE
@@ -42,22 +46,27 @@ namespace Lex.Db
     }
 #endif
 
-    void CheckNotSealed()
+    protected void CheckNotSealed()
     {
       if (_sealed)
         throw new InvalidOperationException("DbInstance is already initialized");
     }
 
-    void CheckSealed()
+    protected void CheckSealed()
     {
       if (!_sealed)
         throw new InvalidOperationException("DbInstance is not initialized");
     }
 
+    protected virtual IEnumerable<DbTable> GetTables()
+    {
+      return _tables.Values;
+    }
+
     /// <summary>
     /// Initializes database
     /// </summary>
-    public void Initialize()
+    public virtual void Initialize()
     {
       CheckNotSealed();
 
@@ -215,6 +224,16 @@ namespace Lex.Db
     }
 
     /// <summary>
+    /// Provides list of known tables
+    /// </summary>
+    public IEnumerable<DbTable> AllTables()
+    {
+      CheckSealed();
+
+      return GetTables();
+    }
+
+    /// <summary>
     /// global db read/write lock
     /// </summary>
     readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
@@ -292,7 +311,7 @@ namespace Lex.Db
           reader = table.Storage.BeginRead();
           try
           {
-            table.LoadIndex(reader);
+            table.Read(reader);
             this[table] = reader;
           }
           catch
@@ -345,14 +364,11 @@ namespace Lex.Db
           foreach (var i in this)
           {
             var info = i.Value;
-            try
+            
+            using (var writer = info.Writer)
             {
               if (info.Modified)
-                i.Key.SaveIndex(info.Writer, info.Crop);
-            }
-            finally
-            {
-              info.Writer.Dispose();
+                i.Key.Write(writer, info.Crop);
             }
           }
 
@@ -379,7 +395,7 @@ namespace Lex.Db
           try
           {
             if (autoReload)
-              table.LoadIndex(writer);
+              table.Read(writer);
 
             this[table] = info = new CommitInfo { Writer = writer };
           }
@@ -458,7 +474,7 @@ namespace Lex.Db
     {
       return Table<T>().LoadByKey(key);
     }
-    
+
     /// <summary>
     /// Loads an entity of specified entity type by specified PK value
     /// </summary>
@@ -548,7 +564,7 @@ namespace Lex.Db
     {
       return Table<T>().DeleteByKeys(keys);
     }
-    
+
     /// <summary>
     /// Deletes entities specified by key sequence
     /// </summary>
@@ -630,7 +646,7 @@ namespace Lex.Db
     /// </summary>
     public void Flush()
     {
-      foreach (var i in _tables.Values)
+      foreach (var i in GetTables())
         i.Flush();
     }
 
@@ -652,7 +668,7 @@ namespace Lex.Db
       try
       {
         using (WriteScope())
-          foreach (var i in _tables.Values)
+          foreach (var i in GetTables())
             i.Compact();
       }
       finally
@@ -705,4 +721,168 @@ namespace Lex.Db
         throw new ObjectDisposedException("DbInstance");
     }
   }
+
+#if DEBUG
+
+  public class DbExplorer : DbInstance
+  {
+    public DbExplorer(string path) : base(path) { }
+
+
+    Dictionary<string, Metadata<object[]>> _namedMetadata = new Dictionary<string, Metadata<object[]>>(StringComparer.OrdinalIgnoreCase);
+    Dictionary<string, DbTable> _namedTables;
+
+    /// <summary>
+    /// Indicates whether specified entity type is mapped in database
+    /// </summary>
+    /// <param name="name">Entity type name</param>
+    /// <returns>True if type is mapped in database, false otherwise</returns>
+    public bool HasMap(string name)
+    {
+      if (string.IsNullOrEmpty(name))
+        throw new ArgumentNullException("name");
+
+      return _namedMetadata != null ? _namedMetadata.ContainsKey(name) : _namedTables.ContainsKey(name);
+    }
+
+    /// <summary>
+    /// Provides database table infrastructure to read/write/query entities
+    /// </summary>
+    /// <returns></returns>
+    public DbTable<object[]> Table(string name)
+    {
+      CheckSealed();
+
+      if (string.IsNullOrEmpty(name))
+        throw new ArgumentNullException("name");
+
+      DbTable result;
+
+      if (!_namedTables.TryGetValue(name, out result))
+        throw new ArgumentException(string.Format("Type {0} is not registered with this DbInstance", name));
+
+      return (DbTable<object[]>)result;
+    }
+
+    protected override IEnumerable<DbTable> GetTables()
+    {
+      return _namedTables.Values;
+    }
+
+    /// <summary>
+    /// Initializes database
+    /// </summary>
+    public override void Initialize()
+    {
+      CheckNotSealed();
+
+      _schema.Open();
+
+      _namedTables = (from m in _namedMetadata select CreateTable(m.Value, m.Key)).ToDictionary(i => i.Name, StringComparer.OrdinalIgnoreCase);
+
+      _sealed = true;
+
+      #region Drop maps - we don't need them anymore
+
+      _namedMetadata = null;
+
+      #endregion
+    }
+
+    DbTable CreateTable(Metadata<object[]> md, string name)
+    {
+      var cnt = md.MemberCount;
+      var result = new DbTable<object[]>(this, () => new object[cnt]);
+      result.Name = name;
+
+      InitPK(result, md.Key.Type);
+
+      var storage = _schema.GetTable(name);
+
+      result.Metadata.Assign(md);
+
+      result.Initialize(storage);
+
+      return result;
+    }
+
+    public IMetadata Map(string name)
+    {
+      if (string.IsNullOrEmpty(name))
+        throw new ArgumentNullException("tableName");
+
+      CheckNotSealed();
+
+      try
+      {
+        lock (_namedMetadata)
+        {
+          Metadata<object[]> result;
+
+          if (_namedMetadata.TryGetValue(name, out result))
+            return result;
+
+          result = LoadMetadata(name);
+
+          var idx = 1;
+
+          foreach (var i in result.Members)
+          {
+            //          i.Deserialize = //
+            idx++;
+          }
+
+          _namedMetadata[name] = result;
+
+          return result;
+        }
+      }
+      catch (ArgumentNullException) // empty table
+      {
+        return null;
+      }
+    }
+
+    void InitPK(DbTable<object[]> table, Type pk)
+    {
+#if NETFX_CORE
+      var keyMethod = GetType().GetRuntimeMethod("InitPKCore", new Type[] { typeof(DbTable<object[]>) });
+#else
+      var keyMethod = GetType().GetMethod("InitPKCore", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+#endif
+      var pkKeyMethod = keyMethod.MakeGenericMethod(pk);
+
+      pkKeyMethod.Invoke(this, new object[] { table });
+    }
+
+    void InitPKCore<T>(DbTable<object[]> table)
+    {
+      table.Add(i => (T)i[0], null, false);
+    }
+
+    Metadata<object[]> LoadMetadata(string name)
+    {
+      var storage = _schema.GetTable(name);
+
+      using (var trans = storage.BeginRead())
+      using (var ms = new MemoryStream(trans.ReadIndex()))
+      {
+        var result = Metadata<object[]>.ReadMetadata(ms);
+        result.Name = name;
+        return result;
+      }
+    }
+
+    /// <summary>
+    /// Provides list of known tables
+    /// </summary>
+    public new IEnumerable<DbTable<object[]>> AllTables()
+    {
+      CheckSealed();
+
+      return GetTables().OfType<DbTable<object[]>>();
+    }
+  }
+
+#endif
 }

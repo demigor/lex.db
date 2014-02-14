@@ -1,7 +1,11 @@
-﻿#if !NETFX_CORE
-using System;
+﻿using System;
 using System.IO;
 using System.Threading;
+#if NETFX_CORE
+using File = Lex.Db.OSFile;
+using FileStream = Lex.Db.OSFileStream;
+using Directory = Lex.Db.OSDirectory;
+#endif
 
 namespace Lex.Db.FileSystem
 {
@@ -33,11 +37,23 @@ namespace Lex.Db.FileSystem
         }
         catch
         {
+#if NETFX_CORE
+          Sleep(100);
+#else
           Thread.Sleep(100);
+#endif
         }
 
       throw new IOException("Cannot aquire read lock");
     }
+
+#if NETFX_CORE
+    static void Sleep(int ms)
+    {
+      using (var e = new ManualResetEvent(false))
+        e.WaitOne(ms);
+    }
+#endif
 
     Stream OpenWrite(string name)
     {
@@ -48,7 +64,11 @@ namespace Lex.Db.FileSystem
         }
         catch
         {
+#if NETFX_CORE
+          Sleep(100);
+#else
           Thread.Sleep(100);
+#endif
         }
 
       throw new IOException("Cannot aquire read lock");
@@ -102,7 +122,7 @@ namespace Lex.Db.FileSystem
       protected Stream _readStream, _indexStream;
       protected readonly DbTableStorage _table;
       readonly Action _finalizer;
-      DateTimeOffset _ts;
+      internal DateTimeOffset _ts;
 
       public Reader(DbTableStorage table, Action finalizer)
       {
@@ -203,12 +223,16 @@ namespace Lex.Db.FileSystem
         }
       }
 
-      public void WriteIndex(byte[] data, int length)
+      public DateTimeOffset WriteIndex(byte[] data, int length)
       {
-        _indexStream.SetLength(0);
+        _indexStream.Position = 0;
         _indexStream.Write(data, 0, length);
-
+        _indexStream.SetLength(length);
+        _indexStream.Dispose();
+        
         UpdateTs();
+
+        return _ts;
       }
 
       public void CopyData(long position, long target, int length)
@@ -285,4 +309,3 @@ namespace Lex.Db.FileSystem
     }
   }
 }
-#endif

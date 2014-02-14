@@ -1,5 +1,7 @@
-﻿#if !NETFX_CORE
-using System.IO;
+﻿using System.IO;
+#if NETFX_CORE
+using Directory = Lex.Db.OSDirectory;
+#endif
 
 namespace Lex.Db.FileSystem
 {
@@ -37,4 +39,3 @@ namespace Lex.Db.FileSystem
     }
   }
 }
-#endif

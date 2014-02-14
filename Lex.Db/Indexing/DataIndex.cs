@@ -149,7 +149,8 @@ namespace Lex.Db.Indexing
       var keysCount = reader.ReadInt32();
       for (var i = 0; i < keysCount; i++)
       {
-        var keyNode = keyMap[reader.ReadInt64()];
+        var id = reader.ReadInt64();
+        var keyNode = keyMap[id];
         result.Keys.Add(keyNode);
         keyNode[this] = result;
       }

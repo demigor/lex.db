@@ -109,7 +109,7 @@ namespace Lex.Db.Serialization
       var result = TryGetDbType(type);
       
       if (result == null)
-        throw new NotSupportedException(string.Format("Serialization og '{0}' is not supported", type));
+        throw new NotSupportedException(string.Format("Serialization of '{0}' is not supported", type));
 
       return result;
     }

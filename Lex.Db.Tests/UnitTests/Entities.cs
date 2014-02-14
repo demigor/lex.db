@@ -50,6 +50,8 @@ namespace Lex.Db
     public TestEnum EnumField { get; set; }
     public TestEnum? EnumNField { get; set; }
 
+    public byte[] BlobField;
+
     public MyData()
     {
       ListField = new List<int>();

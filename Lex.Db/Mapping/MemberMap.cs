@@ -16,7 +16,13 @@ namespace Lex.Db
     Current = 0x1
   }
 
-  class MemberMap
+  public interface IMemberMap
+  {
+    string Name { get; }
+    Type Type { get; }
+  }
+
+  class MemberMap : IMemberMap
   {
     public MemberMap(DataReader reader)
     {
@@ -103,6 +109,13 @@ namespace Lex.Db
 
     public string Name;
     public int Id;
+
+    #region IMemberMap Members
+
+    string IMemberMap.Name { get { return Name; } }
+    Type IMemberMap.Type { get { return MemberType; } }
+
+    #endregion
   }
 
   class MemberMap<T> : MemberMap
@@ -114,7 +127,7 @@ namespace Lex.Db
     public Action<DataReader, T> Deserialize;
   }
 
-  class RefMemberMap<T,R> : MemberMap<T>
+  class RefMemberMap<T, R> : MemberMap<T>
   {
     public RefMemberMap(MemberInfo member)
       : base(member, null, null)

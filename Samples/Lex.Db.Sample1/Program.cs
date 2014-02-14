@@ -11,6 +11,9 @@ namespace Lex.Db.Sample1
 
       Console.WriteLine("Custom DbInstance");
       new CustomDbInstanceSample().Test();
+      
+      Console.WriteLine("Custom DbInstance Brute Force test");
+      new CustomDbInstanceSample().Test2();
     }
   }
 }

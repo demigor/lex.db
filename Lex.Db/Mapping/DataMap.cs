@@ -1,14 +1,12 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 
 namespace Lex.Db.Mapping
 {
   using Indexing;
 
-  [DebuggerDisplay("{Begin}, {End}")]
+  [DebuggerDisplay("{Begin} - {End}")]
   class Allocation
   {
     public static Allocation New<K>(KeyNode<K> node)
@@ -67,148 +65,69 @@ namespace Lex.Db.Mapping
     public long Begin;
     public long End;
 #endif
+
+    internal void Set(long begin, int length)
+    {
+#if DEBUG
+      if (begin < 0)
+        throw new ArgumentException("begin");
+
+      if (length <= 0)
+        throw new ArgumentException("length");
+
+      _begin = begin;
+      _end = begin + length;
+#else
+      Begin = begin;
+      End = begin + length;
+#endif
+    }
   }
 
-  class DataMap<K> : IComparer<Allocation>, IEnumerable<Allocation>
+  class DataMap<K> : List<Allocation>, IComparer<Allocation>
   {
-    readonly List<Allocation> _allocs;
-
-    public DataMap()
-    {
-      _allocs = new List<Allocation>();
-    }
-
     public DataMap(RBTree<K, KeyNode<K>> tree)
     {
-      _allocs = new List<Allocation>(tree.Count);
+      Capacity = tree.Count;
+
       Gather(tree.Root);
-      _allocs = _allocs.OrderBy(i => i.Begin).ToList();
+
+      Sort(this);
+
+#if DEBUG
+      Check();
+#endif
+
       Compactify();
-    }
-
-    void Gather(KeyNode<K> node)
-    {
-      if (node != null)
-      {
-        _allocs.Add(Allocation.New(node));
-
-        Gather(node.Left);
-        Gather(node.Right);
-      }
     }
 
     void Compactify()
     {
-      if (_allocs.Count <= 1)
-        return;
-
-//#if DEBUG
-//      Check();
-//#endif
-
-      var currIndex = _allocs.Count - 1;
-
-      while (currIndex >= 0)
+      for (int i = Count - 1; i > 0; i--)
       {
-        var currAlloc = _allocs[currIndex];
+        var curr = this[i];
+        var prev = this[i - 1];
 
-        var mergeAlloc = default(Allocation);
-        var mergeIndex = currIndex;
-
-        var scanIndex = currIndex - 1;
-        var prevAlloc = currAlloc;
-
-        while (scanIndex >= 0)
+        if (prev.End == curr.Begin)
         {
-          var scanAlloc = _allocs[scanIndex];
-
-          if (scanAlloc.End > prevAlloc.Begin)
+          prev.End = curr.End;
+          RemoveAt(i);
+        }
+        else
+        {
+          if (prev.End > curr.Begin)
             throw new InvalidOperationException();
-
-          if (scanAlloc.End == prevAlloc.Begin)
-          {
-            mergeAlloc = scanAlloc;
-            mergeIndex = scanIndex;
-          }
-          else
-            break;
-
-          --scanIndex;
-          prevAlloc = scanAlloc;
         }
-
-        if (mergeAlloc != null)
-        {
-          mergeAlloc.End = currAlloc.End;
-          _allocs.RemoveRange(mergeIndex + 1, currIndex - mergeIndex);
-          currIndex = mergeIndex - 1;
-          continue;
-        }
-
-        --currIndex;
       }
     }
 
-    public void Free(KeyNode<K> node)
-    {
-      DoFree(node);
-    }
+#if DEBUG
 
-    void DoFree(KeyNode<K> node)
-    {
-      var cut = Allocation.New(node);
-      var idx = _allocs.BinarySearch(cut, this);
-      if (idx < 0)
-        idx = Math.Max(~idx - 1, 0);
-
-      while (idx < _allocs.Count)
-      {
-        var alloc = _allocs[idx];
-
-        #region simple cases
-        if (alloc.Begin >= cut.End)
-          break;
-
-        if (alloc.End < cut.Begin)
-        {
-          idx++;
-          continue;
-        }
-
-        #endregion
-
-        if (alloc.Begin < cut.Begin)
-        {
-          if (alloc.End > cut.End)
-          {
-            var end = alloc.End;
-            alloc.End = cut.Begin;
-
-            _allocs.Insert(idx + 1, new Allocation(cut.End, end));
-            return;
-          }
-          alloc.End = cut.Begin;
-          idx++;
-          continue;
-        }
-
-        if (alloc.End <= cut.End)
-        {
-          _allocs.RemoveAt(idx);
-          continue;
-        }
-
-        alloc.Begin = cut.End;
-        ++idx;
-      }
-    }
-
-/*
     void Check()
     {
       long x = 0;
 
-      foreach (var alloc in _allocs)
+      foreach (var alloc in this)
       {
         if (alloc.Begin < x)
           throw new InvalidOperationException("1");
@@ -219,97 +138,141 @@ namespace Lex.Db.Mapping
         x = alloc.End;
       }
     }
-*/
 
-    public void Realloc(KeyNode<K> node, int size)
+#endif
+
+    void Gather(KeyNode<K> node)
     {
-      Free(node);
-
-      node.Length = size;
-
-      Alloc(node);
-    }
-
-    public void Alloc(KeyNode<K> add)
-    {
-      DoAlloc(add);
-    }
-
-    void DoAlloc(KeyNode<K> add)
-    {
-      if (_allocs.Count == 0)
+      if (node != null)
       {
-        add.Offset = 0;
-        _allocs.Add(Allocation.New(add));
-        return;
+        Add(Allocation.New(node));
+
+        Gather(node.Left);
+        Gather(node.Right);
+      }
+    }
+
+    public void Alloc(KeyNode<K> node)
+    {
+      node.Offset = DoAlloc(node.Length);
+    }
+
+    long DoAlloc(int length)
+    {
+      var c = Count - 1;
+
+      if (c < 0)
+      {
+        Add(new Allocation(0, length));
+        return 0;
       }
 
-      var prev = default(Allocation);
-      var idx = 0;
+      var next = default(Allocation);
 
-      foreach (var alloc in _allocs)
-      {
-        if (prev == null)
+      if (c == 0)
+        next = this[0];
+      else
+        for (int i = 0; i < c; i++)
         {
-          if (alloc.Begin > add.Length)
+          var curr = this[i];
+          next = this[i + 1];
+
+          var space = next.Begin - curr.End;
+          var diff = space - length;
+
+          // found exact slot - merge to next, remove current
+          if (diff == 0)
           {
-            alloc.Begin -= add.Length;
-            add.Offset = alloc.Begin;
-            return;
+            next.Begin = curr.Begin;
+            RemoveAt(i);
+            return curr.End;
+          }
+
+          // found bigger slot - expand current
+          if (diff > 0)
+          {
+            next = curr;
+            break;
           }
         }
+
+      var result = next.End;
+      next.End += length;
+
+      return result;
+    }
+
+    Allocation search = new Allocation(0, 1);
+
+    void DoFree(long offset, int length)
+    {
+      search.Set(offset, length);
+
+      var i = BinarySearch(search, this);
+
+      if (i < 0)
+      {
+        i = ~i;
+
+        var left = this[i - 1];
+
+        if (left.End == search.End) // exact match on End
+          left.End = offset;
         else
         {
-          if (prev.End + add.Length <= alloc.Begin)
-          {
-            add.Offset = prev.End;
-            prev.End += add.Length;
+          if (left.End < offset)
+            throw new InvalidOperationException();
 
-            if (prev.End == alloc.Begin)
-            {
-              alloc.Begin = prev.Begin;
-              _allocs.RemoveAt(idx);
-            }
-
-            return;
-          }
+          Insert(i, new Allocation(search.End, left.End));
+          left.End = offset;
         }
-
-        prev = alloc;
-        ++idx;
       }
+      else
+      // exact match on Begin
+      {
+        var a = this[i];
+        var begin = a.Begin + length;
+        if (begin < a.End)
+          a.Begin = begin;
+        else
+        {
+          if (begin != a.End)
+            throw new InvalidOperationException();
 
-      add.Offset = prev.End;
-      prev.End += add.Length;
+          RemoveAt(i);
+        }
+      }
     }
 
-    int IComparer<Allocation>.Compare(Allocation x, Allocation y)
+    public void Realloc(KeyNode<K> node, int length)
     {
-      if (x.Begin < y.Begin)
-        return -1;
+      DoFree(node.Offset, node.Length);
 
-      return x.Begin > y.Begin ? 1 : 0;
+      node.Offset = DoAlloc(length);
+      node.Length = length;
     }
 
-    public int Count { get { return _allocs.Count; } }
+    public void Free(KeyNode<K> node)
+    {
+      DoFree(node.Offset, node.Length);
+    }
 
     public long Max
     {
       get
       {
-        var last = _allocs.LastOrDefault();
-        return last == null ? 0 : last.End;
+        var c = Count - 1;
+
+        if (c >= 0)
+          return this[c].End;
+
+        return 0;
       }
     }
 
-    IEnumerator<Allocation> IEnumerable<Allocation>.GetEnumerator()
+    public int Compare(Allocation x, Allocation y)
     {
-      return _allocs.GetEnumerator();
-    }
-
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-      return _allocs.GetEnumerator();
+      return x.Begin.CompareTo(y.Begin);
     }
   }
 }

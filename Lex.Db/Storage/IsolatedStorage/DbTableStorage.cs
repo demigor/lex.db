@@ -104,7 +104,7 @@ namespace Lex.Db.IsolatedStorage
       protected Stream _readStream, _indexStream;
       protected readonly DbTableStorage _table;
       readonly Action _finalizer;
-      DateTimeOffset _ts;
+      internal DateTimeOffset _ts;
 
       public Reader(DbTableStorage table, Action finalizer)
       {
@@ -199,12 +199,15 @@ namespace Lex.Db.IsolatedStorage
         }
       }
 
-      public void WriteIndex(byte[] data, int length)
+      public DateTimeOffset WriteIndex(byte[] data, int length)
       {
         _indexStream.SetLength(0);
         _indexStream.Write(data, 0, length);
+        _indexStream.Dispose();
 
         UpdateTs();
+
+        return _ts;
       }
 
       public void CopyData(long position, long target, int length)

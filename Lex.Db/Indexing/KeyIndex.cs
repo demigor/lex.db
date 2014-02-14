@@ -300,17 +300,8 @@ namespace Lex.Db.Indexing
 
     public void Read(DataReader reader, DbFormat format)
     {
-      try
-      {
-        _tree.Root = ReadNode(reader, null);
-        _map = new DataMap<K>(_tree);
-      }
-      catch (InvalidOperationException)
-      {
-        _tree.Root = null;
-        _map = new DataMap<K>(_tree);
-        throw;
-      }
+      _tree.Root = ReadNode(reader, null);
+      _map = new DataMap<K>(_tree);
     }
 
     public void Purge()

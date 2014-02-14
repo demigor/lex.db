@@ -54,7 +54,7 @@ namespace Lex.Db
 
   interface IDbTableWriter : IDbTableReader
   {
-    void WriteIndex(byte[] data, int length);
+    DateTimeOffset WriteIndex(byte[] data, int length);
     void WriteData(byte[] data, long position, int length);
     void CopyData(long position, long target, int length);
     void CropData(long position);
