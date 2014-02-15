@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-#if !SILVERLIGHT
+#if !SILVERLIGHT || WINDOWS_PHONE
 using TaskEx = System.Threading.Tasks.Task;
 #endif
 
