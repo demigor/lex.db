@@ -1017,6 +1017,8 @@ namespace Lex.Db
       {
         if (ts > _tableTs)
         {
+          Debug.WriteLine("Reload {0} - last {1}", typeof(T), _tableTs);
+
           _tableTs = ts;
 
           var index = reader.ReadIndex();
