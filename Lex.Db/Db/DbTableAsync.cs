@@ -5,7 +5,9 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+#if !SILVERLIGHT
 using TaskEx = System.Threading.Tasks.Task;
+#endif
 
 namespace Lex.Db
 {
