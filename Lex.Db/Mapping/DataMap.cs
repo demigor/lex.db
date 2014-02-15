@@ -113,11 +113,13 @@ namespace Lex.Db.Mapping
           prev.End = curr.End;
           RemoveAt(i);
         }
+#if DEBUG
         else
         {
           if (prev.End > curr.Begin)
             throw new InvalidOperationException();
         }
+#endif
       }
     }
 
@@ -170,7 +172,24 @@ namespace Lex.Db.Mapping
       var next = default(Allocation);
 
       if (c == 0)
+      {
         next = this[0];
+        
+        var diff = next.Begin - length;
+        
+        if (diff == 0)
+        {
+          next.Begin = 0;
+          return 0;
+        }
+
+        if (diff > 0)
+        {
+          Insert(0, new Allocation(0, length));
+          return 0;
+        }
+
+      }
       else
         for (int i = 0; i < c; i++)
         {

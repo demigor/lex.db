@@ -11,8 +11,11 @@ namespace Lex.Db.Sample1
 
       Console.WriteLine("Custom DbInstance");
       new CustomDbInstanceSample().Test();
-      
-      Console.WriteLine("Custom DbInstance Brute Force test");
+
+      Console.WriteLine("Custom DbInstance DataMap test");
+      new CustomDbInstanceSample().Test3();
+
+      Console.WriteLine("Custom DbInstance DataMap Brute Force test");
       new CustomDbInstanceSample().Test2();
     }
   }

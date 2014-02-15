@@ -53,6 +53,23 @@ namespace Lex.Db.Sample1
         Test2Modify(d);
     }
 
+
+    public void Test3()
+    {
+      using (var db = new MyDbInstance("test.db.4"))
+      {
+        db.Purge();
+
+        var people = db.Table<Person>();
+
+        people.Save(new[] { new Person { Id = "A" }, new Person { Id = "B" }});
+
+        people.DeleteByKey("A");
+
+        people.Save(new Person { Id = "A" });
+      }
+    }
+
     const int t2Count = 100000;
 
     Dictionary<string, Person> Test2Init()
