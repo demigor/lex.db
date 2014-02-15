@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>Lex.Db</id>
-        <version>1.1.5.0</version>
+        <version>1.1.6.0</version>
         <title>Lex DB</title>
         <authors>Lex Lavnikov</authors>
         <owners>Lex Lavnikov</owners>
@@ -17,7 +17,10 @@
 * Red Black Tree Indexes
 * Lazy loading</description>
         <summary>Superfast, lightweight (~100K), POCO database for WP8+ &amp; WinRT, .NET4+, Silverlight 5+,  platforms.</summary>
-        <releaseNotes>1.1.5
+        <releaseNotes>1.1.6
++ Async methods removed from .NET4 &amp; SL5 (include DbTableAsync.cs if you have Microsoft.Bcl.Async dependency, I don't want to bloat your project in case you don't use Async stuff)
+
+1.1.5
 + Performance improvements for Windows 8 (sync IO)
 + Bug fixes
 
@@ -30,23 +33,16 @@
 + WinRT StorageFolder home</releaseNotes>
         <copyright>Alexey Lavnikov</copyright>
         <language>en-US</language>
-        <dependencies>
-            <group targetFramework="Silverlight5.0">
-                <dependency id="Microsoft.CompilerServices.AsyncTargetingPack" version="1.0.0" />
-            </group>
-            <group targetFramework=".NETFramework4.0">
-                <dependency id="Microsoft.CompilerServices.AsyncTargetingPack" version="1.0.0" />
-            </group>
-            <group targetFramework=".NETFramework4.5" />
-        </dependencies>
     </metadata>
     <files>
+        <file src="..\Lex.Db\Db\DbTableAsync.cs" target="lib\net40\DbTableAsync.cs" />
         <file src="..\bin\Release\Net4\Lex.Db.dll" target="lib\net40\Lex.Db.dll" />
         <file src="..\bin\Release\Net4\Lex.Db.xml" target="lib\net40\Lex.Db.xml" />
         <file src="..\bin\Release\Net45\Lex.Db.dll" target="lib\net45\Lex.Db.dll" />
         <file src="..\bin\Release\Net45\Lex.Db.xml" target="lib\net45\Lex.Db.xml" />
         <file src="..\bin\Release\WinRT\Lex.Db.dll" target="lib\netcore45\Lex.Db.dll" />
         <file src="..\bin\Release\WinRT\Lex.Db.xml" target="lib\netcore45\Lex.Db.xml" />
+        <file src="..\Lex.Db\Db\DbTableAsync.cs" target="lib\sl50\DbTableAsync.cs" />
         <file src="..\bin\Release\Silverlight5\Lex.Db.dll" target="lib\sl50\Lex.Db.dll" />
         <file src="..\bin\Release\Silverlight5\Lex.Db.xml" target="lib\sl50\Lex.Db.xml" />
         <file src="..\bin\Release\WinPhone8\Lex.Db.dll" target="lib\wp8\Lex.Db.dll" />

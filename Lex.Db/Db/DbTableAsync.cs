@@ -1,12 +1,11 @@
-﻿using System;
+﻿#if !NOASYNC
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-#if !TPL4
 using TaskEx = System.Threading.Tasks.Task;
-#endif
 
 namespace Lex.Db
 {
@@ -277,3 +276,4 @@ namespace Lex.Db
   }
 }
 
+#endif

@@ -33,7 +33,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>..\bin\Debug\Silverlight5\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;SILVERLIGHT;TPL4</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;SILVERLIGHT;NOASYNC</DefineConstants>
     <NoStdLib>true</NoStdLib>
     <NoConfig>true</NoConfig>
     <ErrorReport>prompt</ErrorReport>
@@ -43,7 +43,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>..\bin\Release\Silverlight5\</OutputPath>
-    <DefineConstants>TRACE;SILVERLIGHT;TPL4</DefineConstants>
+    <DefineConstants>TRACE;SILVERLIGHT;NOASYNC</DefineConstants>
     <NoStdLib>true</NoStdLib>
     <NoConfig>true</NoConfig>
     <ErrorReport>prompt</ErrorReport>
@@ -51,9 +51,6 @@
     <DocumentationFile>..\bin\Release\Silverlight5\Lex.Db.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.CompilerServices.AsyncTargetingPack.Silverlight5">
-      <HintPath>..\packages\Microsoft.CompilerServices.AsyncTargetingPack.1.0.0\lib\sl50\Microsoft.CompilerServices.AsyncTargetingPack.Silverlight5.dll</HintPath>
-    </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="System.Windows" />
     <Reference Include="system" />
@@ -101,9 +98,6 @@
     <Compile Include="Storage\Interfaces\IDbTableStorage.cs" />
     <Compile Include="Storage\IsolatedStorage\DbSchemaStorage.cs" />
     <Compile Include="Storage\IsolatedStorage\DbTableStorage.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Silverlight\$(SilverlightVersion)\Microsoft.Silverlight.CSharp.targets" />
   <ProjectExtensions>
