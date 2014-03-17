@@ -1,12 +1,8 @@
-﻿using System.IO;
-
-#if SILVERLIGHT || NETFX_CORE
-
+﻿#if SILVERLIGHT || NETFX_CORE
 using System;
-using System.Runtime.InteropServices;
 using System.Security;
 
-namespace Lex.Db.Streams
+namespace System.IO
 {
   sealed class BufferedStream : Stream
   {
@@ -430,15 +426,3 @@ namespace Lex.Db.Streams
   }
 }
 #endif
-
-namespace Lex.Db.Streams
-{
-  static partial class Extensions
-  {
-    public static Stream AsBuffered(this Stream stream, int buffer = 256 * 1024)
-    {
-      return new BufferedStream(stream, buffer);
-    }
-  }
-}
-

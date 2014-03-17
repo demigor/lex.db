@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>Lex.Db</id>
-        <version>1.1.6.1</version>
+        <version>1.1.6.2</version>
         <title>Lex DB</title>
         <authors>Lex Lavnikov</authors>
         <owners>Lex Lavnikov</owners>
@@ -17,7 +17,10 @@
 * Red Black Tree Indexes
 * Lazy loading</description>
         <summary>Superfast, lightweight (~100K), POCO database for WP8+ &amp; WinRT, .NET4+, Silverlight 5+,  platforms.</summary>
-        <releaseNotes>1.1.6
+        <releaseNotes>1.1.6.2
++ WACK fix 
+
+1.1.6
 + Async methods removed from .NET4 &amp; SL5 (include DbTableAsync.cs if you have Microsoft.Bcl.Async dependency, I don't want to bloat your project in case you don't use Async stuff)
 
 1.1.5

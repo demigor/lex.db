@@ -3,14 +3,11 @@ using System.IO;
 using System.Threading;
 #if NETFX_CORE
 using File = Lex.Db.OSFile;
-using FileStream = Lex.Db.OSFileStream;
 using Directory = Lex.Db.OSDirectory;
 #endif
 
 namespace Lex.Db.FileSystem
 {
-  using Streams;
-
   class DbTableStorage : IDbTableStorage
   {
     readonly string _indexName;
@@ -28,12 +25,19 @@ namespace Lex.Db.FileSystem
     {
     }
 
-    Stream OpenRead(string name)
+    const int BufferSize = 256 * 1024; // 256K
+
+    Stream OpenRead(string name, bool buffered = false)
     {
       for (int i = 0; i < 10; i++)
         try
         {
-          return new FileStream(name, FileMode.OpenOrCreate, FileAccess.Read, FileShare.Read);
+#if NETFX_CORE
+          Stream s = new OSFileStream(name, FileMode.OpenOrCreate, FileAccess.Read, FileShare.Read);
+          return buffered ? new BufferedStream(s, BufferSize) : s;
+#else
+          return new FileStream(name, FileMode.OpenOrCreate, FileAccess.Read, FileShare.Read, buffered ? BufferSize : 4 * 1024);
+#endif
         }
         catch
         {
@@ -55,12 +59,17 @@ namespace Lex.Db.FileSystem
     }
 #endif
 
-    Stream OpenWrite(string name)
+    Stream OpenWrite(string name, bool buffered = false)
     {
       for (int i = 0; i < 10; i++)
         try
         {
-          return new FileStream(name, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+#if NETFX_CORE
+          Stream s = new OSFileStream(name, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+          return buffered ? new BufferedStream(s, BufferSize) : s;
+#else
+          return new FileStream(name, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None, buffered ? BufferSize : 4 * 1024);
+#endif
         }
         catch
         {
@@ -142,7 +151,7 @@ namespace Lex.Db.FileSystem
         _indexStream = _table.OpenRead(_table._indexName);
         try
         {
-          _readStream = _table.OpenRead(_table._dataName).AsBuffered();
+          _readStream = _table.OpenRead(_table._dataName, true);
         }
         catch
         {
@@ -213,7 +222,7 @@ namespace Lex.Db.FileSystem
         _indexStream = _table.OpenWrite(_table._indexName);
         try
         {
-          _readStream = _table.OpenWrite(_table._dataName).AsBuffered();
+          _readStream = _table.OpenWrite(_table._dataName, true);
           _writeStream = _readStream;
         }
         catch
@@ -229,7 +238,7 @@ namespace Lex.Db.FileSystem
         _indexStream.Write(data, 0, length);
         _indexStream.SetLength(length);
         _indexStream.Dispose();
-        
+
         UpdateTs();
 
         return _ts;
@@ -279,7 +288,7 @@ namespace Lex.Db.FileSystem
       public Compacter(DbTableStorage table, Action finalizer)
         : base(MoveFile(table), finalizer)
       {
-        _readStream = _table.OpenRead(GetBackupName(_table)).AsBuffered();
+        _readStream = _table.OpenRead(GetBackupName(_table), true);
       }
 
       static DbTableStorage MoveFile(DbTableStorage table)

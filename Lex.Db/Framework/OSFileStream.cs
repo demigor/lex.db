@@ -1,3 +1,4 @@
+#if NETFX_CORE
 #if !SILVERLIGHT && !WINDOWS_PHONE
 using System;
 using System.Globalization;
@@ -435,7 +436,7 @@ namespace Lex.Db
     public static DateTime GetLastWriteTime(string path)
     {
       var info = new WinApi.FILE_ATTRIBUTE_DATA();
-      
+
       if (!WinApi.GetFileAttributesEx(path, 0, ref info))
         throw new IOException("Unable to get file into", Marshal.GetLastWin32Error());
 
@@ -569,7 +570,12 @@ namespace Lex.Db
     public static extern bool DeleteFile(string path);
 
     [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-    public static extern bool MoveFile(string sourcePath, string targetPath);
+    public static extern bool MoveFileEx(string sourcePath, string targetPath, MOVE_FILE_FLAGS flags);
+
+    public static bool MoveFile(string sourcePath, string targetPath)
+    {
+      return MoveFileEx(sourcePath, targetPath, MOVE_FILE_FLAGS.MOVEFILE_WRITE_THROUGH);
+    }
 
     [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
     public static extern bool CreateDirectory(string path, IntPtr mustBeZero);
@@ -577,13 +583,55 @@ namespace Lex.Db
     [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
     public static extern bool RemoveDirectory(string path);
 
-    [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-    public static extern FileAttributes GetFileAttributes(string path);
-
     [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode, BestFitMapping = false, ExactSpelling = false)]
     public static extern bool GetFileAttributesEx(string name, int fileInfoLevel, ref FILE_ATTRIBUTE_DATA lpFileInformation);
 
+    public static FileAttributes GetFileAttributes(string path)
+    {
+      var data = new FILE_ATTRIBUTE_DATA();
+      return GetFileAttributesEx(path, 0, ref data) ? (FileAttributes)data.fileAttributes : FileAttributes.Invalid;
+    }
 
+    public enum MOVE_FILE_FLAGS : int
+    {
+      /// <summary>
+      /// If the file is to be moved to a different volume, the function simulates the move by using the CopyFile and DeleteFile functions.
+      /// If the file is successfully copied to a different volume and the original file is unable to be deleted, the function succeeds leaving the source file intact.
+      /// This value cannot be used with MOVEFILE_DELAY_UNTIL_REBOOT.
+      /// </summary>
+      MOVEFILE_COPY_ALLOWED = 0x2,
+
+      /// <summary>
+      /// Reserved for future use.
+      /// </summary>
+      MOVEFILE_CREATE_HARDLINK = 0x10,
+
+      /// <summary>
+      /// The system does not move the file until the operating system is restarted. The system moves the file immediately after AUTOCHK is executed, but before creating any paging files. Consequently, this parameter enables the function to delete paging files from previous startups.
+      /// This value can be used only if the process is in the context of a user who belongs to the administrators group or the LocalSystem account. 
+      /// This value cannot be used with MOVEFILE_COPY_ALLOWED.
+      /// Windows Server 2003 and Windows XP:  For information about special situations where this functionality can fail, and a suggested workaround solution, see Files are not exchanged when Windows Server 2003 restarts if you use the MoveFileEx function to schedule a replacement for some files in the Help and Support Knowledge Base.
+      /// </summary>
+      MOVEFILE_DELAY_UNTIL_REBOOT = 0x4,
+
+      /// <summary>
+      /// The function fails if the source file is a link source, but the file cannot be tracked after the move. This situation can occur if the destination is a volume formatted with the FAT file system.
+      /// </summary>
+      MOVEFILE_FAIL_IF_NOT_TRACKABLE = 0x20,
+
+      /// <summary>
+      /// If a file named lpNewFileName exists, the function replaces its contents with the contents of the lpExistingFileName file, provided that security requirements regarding access control lists (ACLs) are met. For more information, see the Remarks section of this topic.
+      /// This value cannot be used if lpNewFileName or lpExistingFileName names a directory.
+      /// </summary>
+      MOVEFILE_REPLACE_EXISTING = 0x1,
+
+      /// <summary>
+      /// The function does not return until the file is actually moved on the disk.
+      /// Setting this value guarantees that a move performed as a copy and delete operation is flushed to disk before the function returns. The flush occurs at the end of the copy operation.
+      /// This value has no effect if MOVEFILE_DELAY_UNTIL_REBOOT is set.
+      /// </summary>
+      MOVEFILE_WRITE_THROUGH = 0x8
+    }
 
     enum FILE_INFO_BY_HANDLE_CLASS : int
     {
@@ -651,4 +699,5 @@ namespace Lex.Db
 #endif
   }
 }
+#endif
 #endif

@@ -6,8 +6,6 @@ using System.Threading;
 
 namespace Lex.Db.IsolatedStorage
 {
-  using Streams;
-
   class DbTableStorage : IDbTableStorage
   {
     readonly IsolatedStorageFile _storage;
@@ -27,12 +25,15 @@ namespace Lex.Db.IsolatedStorage
     {
     }
 
-    Stream OpenRead(string name)
+    const int BufferSize = 256 * 1024; // 256K
+
+    Stream OpenRead(string name, bool buffered = false)
     {
       for (int i = 0; i < 10; i++)
         try
         {
-          return _storage.OpenFile(name, FileMode.OpenOrCreate, FileAccess.Read, FileShare.Read);
+          Stream s = _storage.OpenFile(name, FileMode.OpenOrCreate, FileAccess.Read, FileShare.Read);
+          return buffered ? new BufferedStream(s, BufferSize) : s;
         }
         catch (IsolatedStorageException)
         {
@@ -42,12 +43,13 @@ namespace Lex.Db.IsolatedStorage
       throw new IOException("Cannot aquire read lock");
     }
 
-    Stream OpenWrite(string name)
+    Stream OpenWrite(string name, bool buffered = false)
     {
       for (int i = 0; i < 10; i++)
         try
         {
-          return _storage.OpenFile(name, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+          Stream s = _storage.OpenFile(name, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+          return buffered ? new BufferedStream(s, BufferSize) : s;
         }
         catch (IsolatedStorageException)
         {
@@ -124,7 +126,7 @@ namespace Lex.Db.IsolatedStorage
         _indexStream = _table.OpenRead(_table._indexName);
         try
         {
-          _readStream = _table.OpenRead(_table._dataName).AsBuffered();
+          _readStream = _table.OpenRead(_table._dataName, true);
         }
         catch
         {
@@ -189,7 +191,7 @@ namespace Lex.Db.IsolatedStorage
         _indexStream = _table.OpenWrite(_table._indexName);
         try
         {
-          _readStream = _table.OpenWrite(_table._dataName).AsBuffered();
+          _readStream = _table.OpenWrite(_table._dataName, true);
           _writeStream = _readStream;
         }
         catch
@@ -256,7 +258,7 @@ namespace Lex.Db.IsolatedStorage
       public Compacter(DbTableStorage table, Action finalizer)
         : base(MoveFile(table), finalizer)
       {
-        _readStream = _table.OpenRead(GetBackupName(_table)).AsBuffered();
+        _readStream = _table.OpenRead(GetBackupName(_table), true);
       }
 
       static DbTableStorage MoveFile(DbTableStorage table)
