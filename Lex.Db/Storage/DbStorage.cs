@@ -17,7 +17,7 @@ namespace Lex.Db
       path = Path.Combine("Lex.Db", path);
       var root = home as string;
 
-#if NETFX_CORE || WINDOWS_PHONE
+#if NETFX_CORE //|| WINDOWS_PHONE
       if (root == null) 
       {
         var folder = home as Windows.Storage.StorageFolder;
