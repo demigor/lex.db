@@ -31,7 +31,7 @@ namespace Lex.Db
       _schema = Storage.OpenSchema(path, home);
     }
 
-#if NETFX_CORE
+#if NETFX_CORE || WINDOWS_PHONE
     /// <summary>
     /// Creates database instance with specified path
     /// </summary>
