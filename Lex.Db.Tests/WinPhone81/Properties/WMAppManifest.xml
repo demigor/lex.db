@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 
-<Deployment xmlns="http://schemas.microsoft.com/windowsphone/2012/deployment" AppPlatformVersion="8.0">
+<Deployment xmlns="http://schemas.microsoft.com/windowsphone/2014/deployment" AppPlatformVersion="8.1">
   <DefaultLanguage xmlns="" code="en-US"/>
-  <App xmlns="" ProductID="{cb363caf-d4ad-4c6b-98e8-80fd59b058f9}" Title="Lex.Db.Tests.WP8" RuntimeType="Silverlight" Version="1.0.0.0" Genre="apps.normal"  Author="Lex.Db.Tests.WP8 author" Description="Sample description" Publisher="Lex.Db.Tests.WP8" PublisherID="{258c850f-4d64-474d-abe9-c29162faf6f7}">
+  <App xmlns="" ProductID="{bf0e77e0-7ab2-47c9-81ec-f334f7f14a64}" Title="Lex.Db.Tests.WinPhone81" RuntimeType="Silverlight" Version="1.0.0.0" Genre="apps.normal"  Author="Lex.Db.Tests.WinPhone81 author" Description="Sample description" SDOptOut ="false" BackUpOptOut ="false" Publisher="Lex.Db.Tests.WinPhone81" PublisherID="{1c273d24-6c79-4bc2-8bfe-caeff6b3f159}">
     <IconPath IsRelative="true" IsResource="false">Assets\ApplicationIcon.png</IconPath>
     <Capabilities>
       <Capability Name="ID_CAP_NETWORKING"/>
@@ -12,15 +12,15 @@
       <Capability Name="ID_CAP_WEBBROWSERCOMPONENT"/>
     </Capabilities>
     <Tasks>
-      <DefaultTask  Name ="_default" NavigationPage="MainPage.xaml"/>
+      <DefaultTask Name ="_default" NavigationPage="MainPage.xaml" ActivationPolicy="Resume"/>
     </Tasks>
     <Tokens>
-      <PrimaryToken TokenID="Lex.Db.Tests.WP8Token" TaskName="_default">
+      <PrimaryToken TokenID="Lex.Db.Tests.WinPhone81Token" TaskName="_default">
         <TemplateFlip>
           <SmallImageURI IsRelative="true" IsResource="false">Assets\Tiles\FlipCycleTileSmall.png</SmallImageURI>
           <Count>0</Count>
           <BackgroundImageURI IsRelative="true" IsResource="false">Assets\Tiles\FlipCycleTileMedium.png</BackgroundImageURI>
-          <Title>Lex.Db.Tests.WP8</Title>
+          <Title>Lex.Db.Tests.WinPhone81</Title>
           <BackContent></BackContent>
           <BackBackgroundImageURI></BackBackgroundImageURI>
           <BackTitle></BackTitle>

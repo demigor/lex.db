@@ -6,12 +6,12 @@ using System.Resources;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Lex.Db.Tests.WP8")]
+[assembly: AssemblyTitle("Lex.Db.Tests.WinPhone81")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Lex.Db.Tests.WP8")]
-[assembly: AssemblyCopyright("Copyright ©  2013")]
+[assembly: AssemblyProduct("Lex.Db.Tests.WinPhone81")]
+[assembly: AssemblyCopyright("Copyright ©  2014")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -21,7 +21,7 @@ using System.Resources;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("fcaf28bc-ccb9-4890-867c-9a2f675a05af")]
+[assembly: Guid("1fd085f4-ce5d-47f0-a1c4-0307aad461ec")]
 
 // Version information for an assembly consists of the following four values:
 //

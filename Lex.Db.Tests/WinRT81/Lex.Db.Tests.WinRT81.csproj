@@ -6,12 +6,14 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{855590F4-4C20-47C0-9F3B-53F618E4B3EF}</ProjectGuid>
+    <ProjectGuid>{BD42CB71-AE74-4C0D-85BF-EAA09112FE71}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Lex.Db.Tests.WinRT</RootNamespace>
-    <AssemblyName>Lex.Db.Tests.WinRT</AssemblyName>
+    <RootNamespace>Lex.Db.Tests.WinRT81</RootNamespace>
+    <AssemblyName>Lex.Db.Tests.WinRT81</AssemblyName>
     <DefaultLanguage>en-US</DefaultLanguage>
+    <TargetPlatformVersion>8.1</TargetPlatformVersion>
+    <MinimumVisualStudioVersion>12</MinimumVisualStudioVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{BC8A1FFA-BEE3-4634-8014-F334798102B3};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <PackageCertificateKeyFile>Lex.Db.Tests.WinRT_TemporaryKey.pfx</PackageCertificateKeyFile>
@@ -80,13 +82,13 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Lex.Db\Lex.Db.WinRT.csproj">
-      <Project>{80499b59-69be-45cc-8bd4-4af8dbf7776c}</Project>
-      <Name>Lex.Db.WinRT</Name>
+    <ProjectReference Include="..\..\Lex.Db\Lex.Db.WinRT81.csproj">
+      <Project>{7c063abd-5807-4076-99af-f7167afda82e}</Project>
+      <Name>Lex.Db.WinRT81</Name>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '11.0' ">
-    <VisualStudioVersion>11.0</VisualStudioVersion>
+  <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '12.0' ">
+    <VisualStudioVersion>12.0</VisualStudioVersion>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\WindowsXaml\v$(VisualStudioVersion)\Microsoft.Windows.UI.Xaml.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

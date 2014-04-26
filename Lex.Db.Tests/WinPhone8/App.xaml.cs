@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Resources;
 using System.Windows;
 using System.Windows.Markup;
 using System.Windows.Navigation;
-using Lex.Db.Resources;
 using Microsoft.Phone.Controls;
 using Microsoft.Phone.Shell;
+using Lex.Db.Tests.WinPhone8.Resources;
 
-namespace Lex.Db.Tests.WP8
+namespace Lex.Db.Tests.WinPhone8
 {
   public partial class App : Application
   {
