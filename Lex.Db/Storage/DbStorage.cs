@@ -17,7 +17,7 @@ namespace Lex.Db
       path = Path.Combine("Lex.Db", path);
       var root = home as string;
 
-#if NETFX_CORE 
+#if NETFX_CORE || WINDOWS_PHONE
       if (root == null) 
       {
         var folder = home as Windows.Storage.StorageFolder;
@@ -28,8 +28,6 @@ namespace Lex.Db
       }
 
       return new FileSystem.DbSchemaStorage(Path.Combine(root, path));
-#elif WINDOWS_PHONE
-      return new IsolatedStorage.DbSchemaStorage(_storage, path);
 #elif SILVERLIGHT
       
       if (Application.Current.HasElevatedPermissions) 
