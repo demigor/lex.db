@@ -1,12 +1,14 @@
 ##Lex.DB
 
-Lex.DB is a lightweight, superfast, in-process database engine, completely written in C#. 
+Lex.DB is a lightweight, superfast, in-process database engine, completely written in AnyCPU C#. 
 
 ###Why?
 We feel the need in small, fast and platform-neutral solution to store and access data locally. SQLite is almost good, but it is binary platform-specific (x32/x64/ARM versions of SQLite.dll), and has no real support for Silverlight. 
 
 ###Supported platforms:
 
+* New: Universal Windows Store Apps Support
+* New: PCL version for supported platforms 
 * .NET 4.0+, 
 * Silverlight 5.0+, 
 * Windows Phone 8.0+, 
