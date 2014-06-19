@@ -534,9 +534,13 @@ namespace Lex.Db
   static class WinApi
   {
 #if WINDOWS_PHONE_APP
+    const string WinBaseDll = "api-ms-win-core-file-l2-1-0.dll";
     const string FileApiDll = "api-ms-win-core-file-l1-2-0.dll";
+    const string HandleApiDll = "api-ms-win-core-handle-l1-1-0.dll";
 #else
-    const string FileApiDll = "Kernel32.dll";
+    const string WinBaseDll = "Kernel32.dll";
+    const string FileApiDll = WinBaseDll;
+    const string HandleApiDll = WinBaseDll;
 #endif
 
 
@@ -548,7 +552,7 @@ namespace Lex.Db
     public static extern IntPtr CreateFile(string fileName, FileAccess desiredAccess, FileShare shareMode, IntPtr securityAttributes, FileMode mode, FileOptions flagsAndOptions, IntPtr templateFile);
 #endif
 
-    [DllImport(FileApiDll, EntryPoint = "CloseHandle", SetLastError = true)]
+    [DllImport(HandleApiDll, SetLastError = true)]
     public static extern bool CloseHandle(IntPtr handle);
 
 
@@ -576,7 +580,8 @@ namespace Lex.Db
     [DllImport(FileApiDll, SetLastError = true, CharSet = CharSet.Unicode)]
     public static extern bool DeleteFile(string path);
 
-    [DllImport(FileApiDll, SetLastError = true, CharSet = CharSet.Unicode)]
+
+    [DllImport(WinBaseDll, SetLastError = true, CharSet = CharSet.Unicode)]
     public static extern bool MoveFileEx(string sourcePath, string targetPath, MOVE_FILE_FLAGS flags);
 
     public static bool MoveFile(string sourcePath, string targetPath)
@@ -686,8 +691,8 @@ namespace Lex.Db
       public int Directory;
     };
 
-    [DllImport(FileApiDll, EntryPoint = "GetFileInformationByHandleEx", SetLastError = true, CharSet = CharSet.Unicode)]
-    static extern bool GetFileInformationByHandleEx(IntPtr handle, FILE_INFO_BY_HANDLE_CLASS FileInformationClass, IntPtr lpFileInformation, int dwBufferSize);
+    [DllImport(WinBaseDll, SetLastError = true, CharSet = CharSet.Unicode)]
+    static extern bool GetFileInformationByHandleEx(IntPtr handle, FILE_INFO_BY_HANDLE_CLASS infoClass, IntPtr info, int size);
 
     public static bool GetFileSizeEx(IntPtr handle, out long fileSize)
     {

@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>Lex.Db</id>
-        <version>1.1.7.2</version>
+        <version>1.1.7.4</version>
         <title>Lex DB</title>
         <authors>Lex Lavnikov</authors>
         <owners>Lex Lavnikov</owners>
@@ -17,7 +17,7 @@
 * Red Black Tree Indexes
 * Lazy loading</description>
         <summary>Superfast, lightweight (~100K), POCO database for Windows Phone 8/8.1, Windows Store 8/8.1, .NET4/4.5+, Silverlight 5 platforms.</summary>
-        <releaseNotes>1.1.7.2
+        <releaseNotes>1.1.7.4
 + Universal Windows Apps
 + PCL support 
 
