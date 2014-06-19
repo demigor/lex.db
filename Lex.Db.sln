@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30324.0
+VisualStudioVersion = 12.0.30501.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UnitTests", "UnitTests", "{0F1AB980-5354-49C4-8BFB-5E01F5FAFC63}"
 EndProject
@@ -42,6 +42,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lex.Db.Tests.WinPhone81", "Lex.Db.Tests\WinPhone81\Lex.Db.Tests.WinPhone81.csproj", "{BF0E77E0-7AB2-47C9-81EC-F334F7F14A64}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lex.Db.Tests.WinPhoneRT81", "Lex.Db.Tests\WinPhoneRT81\Lex.Db.Tests.WinPhoneRT81.csproj", "{2060DBBF-30D6-4EDB-A650-50E94CC6DCC4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lex.Db.Portable", "Lex.Db\Lex.Db.Portable.csproj", "{F734D16C-A6E2-4748-9A21-EF774F788ECD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -127,6 +129,10 @@ Global
 		{2060DBBF-30D6-4EDB-A650-50E94CC6DCC4}.Release|Any CPU.ActiveCfg = Release|x86
 		{2060DBBF-30D6-4EDB-A650-50E94CC6DCC4}.Release|Any CPU.Build.0 = Release|x86
 		{2060DBBF-30D6-4EDB-A650-50E94CC6DCC4}.Release|Any CPU.Deploy.0 = Release|x86
+		{F734D16C-A6E2-4748-9A21-EF774F788ECD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F734D16C-A6E2-4748-9A21-EF774F788ECD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F734D16C-A6E2-4748-9A21-EF774F788ECD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F734D16C-A6E2-4748-9A21-EF774F788ECD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -149,6 +155,7 @@ Global
 		{1C340EC2-A69E-42C6-B84F-E4F89B83621B} = {0F1AB980-5354-49C4-8BFB-5E01F5FAFC63}
 		{BF0E77E0-7AB2-47C9-81EC-F334F7F14A64} = {0F1AB980-5354-49C4-8BFB-5E01F5FAFC63}
 		{2060DBBF-30D6-4EDB-A650-50E94CC6DCC4} = {0F1AB980-5354-49C4-8BFB-5E01F5FAFC63}
+		{F734D16C-A6E2-4748-9A21-EF774F788ECD} = {B6C1BC4C-4067-426D-90D3-E7ECBA58C49B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		VisualSVNWorkingCopyRoot = .

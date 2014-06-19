@@ -12,7 +12,7 @@ namespace Lex.Db
 
     public MStream(byte[] data, bool writable) : base(data, writable) { }
 
-#if NETFX_CORE
+#if NETFX_CORE || PORTABLE
     public byte[] GetBuffer() 
     {
       return ToArray();

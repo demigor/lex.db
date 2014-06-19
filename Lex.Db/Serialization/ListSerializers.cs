@@ -48,6 +48,7 @@ namespace Lex.Db.Serialization
       return result;
     }
 
+#if !PORTABLE
     internal static ObservableCollection<T> ReadCollection(DataReader reader)
     {
       return new ObservableCollection<T>(ReadArray(reader));
@@ -60,6 +61,7 @@ namespace Lex.Db.Serialization
       foreach (var i in value)
         _serializer(writer, i);
     }
+#endif
 
     internal static void WriteArray(DataWriter writer, T[] value)
     {

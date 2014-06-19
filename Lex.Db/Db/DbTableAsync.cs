@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-#if !SILVERLIGHT || WINDOWS_PHONE
+#if !PORTABLE && (!SILVERLIGHT || WINDOWS_PHONE)
 using TaskEx = System.Threading.Tasks.Task;
 #endif
 
@@ -275,6 +275,23 @@ namespace Lex.Db
     {
       return TaskEx.Run(() => db.GetInfo());
     }
+
+#if PORTABLE
+
+    class TaskEx
+    {
+      public static Task Run(Action action)
+      {
+        return null;
+      }
+
+      public static Task<T> Run<T>(Func<T> func)
+      {
+        return null;
+      }
+    }
+
+#endif
   }
 }
 

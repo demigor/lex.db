@@ -130,8 +130,10 @@ namespace Lex.Db.Serialization
       if (baseK == typeof(List<>))
         return typeof(ListSerializers<>).MakeGenericType(type.GetGenericArguments()).GetStaticMethod("WriteList");
 
+#if !PORTABLE
       if (baseK == typeof(ObservableCollection<>))
         return typeof(ListSerializers<>).MakeGenericType(type.GetGenericArguments()).GetStaticMethod("WriteCollection");
+#endif
 
       if (baseK == typeof(Dictionary<,>))
         return typeof(DictSerializers<,>).MakeGenericType(type.GetGenericArguments()).GetStaticMethod("WriteDictionary");
@@ -152,8 +154,10 @@ namespace Lex.Db.Serialization
       if (baseK == typeof(List<>))
         return typeof(ListSerializers<>).MakeGenericType(type.GetGenericArguments()).GetStaticMethod("ReadList");
 
+#if !PORTABLE
       if (baseK == typeof(ObservableCollection<>))
         return typeof(ListSerializers<>).MakeGenericType(type.GetGenericArguments()).GetStaticMethod("ReadCollection");
+#endif
 
       if (baseK == typeof(Dictionary<,>))
         return typeof(DictSerializers<,>).MakeGenericType(type.GetGenericArguments()).GetStaticMethod("ReadDictionary");
@@ -416,7 +420,7 @@ namespace Lex.Db.Serialization
 
     public static void WriteDecimal(DataWriter writer, decimal value)
     {
-#if SILVERLIGHT && !WINDOWS_PHONE
+#if SILVERLIGHT && !WINDOWS_PHONE || PORTABLE
       writer.WriteDecimal(value);
 #else
       writer.Write(value);
@@ -588,7 +592,7 @@ namespace Lex.Db.Serialization
       return ReadBytes(ReadInt32());
     }
 
-#if SILVERLIGHT && !WINDOWS_PHONE
+#if SILVERLIGHT && !WINDOWS_PHONE || PORTABLE
     
     /// <summary>
     /// Reads Decimal value from stream
@@ -682,7 +686,7 @@ namespace Lex.Db.Serialization
       Write(value.ToByteArray(), 0, 16);
     }
 
-#if SILVERLIGHT && !WINDOWS_PHONE
+#if SILVERLIGHT && !WINDOWS_PHONE || PORTABLE
     /// <summary>
     /// Writes Decimal value to stream
     /// </summary>

@@ -61,7 +61,7 @@ namespace Lex.Db
       return hash;
     }
 
-#if !NET40
+#if !NET40 && !PORTABLE
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
 #endif
     static uint GetUInt(byte[] data, int idx)

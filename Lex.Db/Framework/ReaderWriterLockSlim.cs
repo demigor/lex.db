@@ -1,5 +1,4 @@
 ﻿#if SILVERLIGHT 
-
 /*
  * This class is new for Silverlight CLR, for WP8 it fixes unstable original implementation. 
  */ 
@@ -1276,4 +1275,41 @@ namespace Lex.Db
   }
 }
 
+#elif PORTABLE
+
+using System;
+
+namespace Lex.Db
+{
+  /// <summary>
+  /// Portable stub
+  /// </summary>
+  class ReaderWriterLockSlim : IDisposable
+  {
+
+    #region IDisposable Members
+
+    public void Dispose()
+    {
+    }
+
+    #endregion
+
+    public void EnterReadLock()
+    {
+    }
+
+    public void ExitReadLock()
+    {
+    }
+
+    public void EnterWriteLock()
+    {
+    }
+
+    public void ExitWriteLock()
+    {
+    }
+  }
+}
 #endif

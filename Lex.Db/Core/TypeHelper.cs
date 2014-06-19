@@ -117,7 +117,7 @@ namespace Lex.Db
 
 #else
 
-#if !NET40
+#if !NET40 && !PORTABLE
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
 #endif
     public static T GetCustomAttribute<T>(this Type type) where T : Attribute
@@ -125,7 +125,7 @@ namespace Lex.Db
       return (T)Attribute.GetCustomAttribute(type, typeof(T));
     }
 
-#if !NET40
+#if !NET40 && !PORTABLE
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
 #endif
     public static bool IsValueType(this Type type)
@@ -133,7 +133,7 @@ namespace Lex.Db
       return type.IsValueType;
     }
 
-#if !NET40
+#if !NET40 && !PORTABLE
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
 #endif
     public static bool IsGenericType(this Type type)
@@ -141,7 +141,7 @@ namespace Lex.Db
       return type.IsGenericType;
     }
 
-#if !NET40
+#if !NET40 && !PORTABLE
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
 #endif
     public static bool IsEnum(this Type type)
