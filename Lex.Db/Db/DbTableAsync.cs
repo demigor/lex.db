@@ -217,6 +217,28 @@ namespace Lex.Db
     }
 
     /// <summary>
+    /// Asynchronously executes read actions inside read transaction
+    /// </summary>
+    /// <param name="db">Database instance to read from</param>
+    /// <param name="reads">Read operations to perform</param>
+    /// <returns>Awaitable Task of read operations</returns>
+    public static Task BulkReadAsync(this DbInstance db, Action reads)
+    {
+      return TaskEx.Run(() => db.BulkRead(reads));
+    }
+
+    /// <summary>
+    /// Asynchronously executes write actions inside write transaction
+    /// </summary>
+    /// <param name="db">Database instance to write to</param>
+    /// <param name="writes">Write operations to perform</param>
+    /// <returns>Awaitable Task of write operations</returns>
+    public static Task BulkWriteAsync(this DbInstance db, Action writes)
+    {
+      return TaskEx.Run(() => db.BulkWrite(writes));
+    }
+
+    /// <summary>
     /// Asynchronously purges specified table
     /// </summary>
     /// <param name="table">Table to purge</param>

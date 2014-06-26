@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>Lex.Db</id>
-        <version>1.1.7.4</version>
+        <version>1.1.7.5</version>
         <title>Lex DB</title>
         <authors>Lex Lavnikov</authors>
         <owners>Lex Lavnikov</owners>
@@ -10,14 +10,22 @@
         <projectUrl>https://github.com/demigor/lex.db</projectUrl>
         <iconUrl>http://lexblog.azurewebsites.net/wp-content/uploads/2012/12/lexdb32.png</iconUrl>
         <requireLicenseAcceptance>true</requireLicenseAcceptance>
-        <description>Features: 
-* Supports isolated storage, files &amp; local app data folders.
-* Table structure auto-upgrade
-* Concurrent database access (SL OOB multiple instance support)
-* Red Black Tree Indexes
-* Lazy loading</description>
-        <summary>Superfast, lightweight (~100K), POCO database for Windows Phone 8/8.1, Windows Store 8/8.1, .NET4/4.5+, Silverlight 5 platforms.</summary>
-        <releaseNotes>1.1.7.4
+        <description>Superfast, lightweight (~100K), POCO database for PCL, Universal Apps, Windows Phone 8/8.1, Windows Store 8/8.1, .NET4/4.5+, Silverlight 5 &amp; Xamarin.Mono platforms.
+
+Features: 
+* Async, sync &amp; batch DB operations
+* Automatic and manual POCO mapping, PK automatic generation
+* No attributes needed 
+* Supports isolated storage, local app data folders.
+* Simple table structures, schema auto-upgrade
+* Lazy loading
+* Indexing
+* Concurrent database access (multiple application instance support incl. SL OOB)</description>
+        <summary>Superfast, lightweight (~100K), POCO database for PCL, Universal Apps, Windows Phone 8/8.1, Windows Store 8/8.1, .NET4/4.5+, Silverlight 5 &amp; Xamarin.Mono platforms.</summary>
+        <releaseNotes>1.1.7.5
++ BulkReadAsync/BulkWriteAsync extensions
+
+1.1.7.4
 + Universal Windows Apps
 + PCL support 
 
@@ -45,6 +53,7 @@
 + WinRT StorageFolder home</releaseNotes>
         <copyright>Alexey Lavnikov</copyright>
         <language>en-US</language>
+        <tags>lexdb localdb indexeddb</tags>
     </metadata>
     <files>
         <file src="..\Lex.Db\Db\DbTableAsync.cs" target="lib\net40\DbTableAsync.cs" />
