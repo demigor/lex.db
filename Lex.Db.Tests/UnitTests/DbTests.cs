@@ -40,6 +40,20 @@ namespace Lex.Db
       return db;
     }
 
+#if NETFX_CORE
+    [TestMethod]
+    public void TestPackageLocation()
+    {
+      using (var db = new DbInstance("TestPackage", Windows.ApplicationModel.Package.Current.InstalledLocation))
+      {
+        db.Map<MyData>().Automap(i => i.Id, true);
+        db.Initialize();
+
+        db.Save(new MyData());
+      }
+    }
+#endif
+
     [TestInitialize]
     public void PurgeDb()
     {
@@ -660,7 +674,7 @@ namespace Lex.Db
 
     #region github issue #10
 
-     [TestMethod]
+    [TestMethod]
     public void TestLoadByKeyObj()
     {
       var obj = new MyData { GuidField = Guid.NewGuid() };
@@ -672,16 +686,16 @@ namespace Lex.Db
       Assert.AreEqual(obj.GuidField, newObj.GuidField);
     }
 
-     [TestMethod]
-     public void TestDeleteByKeyObj()
-     {
-       var obj = new MyData { GuidField = Guid.NewGuid() };
+    [TestMethod]
+    public void TestDeleteByKeyObj()
+    {
+      var obj = new MyData { GuidField = Guid.NewGuid() };
 
-       table.Save(obj);
+      table.Save(obj);
 
       Assert.IsTrue(table.DeleteByKey((object)obj.Id));
 
-     }
+    }
 
     #endregion
 
