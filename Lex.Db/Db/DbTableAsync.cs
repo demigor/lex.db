@@ -123,6 +123,87 @@ namespace Lex.Db
     }
 
     /// <summary>
+    /// Asynchronously materializes indexed query result
+    /// </summary>
+    /// <typeparam name="T">Type of the entity class</typeparam>
+    /// <typeparam name="K1">Type of the first component index</typeparam>
+    /// <typeparam name="K2">Type of the second component index</typeparam>
+    /// <param name="query">Indexed query to execute</param>
+    /// <returns>Awaitable Task with enumeration of loaded entities in result</returns>
+    public static Task<List<T>> ToListAsync<T, K1, K2>(this IIndexQuery<T, K1, K2> query) where T : class
+    {
+        return TaskEx.Run(() => query.ToList());
+    }
+
+    /// <summary>
+    /// Asynchronously materializes indexed query lazy result
+    /// </summary>
+    /// <typeparam name="T">Type of the entity class</typeparam>
+    /// <typeparam name="K1">Type of the first component index</typeparam>
+    /// <typeparam name="K2">Type of the second component index</typeparam>
+    /// <param name="query">Indexed query to execute</param>
+    /// <returns>Awaitable Task with enumeration of loaded entities in result</returns>
+    public static Task<List<Lazy<T, K1, K2>>> ToLazyListAsync<T, K1, K2>(this IIndexQuery<T, K1, K2> query) where T : class
+    {
+        return TaskEx.Run(() => query.ToLazyList());
+    }
+
+    /// <summary>
+    /// Asynchronously materializes indexed query result
+    /// </summary>
+    /// <typeparam name="T">Type of the entity class</typeparam>
+    /// <typeparam name="K1">Type of the first component index</typeparam>
+    /// <typeparam name="K2">Type of the second component index</typeparam>
+    /// <param name="query">Indexed query to count result</param>
+    /// <returns>Awaitable Task with number of entities in result</returns>
+    public static Task<int> CountAsync<T, K1, K2>(this IIndexQuery<T, K1, K2> query) where T : class
+    {
+        return TaskEx.Run(() => query.Count());
+    }
+
+    /// <summary>
+    /// Asynchronously materializes indexed query result
+    /// </summary>
+    /// <typeparam name="T">Type of the entity class</typeparam>
+    /// <typeparam name="K1">Type of the first component index</typeparam>
+    /// <typeparam name="K2">Type of the second component index</typeparam>
+    /// <typeparam name="K3">Type of the third component index</typeparam>
+    /// <param name="query">Indexed query to execute</param>
+    /// <returns>Awaitable Task with enumeration of loaded entities in result</returns>
+    public static Task<List<T>> ToListAsync<T, K1, K2, K3>(this IIndexQuery<T, K1, K2, K3> query) where T : class
+    {
+        return TaskEx.Run(() => query.ToList());
+    }
+
+    /// <summary>
+    /// Asynchronously materializes indexed query lazy result
+    /// </summary>
+    /// <typeparam name="T">Type of the entity class</typeparam>
+    /// <typeparam name="K1">Type of the first component index</typeparam>
+    /// <typeparam name="K2">Type of the second component index</typeparam>
+    /// <typeparam name="K3">Type of the third component index</typeparam>
+    /// <param name="query">Indexed query to execute</param>
+    /// <returns>Awaitable Task with enumeration of loaded entities in result</returns>
+    public static Task<List<Lazy<T, K1, K2, K3>>> ToLazyListAsync<T, K1, K2, K3>(this IIndexQuery<T, K1, K2, K3> query) where T : class
+    {
+        return TaskEx.Run(() => query.ToLazyList());
+    }
+
+    /// <summary>
+    /// Asynchronously materializes indexed query result
+    /// </summary>
+    /// <typeparam name="T">Type of the entity class</typeparam>
+    /// <typeparam name="K1">Type of the first component index</typeparam>
+    /// <typeparam name="K2">Type of the second component index</typeparam>
+    /// <typeparam name="K3">Type of the third component index</typeparam>
+    /// <param name="query">Indexed query to count result</param>
+    /// <returns>Awaitable Task with number of entities in result</returns>
+    public static Task<int> CountAsync<T, K1, K2, K3>(this IIndexQuery<T, K1, K2, K3> query) where T : class
+    {
+        return TaskEx.Run(() => query.Count());
+    }
+
+    /// <summary>
     /// Asynchronously reloads specified entity by its PK 
     /// </summary>
     /// <typeparam name="T">Type of the entity class</typeparam>
