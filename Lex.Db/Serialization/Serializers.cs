@@ -131,6 +131,12 @@ namespace Lex.Db.Serialization
         return typeof(ListSerializers<>).MakeGenericType(type.GetGenericArguments()).GetStaticMethod("WriteList");
 
 #if !PORTABLE
+
+#if !SILVERLIGHT || WINDOWS_PHONE
+      if (baseK == typeof(SortedSet<>))
+        return typeof(ListSerializers<>).MakeGenericType(type.GetGenericArguments()).GetStaticMethod("WriteSortedSet");
+#endif
+
       if (baseK == typeof(ObservableCollection<>))
         return typeof(ListSerializers<>).MakeGenericType(type.GetGenericArguments()).GetStaticMethod("WriteCollection");
 #endif
@@ -155,6 +161,12 @@ namespace Lex.Db.Serialization
         return typeof(ListSerializers<>).MakeGenericType(type.GetGenericArguments()).GetStaticMethod("ReadList");
 
 #if !PORTABLE
+
+#if !SILVERLIGHT || WINDOWS_PHONE
+      if (baseK == typeof(SortedSet<>))
+        return typeof(ListSerializers<>).MakeGenericType(type.GetGenericArguments()).GetStaticMethod("ReadSortedSet");
+#endif
+
       if (baseK == typeof(ObservableCollection<>))
         return typeof(ListSerializers<>).MakeGenericType(type.GetGenericArguments()).GetStaticMethod("ReadCollection");
 #endif

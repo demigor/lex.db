@@ -44,6 +44,9 @@ namespace Lex.Db
     public Guid? GuidNField { get; set; }
 
     public List<int> ListField { get; set; }
+#if !SILVERLIGHT || WINDOWS_PHONE
+    public SortedSet<int> SortedSetField { get; set; }
+#endif
     public Dictionary<string, int> DictField { get; set; }
     public ObservableCollection<int> CollectionField { get; set; }
 
@@ -56,6 +59,9 @@ namespace Lex.Db
     {
       ListField = new List<int>();
       DictField = new Dictionary<string, int>();
+#if !SILVERLIGHT || WINDOWS_PHONE
+      SortedSetField = new SortedSet<int>();
+#endif
       CollectionField = new ObservableCollection<int>();
     }
   }

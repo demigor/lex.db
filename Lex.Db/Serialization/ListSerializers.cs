@@ -61,6 +61,21 @@ namespace Lex.Db.Serialization
       foreach (var i in value)
         _serializer(writer, i);
     }
+
+#if !SILVERLIGHT || WINDOWS_PHONE
+    internal static SortedSet<T> ReadSortedSet(DataReader reader)
+    {
+      return new SortedSet<T>(ReadArray(reader));
+    }
+
+    internal static void WriteSortedSet(DataWriter writer, SortedSet<T> value)
+    {
+      writer.Write(value.Count);
+
+      foreach (var i in value)
+        _serializer(writer, i);
+    }
+#endif
 #endif
 
     internal static void WriteArray(DataWriter writer, T[] value)
