@@ -38,6 +38,219 @@ namespace Lex.Db.Serialization
   /// </summary>
   static class Serializers
   {
+    public static Type GetBinaryType(Type type)
+    {
+      var nt = Nullable.GetUnderlyingType(type);
+      if (nt != null)
+        type = nt;
+
+      if (type.IsEnum())
+        return Enum.GetUnderlyingType(type);
+
+      return type;
+    }
+
+#if iOS
+    static readonly Dictionary<Type, Func<DataReader, object>> _readerMethods = new Dictionary<Type, Func<DataReader, object>>();
+    static readonly Dictionary<Type, Action<DataWriter, object>> _writerMethods = new Dictionary<Type, Action<DataWriter, object>>();
+
+    static Serializers()
+    {
+      // default writers registration
+      _writerMethods[typeof(byte)] = (w, data) => w.Write((byte)data);
+      _writerMethods[typeof(byte[])] = (w, data) => w.WriteArray((byte[])data);
+      _writerMethods[typeof(string)] = (w, data) => w.Write((string)data);
+      _writerMethods[typeof(bool)] = (w, data) => w.Write((bool)data);
+      _writerMethods[typeof(int)] = (w, data) => w.Write((int)data);
+      _writerMethods[typeof(long)] = (w, data) => w.Write((long)data);
+      _writerMethods[typeof(double)] = (w, data) => w.Write((double)data);
+      _writerMethods[typeof(float)] = (w, data) => w.Write((float)data);
+      _writerMethods[typeof(decimal)] = (w, data) => w.Write((decimal)data);
+      _writerMethods[typeof(DateTime)] = (w, data) => w.Write((DateTime)data);
+      _writerMethods[typeof(DateTimeOffset)] = (w, data) => w.Write((DateTimeOffset)data);
+      _writerMethods[typeof(TimeSpan)] = (w, data) => w.Write((TimeSpan)data);
+      _writerMethods[typeof(Guid)] = (w, data) => w.Write((Guid)data);
+      _writerMethods[typeof(Uri)] = (w, data) => w.Write((Uri)data);
+
+      // default readers registration
+      _readerMethods[typeof(byte)] = r => r.ReadByte();
+      _readerMethods[typeof(byte[])] = r => r.ReadArray();
+      _readerMethods[typeof(string)] = r => r.ReadString();
+      _readerMethods[typeof(bool)] = r => r.ReadBoolean();
+      _readerMethods[typeof(int)] = r => r.ReadInt32();
+      _readerMethods[typeof(long)] = r => r.ReadInt64();
+      _readerMethods[typeof(double)] = r => r.ReadDouble();
+      _readerMethods[typeof(float)] = r => r.ReadSingle();
+      _readerMethods[typeof(decimal)] = r => r.ReadDecimal();
+      _readerMethods[typeof(DateTime)] = r => r.ReadDateTime();
+      _readerMethods[typeof(DateTimeOffset)] = r => r.ReadDateTimeOffset();
+      _readerMethods[typeof(TimeSpan)] = r => r.ReadTimeSpan();
+      _readerMethods[typeof(Guid)] = r => r.ReadGuid();
+      _readerMethods[typeof(Uri)] = r => r.ReadUri();
+    }
+
+
+    internal static void RegisterType<K, S>(short streamId)
+    {
+      // TODO:
+      throw new NotSupportedException();
+    }
+
+    public static Func<DataReader, object> GetReader(Type type)
+    {
+      var nn = Nullable.GetUnderlyingType(type) ?? type;
+
+      var def = type.IsValueType ? Activator.CreateInstance(type) : null;
+      var directRead = GetReaderDirect(GetBinaryType(type));
+
+      var read = directRead;
+
+      if (nn.IsEnum)
+        read = r =>
+        {
+          var nr = directRead(r);
+          var er = Enum.ToObject(nn, nr);
+
+          return er;
+        };
+
+      return reader =>
+      {
+        if (reader.ReadBoolean())
+          return read(reader);
+
+        return def;
+      };
+    }
+
+    public static Action<DataWriter, object> GetWriter(Type type)
+    {
+      var write = GetWriterDirect(GetBinaryType(type));
+
+      return (writer, obj) =>
+      {
+        var data = obj != null;
+
+        writer.Write(data);
+
+        if (data)
+          write(writer, obj);
+      };
+    }
+
+    static Action<DataWriter, object> GetWriterDirect(Type type)
+    {
+      lock (_writerMethods)
+      {
+        Action<DataWriter, object> result;
+
+        if (_writerMethods.TryGetValue(type, out result))
+          return result;
+
+        if (type.IsGenericType())
+          return _writerMethods[type] = MakeGenericWrite(type);
+
+        if (type.IsArray)
+          return _writerMethods[type] = MakeArrayWrite(type);
+      }
+
+      throw new NotImplementedException();
+    }
+
+    static Func<DataReader, object> GetReaderDirect(Type type)
+    {
+      lock (_readerMethods)
+      {
+        Func<DataReader, object> result;
+
+        if (_readerMethods.TryGetValue(type, out result))
+          return result;
+
+        if (type.IsGenericType())
+          return _readerMethods[type] = MakeGenericRead(type);
+
+        if (type.IsArray)
+          return _readerMethods[type] = MakeArrayRead(type);
+      }
+
+      throw new NotImplementedException();
+    }
+
+    static Func<DataReader, object> MakeArrayRead(Type type)
+    {
+      var et = type.GetElementType();
+      return GetReaderField(typeof(ListSerializers<>).MakeGenericType(et), "ArrayReader");
+    }
+
+    static Func<DataReader, object> MakeGenericRead(Type type)
+    {
+      var baseK = type.GetGenericTypeDefinition();
+
+      if (baseK == typeof(Indexer<,>) || baseK == typeof(Indexer<,,>))
+        return GetReaderField(type);
+
+      if (baseK == typeof(HashSet<>))
+        return GetReaderField(typeof(ListSerializers<>).MakeGenericType(type.GetGenericArguments()), "HashSetReader");
+
+      if (baseK == typeof(List<>))
+        return GetReaderField(typeof(ListSerializers<>).MakeGenericType(type.GetGenericArguments()), "ListReader");
+
+      if (baseK == typeof(SortedSet<>))
+        return GetReaderField(typeof(ListSerializers<>).MakeGenericType(type.GetGenericArguments()), "SortedSetReader");
+
+      if (baseK == typeof(ObservableCollection<>))
+        return GetReaderField(typeof(ListSerializers<>).MakeGenericType(type.GetGenericArguments()), "CollectionReader");
+
+      if (baseK == typeof(Dictionary<,>))
+        return GetReaderField(typeof(DictSerializers<,>).MakeGenericType(type.GetGenericArguments()));
+
+      throw new NotSupportedException();
+    }
+
+    static Action<DataWriter, object> MakeArrayWrite(Type type)
+    {
+      var et = type.GetElementType();
+      return GetWriterField(typeof(ListSerializers<>).MakeGenericType(et), "ArrayWriter");
+    }
+
+    static Action<DataWriter, object> MakeGenericWrite(Type type)
+    {
+      var baseK = type.GetGenericTypeDefinition();
+
+      if (baseK == typeof(Indexer<,>) || baseK == typeof(Indexer<,,>))
+        return GetWriterField(type);
+
+      if (baseK == typeof(HashSet<>))
+        return GetWriterField(typeof(ListSerializers<>).MakeGenericType(type.GetGenericArguments()), "HashSetWriter");
+
+      if (baseK == typeof(List<>))
+        return GetWriterField(typeof(ListSerializers<>).MakeGenericType(type.GetGenericArguments()), "ListWriter");
+
+      if (baseK == typeof(SortedSet<>))
+        return GetWriterField(typeof(ListSerializers<>).MakeGenericType(type.GetGenericArguments()), "SortedSetWriter");
+
+      if (baseK == typeof(ObservableCollection<>))
+        return GetWriterField(typeof(ListSerializers<>).MakeGenericType(type.GetGenericArguments()), "CollectionWriter");
+
+      if (baseK == typeof(Dictionary<,>))
+        return GetWriterField(typeof(DictSerializers<,>).MakeGenericType(type.GetGenericArguments()));
+
+      throw new NotSupportedException();
+    }
+
+    static Action<DataWriter, object> GetWriterField(Type type, string name = "Writer")
+    {
+      var field = type.GetField(name, BindingFlags.Static | BindingFlags.Public);
+      return (Action<DataWriter, object>)field.GetValue(null);
+    }
+
+    static Func<DataReader, object> GetReaderField(Type type, string name = "Reader")
+    {
+      var field = type.GetField(name, BindingFlags.Static | BindingFlags.Public);
+      return (Func<DataReader, object>)field.GetValue(null);
+    }
+
+#else
     static readonly Dictionary<Type, MethodInfo> _readerMethods;
     static readonly Dictionary<Type, MethodInfo> _writerMethods;
 
@@ -58,16 +271,80 @@ namespace Lex.Db.Serialization
                         select new { Method = m, Type = parameters[1].ParameterType }).ToDictionary(i => i.Type, i => i.Method);
     }
 
-    public static Type GetBinaryType(Type type)
+    static readonly MethodInfo _writeBool = typeof(BinaryWriter).GetMethod("Write", new[] { typeof(bool) });
+    static readonly MethodInfo _readBool = typeof(BinaryReader).GetMethod("ReadBoolean");
+
+    internal static Expression WriteValue(Expression writer, Expression value)
     {
-      var nt = Nullable.GetUnderlyingType(type);
-      if (nt != null)
-        type = nt;
+      if (!value.Type.IsValueType())
+        return WriteValueReference(writer, value);
 
-      if (type.IsEnum())
-        return Enum.GetUnderlyingType(type);
+      var nn = Nullable.GetUnderlyingType(value.Type);
+      if (nn == null) // not nullable
+        return WriteValueNormal(writer, value);
 
-      return type;
+      return WriteValueNullable(writer, value);
+    }
+
+    static Expression WriteValueNormal(Expression writer, Expression value)
+    {
+      var type = GetBinaryType(value.Type);
+      if (type != value.Type)
+        value = Expression.Convert(value, type);
+
+      var writeNotNull = Expression.Call(writer, _writeBool, Expression.Constant(false));
+      var writeValue = Expression.Call(null, GetWriteMethod(type), writer, value);  // Serializers.WriteXXX(writer, obj.Property|Field);
+
+      return Expression.Block(writeNotNull, writeValue);
+    }
+
+    static Expression WriteValueNullable(Expression writer, Expression value)
+    {
+      var @cond = Expression.Equal(value, Expression.Constant(null));
+      var @then = Expression.Call(writer, _writeBool, Expression.Constant(true));
+      var @else = WriteValueNormal(writer, Expression.Property(value, "Value"));
+
+      return Expression.IfThenElse(@cond, @then, @else);
+    }
+
+    static Expression WriteValueReference(Expression writer, Expression value)
+    {
+      var @cond = Expression.Equal(value, Expression.Constant(null));
+      var @then = Expression.Call(writer, _writeBool, Expression.Constant(true));
+      var @else = WriteValueNormal(writer, value);
+
+      return Expression.IfThenElse(@cond, @then, @else);
+    }
+
+    internal static Expression ReadValue(Expression reader, Type type)
+    {
+      var nn = Nullable.GetUnderlyingType(type);
+      return ReadValue(reader, type, nn ?? type);
+    }
+
+    static Expression ReadValue(Expression reader, Type resultType, Type dataType)
+    {
+      var @cond = Expression.Call(reader, _readBool);
+      var @then = Expression.Default(resultType);
+      var @else = ReadValueDirect(reader, dataType);
+
+      if (dataType != resultType)
+        @else = Expression.Convert(@else, resultType);
+
+      return Expression.Condition(@cond, @then, @else);
+    }
+
+    static Expression ReadValueDirect(Expression reader, Type type)
+    {
+      var dataType = GetBinaryType(type);
+      var readMethod = GetReadMethod(dataType);
+
+      var callRead = Expression.Call(null, readMethod, reader);
+
+      if (dataType != type)
+        return Expression.Convert(callRead, type);
+
+      return callRead;
     }
 
     public static MethodInfo GetWriteMethod(Type type)
@@ -244,27 +521,12 @@ namespace Lex.Db.Serialization
 
     public static Uri ReadUri(DataReader reader)
     {
-      var uri = reader.ReadString();
-      if (uri == null)
-        return null;
-
-      var absolute = reader.ReadBoolean();
-      if (absolute)
-        return new Uri(uri, UriKind.Absolute);
-
-      return new Uri(uri, UriKind.Relative);
+      return reader.ReadUri();
     }
 
     public static void WriteUri(DataWriter writer, Uri value)
     {
-      if (value == null)
-        writer.Write((string)null);
-      else
-      {
-        var absolute = value.IsAbsoluteUri;
-        writer.Write(absolute);
-        writer.Write(value.GetComponents(UriComponents.SerializationInfoString, UriFormat.UriEscaped));
-      }
+      writer.Write(value);
     }
 
     #endregion
@@ -440,82 +702,7 @@ namespace Lex.Db.Serialization
     }
 
     #endregion
-
-    static readonly MethodInfo _writeBool = typeof(BinaryWriter).GetMethod("Write", new[] { typeof(bool) });
-    static readonly MethodInfo _readBool = typeof(BinaryReader).GetMethod("ReadBoolean");
-
-    internal static Expression WriteValue(Expression writer, Expression value)
-    {
-      if (!value.Type.IsValueType())
-        return WriteValueReference(writer, value);
-
-      var nn = Nullable.GetUnderlyingType(value.Type);
-      if (nn == null) // not nullable
-        return WriteValueNormal(writer, value);
-
-      return WriteValueNullable(writer, value);
-    }
-
-    static Expression WriteValueNormal(Expression writer, Expression value)
-    {
-      var type = GetBinaryType(value.Type);
-      if (type != value.Type)
-        value = Expression.Convert(value, type);
-
-      var writeNotNull = Expression.Call(writer, _writeBool, Expression.Constant(false));
-      var writeValue = Expression.Call(null, GetWriteMethod(type), writer, value);  // Serializers.WriteXXX(writer, obj.Property|Field);
-
-      return Expression.Block(writeNotNull, writeValue);
-    }
-
-    static Expression WriteValueNullable(Expression writer, Expression value)
-    {
-      var @cond = Expression.Equal(value, Expression.Constant(null));
-      var @then = Expression.Call(writer, _writeBool, Expression.Constant(true));
-      var @else = WriteValueNormal(writer, Expression.Property(value, "Value"));
-
-      return Expression.IfThenElse(@cond, @then, @else);
-    }
-
-    static Expression WriteValueReference(Expression writer, Expression value)
-    {
-      var @cond = Expression.Equal(value, Expression.Constant(null));
-      var @then = Expression.Call(writer, _writeBool, Expression.Constant(true));
-      var @else = WriteValueNormal(writer, value);
-
-      return Expression.IfThenElse(@cond, @then, @else);
-    }
-
-    internal static Expression ReadValue(Expression reader, Type type)
-    {
-      var nn = Nullable.GetUnderlyingType(type);
-      return ReadValue(reader, type, nn ?? type);
-    }
-
-    static Expression ReadValue(Expression reader, Type resultType, Type dataType)
-    {
-      var @cond = Expression.Call(reader, _readBool);
-      var @then = Expression.Default(resultType);
-      var @else = ReadValueDirect(reader, dataType);
-
-      if (dataType != resultType)
-        @else = Expression.Convert(@else, resultType);
-
-      return Expression.Condition(@cond, @then, @else);
-    }
-
-    static Expression ReadValueDirect(Expression reader, Type type)
-    {
-      var dataType = GetBinaryType(type);
-      var readMethod = GetReadMethod(dataType);
-
-      var callRead = Expression.Call(null, readMethod, reader);
-
-      if (dataType != type)
-        return Expression.Convert(callRead, type);
-
-      return callRead;
-    }
+#endif
   }
 
   static class Serializer<K>
@@ -525,17 +712,27 @@ namespace Lex.Db.Serialization
 
     static Action<DataWriter, K> GetWriter()
     {
+#if iOS
+      var write = Serializers.GetWriter(typeof(K));
+      return (writer, data) => write(writer, data);
+#else
       var writer = Expression.Parameter(typeof(DataWriter));
       var value = Expression.Parameter(typeof(K));
 
       return Expression.Lambda<Action<DataWriter, K>>(Serializers.WriteValue(writer, value), writer, value).Compile();
+#endif
     }
 
     static Func<DataReader, K> GetReader()
     {
+#if iOS
+      var read = Serializers.GetReader(typeof(K));
+      return reader => (K)read(reader);
+#else
       var reader = Expression.Parameter(typeof(DataReader));
 
       return Expression.Lambda<Func<DataReader, K>>(Serializers.ReadValue(reader, typeof(K)), reader).Compile();
+#endif
     }
   }
 
@@ -544,8 +741,6 @@ namespace Lex.Db.Serialization
   /// </summary>
   public sealed class DataReader : BinaryReader
   {
-    internal static readonly MethodInfo LoadRefMethod = typeof(DataReader).GetPublicInstanceMethod("LoadReference");
-
     /// <summary>
     /// Creates DataReader with specified owned stream
     /// </summary>
@@ -564,6 +759,19 @@ namespace Lex.Db.Serialization
     static DateTime RawToDateTime(long value)
     {
       return new DateTime(value & 0x3fffffffffffffffL, (DateTimeKind)((value >> 0x3e) & 0x3));
+    }
+
+    public Uri ReadUri()
+    {
+      var uri = ReadString();
+      if (uri == null)
+        return null;
+
+      var absolute = ReadBoolean();
+      if (absolute)
+        return new Uri(uri, UriKind.Absolute);
+
+      return new Uri(uri, UriKind.Relative);
     }
 
     /// <summary>
@@ -615,19 +823,6 @@ namespace Lex.Db.Serialization
       return new decimal(new[] { ReadInt32(), ReadInt32(), ReadInt32(), ReadInt32() });
     }
 #endif
-
-    /// <summary>
-    /// Loads referenced entity of specified entity type and specified PK value
-    /// </summary>
-    /// <typeparam name="T">Type of the entity</typeparam>
-    /// <typeparam name="K">Type of the PK</typeparam>
-    /// <param name="key">PK value</param>
-    /// <returns>Entity with specified PK value or null if not found</returns>
-    public T LoadReference<T, K>(K key)
-    {
-      // TODO:
-      return default(T);
-    }
   }
 
   /// <summary>
@@ -635,26 +830,11 @@ namespace Lex.Db.Serialization
   /// </summary>
   public sealed class DataWriter : BinaryWriter
   {
-    internal static readonly MethodInfo SaveRefMethod = typeof(DataReader).GetPublicInstanceMethod("SaveReference");
-
     /// <summary>
     /// Creates DataWriter with specified owned stream
     /// </summary>
     /// <param name="stream">Stream to write to</param>
     public DataWriter(Stream stream) : base(stream) { }
-
-    /// <summary>
-    /// Saves reference to specified entity and returns its PK value
-    /// </summary>
-    /// <typeparam name="T">Type of the entity</typeparam>
-    /// <typeparam name="K">Type of the PK</typeparam>
-    /// <param name="reference">Entity to save reference to</param>
-    /// <returns>PK value of the referenced entity</returns>
-    public K SaveReference<T, K>(T reference)
-    {
-      // TODO:
-      return default(K);
-    }
 
     /// <summary>
     /// Writes TimeSpan value to stream
@@ -687,6 +867,18 @@ namespace Lex.Db.Serialization
     {
       Write(value.DateTime);
       Write((short)(value.Offset.Ticks / TimeSpan.TicksPerMinute));
+    }
+
+    public void Write(Uri value)
+    {
+      if (value == null)
+        Write((string)null);
+      else
+      {
+        var absolute = value.IsAbsoluteUri;
+        Write(absolute);
+        Write(value.GetComponents(UriComponents.SerializationInfoString, UriFormat.UriEscaped));
+      }
     }
 
     /// <summary>

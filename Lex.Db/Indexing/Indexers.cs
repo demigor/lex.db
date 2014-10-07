@@ -5,7 +5,7 @@ namespace Lex.Db.Indexing
 {
   using Serialization;
 
-  class Indexer<I1, I2> 
+  class Indexer<I1, I2>
   {
     public Indexer(I1 key1, I2 key2)
     {
@@ -20,6 +20,11 @@ namespace Lex.Db.Indexing
     static readonly Func<DataReader, I1> _deserializer1 = Serializer<I1>.Reader;
     static readonly Action<DataWriter, I2> _serializer2 = Serializer<I2>.Writer;
     static readonly Func<DataReader, I2> _deserializer2 = Serializer<I2>.Reader;
+
+#if iOS
+    public static Action<DataWriter, object> Writer = (w, o) => Serialize(w, (Indexer<I1, I2>)o);
+    public static Func<DataReader, object> Reader = r => Deserialize(r);
+#endif
 
     internal static void Serialize(DataWriter writer, Indexer<I1, I2> value)
     {
@@ -54,7 +59,7 @@ namespace Lex.Db.Indexing
     }
   }
 
-  class Indexer<I1, I2, I3> 
+  class Indexer<I1, I2, I3>
   {
     public readonly I1 Key1;
     public readonly I2 Key2;
@@ -73,6 +78,11 @@ namespace Lex.Db.Indexing
     static readonly Func<DataReader, I2> _deserializer2 = Serializer<I2>.Reader;
     static readonly Action<DataWriter, I3> _serializer3 = Serializer<I3>.Writer;
     static readonly Func<DataReader, I3> _deserializer3 = Serializer<I3>.Reader;
+
+#if iOS
+    public static Action<DataWriter, object> Writer = (w, o) => Serialize(w, (Indexer<I1, I2, I3>)o);
+    public static Func<DataReader, object> Reader = r => Deserialize(r);
+#endif
 
     internal static void Serialize(DataWriter writer, Indexer<I1, I2, I3> value)
     {

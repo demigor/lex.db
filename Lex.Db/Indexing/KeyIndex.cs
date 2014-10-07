@@ -195,13 +195,17 @@ namespace Lex.Db.Indexing
 
     static Action<T, K> MakeSetter(MemberInfo member)
     {
+#if iOS
+      return (obj, value) => member.SetValue(obj, value);
+#else
       // (TType instance, TKey keyValue) => instance.KeyProperty = keyValue;
 
       var obj = Expression.Parameter(typeof(T), "obj");
       var key = Expression.Parameter(typeof(K), "key");
       var assign = Expression.Assign(obj.Member(member), key);
       return Expression.Lambda<Action<T, K>>(assign, obj, key).Compile();
-    }
+#endif
+      }
 
     public DbTable<T> Table { get { return _table; } }
 

@@ -27,7 +27,11 @@ namespace Lex.Db
     /// <summary>
     /// Generic <typeparamref name="T"/> constructor function
     /// </summary>
+#if iOS
+    public static readonly Func<T> New = () => Activator.CreateInstance<T>();
+#else
     public static readonly Func<T> New = Expression.Lambda<Func<T>>(Expression.New(typeof(T))).Compile();
+#endif
   }
 
   /// <summary>
@@ -52,6 +56,10 @@ namespace Lex.Db
     /// <summary>
     /// Generic <typeparamref name="T"/> constructor function, returning <typeparamref name="T"/> as <typeparamref name="R"/> type
     /// </summary>
+#if iOS
+    public static readonly Func<R> New = () => (R)Activator.CreateInstance<T>();
+#else
     public static readonly Func<R> New = Expression.Lambda<Func<R>>(Expression.New(typeof(T))).Compile();
+#endif
   }
 }

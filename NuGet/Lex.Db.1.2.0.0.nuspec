@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>Lex.Db</id>
-        <version>1.1.7.6</version>
+        <version>1.2.0.0</version>
         <title>Lex DB</title>
         <authors>Lex Lavnikov</authors>
         <owners>Lex Lavnikov</owners>
@@ -10,7 +10,7 @@
         <projectUrl>https://github.com/demigor/lex.db</projectUrl>
         <iconUrl>http://lexblog.azurewebsites.net/wp-content/uploads/2012/12/lexdb32.png</iconUrl>
         <requireLicenseAcceptance>true</requireLicenseAcceptance>
-        <description>Superfast, lightweight (~100K), POCO database for PCL, Universal Apps, Windows Phone 8/8.1, Windows Store 8/8.1, .NET4/4.5+, Silverlight 5 &amp; Xamarin.Mono platforms.
+        <description>Superfast, lightweight (~100K), truly cross-platform AnyCPU POCO database for PCL, Universal Apps, Windows Phone 8/8.1, Windows Store 8/8.1, .NET4/4.5+, Silverlight 5, Xamarin.Mono &amp; Xamarin.iOS platforms.
 
 Features: 
 * Async, sync &amp; batch DB operations
@@ -21,8 +21,11 @@ Features:
 * Lazy loading
 * Indexing
 * Concurrent database access (multiple application instance support incl. SL OOB)</description>
-        <summary>Superfast, lightweight (~100K), POCO database for PCL, Universal Apps, Windows Phone 8/8.1, Windows Store 8/8.1, .NET4/4.5+, Silverlight 5 &amp; Xamarin.Mono platforms.</summary>
-        <releaseNotes>1.1.7.6
+        <summary>Superfast, lightweight (~100K), truly cross-platform AnyCPU POCO database for PCL, Universal Apps, Windows Phone 8/8.1, Windows Store 8/8.1, .NET4/4.5+, SL5, Xamarin.Mono &amp; Xamarin.iOS platforms.</summary>
+        <releaseNotes>1.2
+Xamarin.iOS support
+
+1.1.7.6
 MIT License.
 Nuget Xamarin.MonoAndroid support.
 SortedSet supported.
@@ -64,6 +67,8 @@ SortedSet supported.
     <files>
         <file src="..\bin\Release\Net45\Lex.Db.dll" target="lib\MonoAndroid\Lex.Db.dll" />
         <file src="..\bin\Release\Net45\Lex.Db.xml" target="lib\MonoAndroid\Lex.Db.xml" />
+        <file src="..\bin\Release\iOS\Lex.Db.dll" target="lib\MonoTouch\Lex.Db.dll" />
+        <file src="..\bin\Release\iOS\Lex.Db.xml" target="lib\MonoTouch\Lex.Db.xml" />
         <file src="..\Lex.Db\Db\DbTableAsync.cs" target="lib\net40\DbTableAsync.cs" />
         <file src="..\bin\Release\Net4\Lex.Db.dll" target="lib\net40\Lex.Db.dll" />
         <file src="..\bin\Release\Net4\Lex.Db.xml" target="lib\net40\Lex.Db.xml" />

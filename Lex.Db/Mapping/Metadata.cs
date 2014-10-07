@@ -290,7 +290,16 @@ namespace Lex.Db.Mapping
 
     #region MakeWriteMethod logic
 
+#if iOS
+    struct WriteJob
+    {
+      public short Id;
+      public MemberInfo Member;
+      public Action<DataWriter, object> Writer;
+    }
+#else
     static readonly MethodInfo _writeShort = typeof(BinaryWriter).GetMethod("Write", new[] { typeof(short) });
+#endif
 
     /// <summary>
     /// foreach(var property in properties) 
@@ -303,6 +312,43 @@ namespace Lex.Db.Mapping
     /// </summary>
     Action<Interceptor<T>, DataWriter, T> MakeWriteMethod()
     {
+#if iOS
+      var jobs = (from member in _members.Values
+                  where member.Member != null
+                  select new WriteJob { Id = (short)member.Id, Member = member.Member, Writer = Serializers.GetWriter(member.MemberType) })
+                  .ToArray();
+
+      if (_interceptor == null)
+        return (interceptor, writer, obj) =>
+        {
+          for (var i = 0; i < jobs.Length; i++)
+          {
+            var job = jobs[i];
+            writer.Write(job.Id);
+            job.Writer(writer, job.Member.GetValue(obj));
+          }
+
+          writer.Write((short)-1);
+        };
+
+
+      return (interceptor, writer, obj) =>
+      {
+        for (var i = 0; i < jobs.Length; i++)
+        {
+          var job = jobs[i];
+
+          if (interceptor.Filter(obj, job.Member.Name))
+          {
+            writer.Write(job.Id);
+            job.Writer(writer, job.Member.GetValue(obj));
+          }
+        }
+
+        writer.Write((short)-1);
+      };
+
+#else
       var iceptor = Expression.Parameter(typeof(Interceptor<T>));
       var writer = Expression.Parameter(typeof(DataWriter));
       var obj = Expression.Parameter(typeof(T));
@@ -324,6 +370,7 @@ namespace Lex.Db.Mapping
       ops.Add(Expression.Call(writer, _writeShort, Expression.Constant((short)-1)));
 
       return Expression.Lambda<Action<Interceptor<T>, DataWriter, T>>(Expression.Block(ops), iceptor, writer, obj).Compile();
+#endif
     }
 
     #endregion
@@ -332,6 +379,15 @@ namespace Lex.Db.Mapping
 
     static Action<DataReader, T> MakeReadMethod(MemberMap member)
     {
+#if iOS
+      var read = Serializers.GetReader(member.MemberType);
+      var data = member.Member;
+
+      if (data != null)
+        return (reader, obj) => data.SetValue(obj, read(reader));
+
+      return (reader, obj) => read(reader);
+#else
       var reader = Expression.Parameter(typeof(DataReader), "reader");
       var obj = Expression.Parameter(typeof(T), "obj");
 
@@ -341,10 +397,16 @@ namespace Lex.Db.Mapping
         body = Expression.Assign(obj.Member(member), body);
 
       return Expression.Lambda<Action<DataReader, T>>(body, reader, obj).Compile();
+#endif
     }
 
     static Action<DataReader, T> MakeDynamicReadMethod(MemberMap member, int idx)
     {
+#if iOS
+      var read = Serializers.GetReader(member.MemberType);
+
+      return (reader, obj) => ((object[])(object)obj)[idx] = read(reader);
+#else
       var reader = Expression.Parameter(typeof(DataReader), "reader");
       var obj = Expression.Parameter(typeof(T), "obj");
 
@@ -353,6 +415,7 @@ namespace Lex.Db.Mapping
       body = Expression.Assign(Expression.ArrayAccess(obj, Expression.Constant(idx)), Expression.Convert(body, typeof(object)));
 
       return Expression.Lambda<Action<DataReader, T>>(body, reader, obj).Compile();
+#endif
     }
 
 

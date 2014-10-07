@@ -6,6 +6,11 @@ namespace Lex.Db.Serialization
 {
   class DictSerializers<K, V>
   {
+#if iOS
+    public static Action<DataWriter, object> Writer = (w, o) => WriteDictionary(w, (Dictionary<K, V>)o);
+    public static Func<DataReader, object> Reader = r => ReadDictionary(r);
+#endif
+
     static readonly Action<DataWriter, K> _keySerializer = Serializer<K>.Writer;
     static readonly Func<DataReader, K> _keyDeserializer = Serializer<K>.Reader;
     static readonly Action<DataWriter, V> _valueSerializer = Serializer<V>.Writer;
@@ -43,7 +48,7 @@ namespace Lex.Db.Serialization
     public static Dictionary<K, V> ReadDictionary(DataReader reader)
     {
       var result = new Dictionary<K, V>();
-      
+
       ReadCore(reader, result);
 
       return result;

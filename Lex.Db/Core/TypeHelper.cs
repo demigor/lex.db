@@ -235,5 +235,39 @@ namespace Lex.Db
       return type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
 #endif
     }
+
+#if iOS
+    public static object GetValue(this MemberInfo info, object obj)
+    {
+      var p = info as PropertyInfo;
+      if (p != null)
+        return p.GetValue(obj);
+
+      var f = info as FieldInfo;
+      if (f != null)
+        return f.GetValue(obj);
+
+      throw new NotSupportedException();
+    }
+
+    public static void SetValue(this MemberInfo info, object obj, object value)
+    {
+      var p = info as PropertyInfo;
+      if (p != null)
+      {
+        p.SetValue(obj, value);
+        return;
+      }
+
+      var f = info as FieldInfo;
+      if (f != null)
+      {
+        f.SetValue(obj, value);
+        return;
+      }
+
+      throw new NotSupportedException();
+    }
+#endif
   }
 }
