@@ -13,7 +13,7 @@ We feel the need in small, fast and platform-neutral solution to store and acces
 * Silverlight 5.0+, 
 * Windows Phone 8.0+, 
 * WinRT+.
-* Android (via Xamarin/Mono).
+* Android & iOS (via Xamarin/Mono).
 
 Write your data access layer once, run everywhere (x64, x32, ARM) without recompilation.
 
