@@ -196,7 +196,7 @@ namespace Lex.Db.Indexing
     static Action<T, K> MakeSetter(MemberInfo member)
     {
 #if iOS
-      return (obj, value) => member.SetValue(obj, value);
+      return member.GetSetter<T, K>();
 #else
       // (TType instance, TKey keyValue) => instance.KeyProperty = keyValue;
 

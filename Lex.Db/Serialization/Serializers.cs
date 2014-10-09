@@ -50,6 +50,65 @@ namespace Lex.Db.Serialization
       return type;
     }
 
+    static MethodInfo GetWriteMethodFrom<K, S>()
+    {
+      var result = typeof(S).GetPublicStaticMethod("Write" + typeof(K).Name);
+      if (result == null)
+        throw new ArgumentException("Write method not found");
+
+      if (result.ReturnType != typeof(void))
+        throw new ArgumentException("Write method return type mismatch");
+
+      var parameters = result.GetParameters();
+      if (parameters.Length != 2 || parameters[0].ParameterType != typeof(DataWriter) || parameters[1].ParameterType != typeof(K))
+        throw new ArgumentException("Write method parameter type mismatch");
+
+      return result;
+    }
+
+    static MethodInfo GetReadMethodFrom<K, S>()
+    {
+      var result = typeof(S).GetPublicStaticMethod("Read" + typeof(K).Name);
+      if (result == null)
+        throw new ArgumentException("Read method not found");
+
+      if (result.ReturnType != typeof(K))
+        throw new ArgumentException("Read method return type mismatch");
+
+      var parameters = result.GetParameters();
+      if (parameters.Length != 1 || parameters[0].ParameterType != typeof(DataReader))
+        throw new ArgumentException("Read method parameter type mismatch");
+
+      return result;
+    }
+
+    internal static void RegisterType<K, S>(short streamId)
+    {
+      if (Enum.IsDefined(typeof(KnownDbType), streamId))
+        throw new ArgumentException("streamId");
+
+      var reader = GetReadMethodFrom<K, S>();
+      var writer = GetWriteMethodFrom<K, S>();
+
+      DbTypes.Register<K>(streamId);
+
+#if iOS
+      var readerDirect = (Func<DataReader, K>)Delegate.CreateDelegate(typeof(Func<DataReader, K>), reader);
+      var writerDirect = (Action<DataWriter, K>)Delegate.CreateDelegate(typeof(Action<DataWriter, K>), writer);
+      Func<DataReader, object> readerMethod = r => readerDirect(r);
+      Action<DataWriter, object> writerMethod = (w, o) => writerDirect(w, (K)o);
+#else
+      var readerMethod = reader;
+      var writerMethod = writer;
+#endif
+
+      lock (_readerMethods)
+        _readerMethods.Add(typeof(K), readerMethod);
+
+      lock (_writerMethods)
+        _writerMethods.Add(typeof(K), writerMethod);
+    }
+
 #if iOS
     static readonly Dictionary<Type, Func<DataReader, object>> _readerMethods = new Dictionary<Type, Func<DataReader, object>>();
     static readonly Dictionary<Type, Action<DataWriter, object>> _writerMethods = new Dictionary<Type, Action<DataWriter, object>>();
@@ -89,30 +148,76 @@ namespace Lex.Db.Serialization
       _readerMethods[typeof(Uri)] = r => r.ReadUri();
     }
 
-
-    internal static void RegisterType<K, S>(short streamId)
+    static Func<DataReader, object> GetReaderField(Type type, string name = "Reader")
     {
-      // TODO:
-      throw new NotSupportedException();
+      var field = type.GetField(name, BindingFlags.Static | BindingFlags.Public);
+      return (Func<DataReader, object>)field.GetValue(null);
+    }
+
+    static Func<DataReader, object> MakeReader(Type type)
+    {
+      var nn = Nullable.GetUnderlyingType(type);
+
+      // nullable type
+      if (nn != null)
+        return GetDirectReader(nn);
+
+      if (type.IsGenericType())
+      {
+        var baseK = type.GetGenericTypeDefinition();
+
+        if (baseK == typeof(Indexer<,>) || baseK == typeof(Indexer<,,>))
+          return GetReaderField(type);
+
+        if (baseK == typeof(HashSet<>))
+          return GetReaderField(typeof(ListSerializers<>).MakeGenericType(type.GetGenericArguments()), "HashSetReader");
+
+        if (baseK == typeof(List<>))
+          return GetReaderField(typeof(ListSerializers<>).MakeGenericType(type.GetGenericArguments()), "ListReader");
+
+        if (baseK == typeof(SortedSet<>))
+          return GetReaderField(typeof(ListSerializers<>).MakeGenericType(type.GetGenericArguments()), "SortedSetReader");
+
+        if (baseK == typeof(ObservableCollection<>))
+          return GetReaderField(typeof(ListSerializers<>).MakeGenericType(type.GetGenericArguments()), "CollectionReader");
+
+        if (baseK == typeof(Dictionary<,>))
+          return GetReaderField(typeof(DictSerializers<,>).MakeGenericType(type.GetGenericArguments()));
+      }
+
+      if (type.IsArray)
+      {
+        var et = type.GetElementType();
+        return GetReaderField(typeof(ListSerializers<>).MakeGenericType(et), "ArrayReader");
+      }
+
+      if (type.IsEnum)
+      {
+        var read = GetDirectReader(Enum.GetUnderlyingType(type));
+        return r => Enum.ToObject(type, read(r));
+      }
+
+      throw new NotSupportedException(type.Name);
+    }
+
+    static Func<DataReader, object> GetDirectReader(Type type)
+    {
+      Func<DataReader, object> result;
+
+      lock (_readerMethods)
+        if (!_readerMethods.TryGetValue(type, out result))
+          _readerMethods[type] = result = MakeReader(type);
+
+      return result;
     }
 
     public static Func<DataReader, object> GetReader(Type type)
     {
-      var nn = Nullable.GetUnderlyingType(type) ?? type;
+      var notNullable = Nullable.GetUnderlyingType(type) == null;
 
-      var def = type.IsValueType ? Activator.CreateInstance(type) : null;
-      var directRead = GetReaderDirect(GetBinaryType(type));
+      var def = notNullable && type.IsValueType ? Activator.CreateInstance(type) : null;
 
-      var read = directRead;
-
-      if (nn.IsEnum)
-        read = r =>
-        {
-          var nr = directRead(r);
-          var er = Enum.ToObject(nn, nr);
-
-          return er;
-        };
+      var read = GetDirectReader(type);
 
       return reader =>
       {
@@ -123,9 +228,60 @@ namespace Lex.Db.Serialization
       };
     }
 
+    static Action<DataWriter, object> GetWriterField(Type type, string name = "Writer")
+    {
+      var field = type.GetField(name, BindingFlags.Static | BindingFlags.Public);
+      return (Action<DataWriter, object>)field.GetValue(null);
+    }
+
+    static Action<DataWriter, object> MakeWriter(Type type)
+    {
+      if (type.IsGenericType())
+      {
+        var baseK = type.GetGenericTypeDefinition();
+
+        if (baseK == typeof(Indexer<,>) || baseK == typeof(Indexer<,,>))
+          return GetWriterField(type);
+
+        if (baseK == typeof(HashSet<>))
+          return GetWriterField(typeof(ListSerializers<>).MakeGenericType(type.GetGenericArguments()), "HashSetWriter");
+
+        if (baseK == typeof(List<>))
+          return GetWriterField(typeof(ListSerializers<>).MakeGenericType(type.GetGenericArguments()), "ListWriter");
+
+        if (baseK == typeof(SortedSet<>))
+          return GetWriterField(typeof(ListSerializers<>).MakeGenericType(type.GetGenericArguments()), "SortedSetWriter");
+
+        if (baseK == typeof(ObservableCollection<>))
+          return GetWriterField(typeof(ListSerializers<>).MakeGenericType(type.GetGenericArguments()), "CollectionWriter");
+
+        if (baseK == typeof(Dictionary<,>))
+          return GetWriterField(typeof(DictSerializers<,>).MakeGenericType(type.GetGenericArguments()));
+      }
+
+      if (type.IsArray)
+      {
+        var et = type.GetElementType();
+        return GetWriterField(typeof(ListSerializers<>).MakeGenericType(et), "ArrayWriter");
+      }
+
+      throw new NotSupportedException(type.Name);
+    }
+
+    static Action<DataWriter, object> GetDirectWriter(Type type)
+    {
+      Action<DataWriter, object> result;
+
+      lock (_writerMethods)
+        if (!_writerMethods.TryGetValue(type, out result))
+          _writerMethods[type] = result = MakeWriter(type);
+
+      return result;
+    }
+
     public static Action<DataWriter, object> GetWriter(Type type)
     {
-      var write = GetWriterDirect(GetBinaryType(type));
+      var write = GetDirectWriter(GetBinaryType(type));
 
       return (writer, obj) =>
       {
@@ -136,118 +292,6 @@ namespace Lex.Db.Serialization
         if (data)
           write(writer, obj);
       };
-    }
-
-    static Action<DataWriter, object> GetWriterDirect(Type type)
-    {
-      lock (_writerMethods)
-      {
-        Action<DataWriter, object> result;
-
-        if (_writerMethods.TryGetValue(type, out result))
-          return result;
-
-        if (type.IsGenericType())
-          return _writerMethods[type] = MakeGenericWrite(type);
-
-        if (type.IsArray)
-          return _writerMethods[type] = MakeArrayWrite(type);
-      }
-
-      throw new NotImplementedException();
-    }
-
-    static Func<DataReader, object> GetReaderDirect(Type type)
-    {
-      lock (_readerMethods)
-      {
-        Func<DataReader, object> result;
-
-        if (_readerMethods.TryGetValue(type, out result))
-          return result;
-
-        if (type.IsGenericType())
-          return _readerMethods[type] = MakeGenericRead(type);
-
-        if (type.IsArray)
-          return _readerMethods[type] = MakeArrayRead(type);
-      }
-
-      throw new NotImplementedException();
-    }
-
-    static Func<DataReader, object> MakeArrayRead(Type type)
-    {
-      var et = type.GetElementType();
-      return GetReaderField(typeof(ListSerializers<>).MakeGenericType(et), "ArrayReader");
-    }
-
-    static Func<DataReader, object> MakeGenericRead(Type type)
-    {
-      var baseK = type.GetGenericTypeDefinition();
-
-      if (baseK == typeof(Indexer<,>) || baseK == typeof(Indexer<,,>))
-        return GetReaderField(type);
-
-      if (baseK == typeof(HashSet<>))
-        return GetReaderField(typeof(ListSerializers<>).MakeGenericType(type.GetGenericArguments()), "HashSetReader");
-
-      if (baseK == typeof(List<>))
-        return GetReaderField(typeof(ListSerializers<>).MakeGenericType(type.GetGenericArguments()), "ListReader");
-
-      if (baseK == typeof(SortedSet<>))
-        return GetReaderField(typeof(ListSerializers<>).MakeGenericType(type.GetGenericArguments()), "SortedSetReader");
-
-      if (baseK == typeof(ObservableCollection<>))
-        return GetReaderField(typeof(ListSerializers<>).MakeGenericType(type.GetGenericArguments()), "CollectionReader");
-
-      if (baseK == typeof(Dictionary<,>))
-        return GetReaderField(typeof(DictSerializers<,>).MakeGenericType(type.GetGenericArguments()));
-
-      throw new NotSupportedException();
-    }
-
-    static Action<DataWriter, object> MakeArrayWrite(Type type)
-    {
-      var et = type.GetElementType();
-      return GetWriterField(typeof(ListSerializers<>).MakeGenericType(et), "ArrayWriter");
-    }
-
-    static Action<DataWriter, object> MakeGenericWrite(Type type)
-    {
-      var baseK = type.GetGenericTypeDefinition();
-
-      if (baseK == typeof(Indexer<,>) || baseK == typeof(Indexer<,,>))
-        return GetWriterField(type);
-
-      if (baseK == typeof(HashSet<>))
-        return GetWriterField(typeof(ListSerializers<>).MakeGenericType(type.GetGenericArguments()), "HashSetWriter");
-
-      if (baseK == typeof(List<>))
-        return GetWriterField(typeof(ListSerializers<>).MakeGenericType(type.GetGenericArguments()), "ListWriter");
-
-      if (baseK == typeof(SortedSet<>))
-        return GetWriterField(typeof(ListSerializers<>).MakeGenericType(type.GetGenericArguments()), "SortedSetWriter");
-
-      if (baseK == typeof(ObservableCollection<>))
-        return GetWriterField(typeof(ListSerializers<>).MakeGenericType(type.GetGenericArguments()), "CollectionWriter");
-
-      if (baseK == typeof(Dictionary<,>))
-        return GetWriterField(typeof(DictSerializers<,>).MakeGenericType(type.GetGenericArguments()));
-
-      throw new NotSupportedException();
-    }
-
-    static Action<DataWriter, object> GetWriterField(Type type, string name = "Writer")
-    {
-      var field = type.GetField(name, BindingFlags.Static | BindingFlags.Public);
-      return (Action<DataWriter, object>)field.GetValue(null);
-    }
-
-    static Func<DataReader, object> GetReaderField(Type type, string name = "Reader")
-    {
-      var field = type.GetField(name, BindingFlags.Static | BindingFlags.Public);
-      return (Func<DataReader, object>)field.GetValue(null);
     }
 
 #else
@@ -452,55 +496,6 @@ namespace Lex.Db.Serialization
         return typeof(DictSerializers<,>).MakeGenericType(type.GetGenericArguments()).GetStaticMethod("ReadDictionary");
 
       throw new NotSupportedException();
-    }
-
-    internal static void RegisterType<K, S>(short streamId)
-    {
-      if (Enum.IsDefined(typeof(KnownDbType), streamId))
-        throw new ArgumentException("streamId");
-
-      var reader = GetReadMethodFrom<K, S>();
-      var writer = GetWriteMethodFrom<K, S>();
-
-      DbTypes.Register<K>(streamId);
-
-      lock (_readerMethods)
-        _readerMethods.Add(typeof(K), reader);
-
-      lock (_writerMethods)
-        _writerMethods.Add(typeof(K), writer);
-    }
-
-    static MethodInfo GetWriteMethodFrom<K, S>()
-    {
-      var result = typeof(S).GetPublicStaticMethod("Write" + typeof(K).Name);
-      if (result == null)
-        throw new ArgumentException("Write method not found");
-
-      if (result.ReturnType != typeof(void))
-        throw new ArgumentException("Write method return type mismatch");
-
-      var parameters = result.GetParameters();
-      if (parameters.Length != 2 || parameters[0].ParameterType != typeof(DataWriter) || parameters[1].ParameterType != typeof(K))
-        throw new ArgumentException("Write method parameter type mismatch");
-
-      return result;
-    }
-
-    static MethodInfo GetReadMethodFrom<K, S>()
-    {
-      var result = typeof(S).GetPublicStaticMethod("Read" + typeof(K).Name);
-      if (result == null)
-        throw new ArgumentException("Read method not found");
-
-      if (result.ReturnType != typeof(K))
-        throw new ArgumentException("Read method return type mismatch");
-
-      var parameters = result.GetParameters();
-      if (parameters.Length != 1 || parameters[0].ParameterType != typeof(DataReader))
-        throw new ArgumentException("Read method parameter type mismatch");
-
-      return result;
     }
 
     #region Guid serialization

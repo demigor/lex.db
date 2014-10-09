@@ -99,14 +99,14 @@ namespace Lex.Db
       {
         var db = new DbInstance(@"d:\test.db");
         db.Initialize();
-      } 
+      }
 #if SILVERLIGHT 
       catch (System.IO.IsolatedStorage.IsolatedStorageException) 
       {
         // SL without ElevatedPriviliges does not allow absolute path access
       }
 #endif
-      finally 
+      finally
       {
       }
     }
@@ -616,11 +616,11 @@ namespace Lex.Db
     {
       var obj = new MyData
       {
-        ListField = { 1, 2, 3, 4, 5 },
+        ListField = new List<int> { 1, 2, 3, 4, 5 },
 #if !SILVERLIGHT || WINDOWS_PHONE
-        SortedSetField = { 5, 2, 3, 4, 1},
+        SortedSetField = new SortedSet<int> { 5, 2, 3, 4, 1 },
 #endif
-        DictField = { { "test1", 111 }, { "test2", 222 }, { "test3", 333 } }
+        DictField = new Dictionary<string, int> { { "test1", 111 }, { "test2", 222 }, { "test3", 333 } }
       };
 
       table.Save(obj);

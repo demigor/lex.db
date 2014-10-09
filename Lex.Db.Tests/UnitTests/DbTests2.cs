@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using Lex.Db.Serialization;
+
 #if NETFX_CORE || WINDOWS_PHONE
 using Microsoft.VisualStudio.TestPlatform.UnitTestFramework;
 #else
@@ -27,6 +29,11 @@ namespace Lex.Db
       db.Map<IData, InterfaceBasedData>().Automap(i => i.Id, true);
       db.Initialize();
       return db;
+    }
+
+    static DbTests2()
+    {
+      Serialization.Extender.RegisterType<Point, PointSerializer>(2000);
     }
 
     [TestInitialize]
@@ -243,22 +250,43 @@ namespace Lex.Db
       Person newPerson6 = new Person { Forename = "Colin", Surname = "Gordon" };
       Person newPerson7 = new Person { Forename = "Michael", Surname = "Gordon" };
 
-      var newPeople = new[]{ 
-                newPerson1, 
-                newPerson2, 
-                newPerson3, 
-                newPerson4, 
-                newPerson5, 
-                newPerson6, 
-                newPerson7 };
+      var newPeople = new[]
+      { 
+        newPerson1, 
+        newPerson2, 
+        newPerson3, 
+        newPerson4, 
+        newPerson5, 
+        newPerson6, 
+        newPerson7 
+      };
 
       table.Save(newPeople);
-                                       
+
       var index = table.IndexQuery<string>("Surname");
       // HIJKLMNOPQRS
 
       var queryindex = index.GreaterThan("H", true).LessThan("T", true).ToLazyList();
       Assert.AreEqual(2, queryindex.Count);
+    }
+  }
+
+  public struct Point
+  {
+    public int X, Y;
+  }
+
+  public class PointSerializer
+  {
+    public static Point ReadPoint(DataReader reader)
+    {
+      return new Point { X = reader.ReadInt32(), Y = reader.ReadInt32() };
+    }
+
+    public static void WritePoint(DataWriter writer, Point point)
+    {
+      writer.Write(point.X);
+      writer.Write(point.Y);
     }
   }
 }

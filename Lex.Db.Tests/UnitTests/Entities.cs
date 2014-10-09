@@ -54,16 +54,6 @@ namespace Lex.Db
     public TestEnum? EnumNField { get; set; }
 
     public byte[] BlobField;
-
-    public MyData()
-    {
-      ListField = new List<int>();
-      DictField = new Dictionary<string, int>();
-#if !SILVERLIGHT || WINDOWS_PHONE
-      SortedSetField = new SortedSet<int>();
-#endif
-      CollectionField = new ObservableCollection<int>();
-    }
   }
 
   /// <summary>

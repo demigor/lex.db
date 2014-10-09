@@ -328,7 +328,7 @@ namespace Lex.Db
       var member = ExtractMember(indexBy, MemberUsage.DataIndex);
 
 #if iOS
-      Func<T, I1> indexByGetter = obj => (I1)member.GetValue(obj);
+      var indexByGetter = member.GetGetter<T, I1>();
 #else
       var indexByGetter = indexBy.Compile();
 #endif

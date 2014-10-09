@@ -237,34 +237,69 @@ namespace Lex.Db
     }
 
 #if iOS
-    public static object GetValue(this MemberInfo info, object obj)
+    public static Func<T, K> GetGetter<T, K>(this MemberInfo info)
     {
       var p = info as PropertyInfo;
       if (p != null)
-        return p.GetValue(obj);
+        return (Func<T, K>)Delegate.CreateDelegate(typeof(Func<T, K>), p.GetGetMethod());
 
       var f = info as FieldInfo;
       if (f != null)
-        return f.GetValue(obj);
+        return i => (K)f.GetValue(i);
 
       throw new NotSupportedException();
     }
 
-    public static void SetValue(this MemberInfo info, object obj, object value)
+    public static Action<T, K> GetSetter<T, K>(this MemberInfo info)
     {
       var p = info as PropertyInfo;
       if (p != null)
-      {
-        p.SetValue(obj, value);
-        return;
-      }
+        return (Action<T, K>)Delegate.CreateDelegate(typeof(Action<T, K>), p.GetSetMethod());
 
       var f = info as FieldInfo;
       if (f != null)
-      {
-        f.SetValue(obj, value);
-        return;
-      }
+        return (i, o) => f.SetValue(i, (K)o);
+
+      throw new NotSupportedException();
+    }
+
+    static Func<T, object> WrapGetter<T, K>(MethodInfo method)
+    {
+      var getter = (Func<T, K>)Delegate.CreateDelegate(typeof(Func<T, K>), method);
+      return i => getter(i);
+    }
+
+    static Action<T, object> WrapSetter<T, K>(MethodInfo method)
+    {
+      var setter = (Action<T, K>)Delegate.CreateDelegate(typeof(Action<T, K>), method);
+      return (i, o) => setter(i, (K)o);
+    }
+
+    static readonly MethodInfo _wrapGetter = typeof(TypeHelper).GetMethod("WrapGetter", BindingFlags.Static | BindingFlags.NonPublic);
+    static readonly MethodInfo _wrapSetter = typeof(TypeHelper).GetMethod("WrapSetter", BindingFlags.Static | BindingFlags.NonPublic);
+
+    public static Func<T, object> GetGetter<T>(this MemberInfo info)
+    {
+      var p = info as PropertyInfo;
+      if (p != null)
+        return (Func<T, object>)_wrapGetter.MakeGenericMethod(typeof(T), p.PropertyType).Invoke(null, new[] { p.GetGetMethod() });
+
+      var f = info as FieldInfo;
+      if (f != null)
+        return i => f.GetValue(i);
+
+      throw new NotSupportedException();
+    }
+
+    public static Action<T, object> GetSetter<T>(this MemberInfo info)
+    {
+      var p = info as PropertyInfo;
+      if (p != null)
+        return (Action<T, object>)_wrapSetter.MakeGenericMethod(typeof(T), p.PropertyType).Invoke(null, new[] { p.GetSetMethod() });
+
+      var f = info as FieldInfo;
+      if (f != null)
+        return (i, o) => f.SetValue(i, o);
 
       throw new NotSupportedException();
     }

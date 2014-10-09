@@ -291,10 +291,11 @@ namespace Lex.Db.Mapping
     #region MakeWriteMethod logic
 
 #if iOS
-    struct WriteJob
+    class WriteJob
     {
       public short Id;
       public MemberInfo Member;
+      public Func<T, object> Getter;
       public Action<DataWriter, object> Writer;
     }
 #else
@@ -314,8 +315,15 @@ namespace Lex.Db.Mapping
     {
 #if iOS
       var jobs = (from member in _members.Values
-                  where member.Member != null
-                  select new WriteJob { Id = (short)member.Id, Member = member.Member, Writer = Serializers.GetWriter(member.MemberType) })
+                  let m = member.Member
+                  where m != null
+                  select new WriteJob
+                  {
+                    Id = (short)member.Id,
+                    Member = m,
+                    Getter = m.GetGetter<T>(),
+                    Writer = Serializers.GetWriter(member.MemberType)
+                  })
                   .ToArray();
 
       if (_interceptor == null)
@@ -325,7 +333,7 @@ namespace Lex.Db.Mapping
           {
             var job = jobs[i];
             writer.Write(job.Id);
-            job.Writer(writer, job.Member.GetValue(obj));
+            job.Writer(writer, job.Getter(obj));
           }
 
           writer.Write((short)-1);
@@ -341,7 +349,7 @@ namespace Lex.Db.Mapping
           if (interceptor.Filter(obj, job.Member.Name))
           {
             writer.Write(job.Id);
-            job.Writer(writer, job.Member.GetValue(obj));
+            job.Writer(writer, job.Getter(obj));
           }
         }
 
@@ -384,7 +392,10 @@ namespace Lex.Db.Mapping
       var data = member.Member;
 
       if (data != null)
-        return (reader, obj) => data.SetValue(obj, read(reader));
+      {
+        var setter = data.GetSetter<T>();
+        return (reader, obj) => setter(obj, read(reader));
+      }
 
       return (reader, obj) => read(reader);
 #else
