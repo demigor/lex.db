@@ -7,13 +7,13 @@ We feel the need in small, fast and platform-neutral solution to store and acces
 
 ###Supported platforms:
 
+* New: Xamarin.iOS & Xamarin.Android.
 * New: Universal Windows Store Apps Support
 * New: PCL version for supported platforms 
 * .NET 4.0+, 
 * Silverlight 5.0+, 
 * Windows Phone 8.0+, 
 * WinRT+.
-* Android (via Xamarin/Mono).
 
 Write your data access layer once, run everywhere (x64, x32, ARM) without recompilation.
 
