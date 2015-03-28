@@ -83,8 +83,8 @@ SortedSet supported.
         <file src="..\bin\Release\WinRT\Lex.Db.xml" target="lib\netcore45\Lex.Db.xml" />
         <file src="..\bin\Release\WinRT81\Lex.Db.dll" target="lib\netcore451\Lex.Db.dll" />
         <file src="..\bin\Release\WinRT81\Lex.Db.xml" target="lib\netcore451\Lex.Db.xml" />
-        <file src="..\bin\Release\Portable\Lex.Db.dll" target="lib\portable-net4+sl5+wp8+win8+wpa81\Lex.Db.dll" />
-        <file src="..\bin\Release\Portable\Lex.Db.xml" target="lib\portable-net4+sl5+wp8+win8+wpa81\Lex.Db.xml" />
+        <file src="..\bin\Release\Portable\Lex.Db.dll" target="lib\portable-win81+wpa81\Lex.Db.dll" />
+        <file src="..\bin\Release\Portable\Lex.Db.xml" target="lib\portable-win81+wpa81\Lex.Db.xml" />
         <file src="..\Lex.Db\Db\DbTableAsync.cs" target="lib\sl50\DbTableAsync.cs" />
         <file src="..\bin\Release\Silverlight5\Lex.Db.dll" target="lib\sl50\Lex.Db.dll" />
         <file src="..\bin\Release\Silverlight5\Lex.Db.xml" target="lib\sl50\Lex.Db.xml" />

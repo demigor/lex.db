@@ -82,9 +82,9 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Lex.Db\Lex.Db.WinRT81.csproj">
-      <Project>{7c063abd-5807-4076-99af-f7167afda82e}</Project>
-      <Name>Lex.Db.WinRT81</Name>
+    <ProjectReference Include="..\..\Lex.Db\Lex.Db.Portable.csproj">
+      <Project>{f734d16c-a6e2-4748-9a21-ef774f788ecd}</Project>
+      <Name>Lex.Db.Portable</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '12.0' ">
