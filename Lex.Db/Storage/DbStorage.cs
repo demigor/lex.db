@@ -14,9 +14,6 @@ namespace Lex.Db
 #endif
     public IDbSchemaStorage OpenSchema(string path, object home)
     {
-#if PORTABLE
-      return null;
-#else
       path = Path.Combine("Lex.Db", path);
       var root = home as string;
 
@@ -29,7 +26,7 @@ namespace Lex.Db
         else
           root = Windows.Storage.ApplicationData.Current.LocalFolder.Path;
       }
-
+      
       return new FileSystem.DbSchemaStorage(Path.Combine(root, path));
 #elif WINDOWS_PHONE
       return new IsolatedStorage.DbSchemaStorage(_storage, path);
@@ -49,7 +46,6 @@ namespace Lex.Db
         root = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
 
       return new FileSystem.DbSchemaStorage(Path.Combine(root, path));
-#endif
 #endif
     }
 

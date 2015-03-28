@@ -699,11 +699,7 @@ namespace Lex.Db
       FILE_STANDARD_INFO info;
       unsafe
       {
-#if WINDOWS_APP || WINDOWS_PHONE_APP
         var infoSize = Marshal.SizeOf<FILE_STANDARD_INFO>();
-#else
-        var infoSize = Marshal.SizeOf(typeof(FILE_STANDARD_INFO));
-#endif
         var result = GetFileInformationByHandleEx(handle, FILE_INFO_BY_HANDLE_CLASS.FileStandardInfo, new IntPtr(&info), infoSize);
         fileSize = info.EndOfFile;
         return result;
