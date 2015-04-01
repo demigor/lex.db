@@ -533,7 +533,7 @@ namespace Lex.Db
 
   static class WinApi
   {
-#if WINDOWS_PHONE_APP
+#if NETFX_CORE
     const string WinBaseDll = "api-ms-win-core-file-l2-1-0.dll";
     const string FileApiDll = "api-ms-win-core-file-l1-2-0.dll";
     const string HandleApiDll = "api-ms-win-core-handle-l1-1-0.dll";
