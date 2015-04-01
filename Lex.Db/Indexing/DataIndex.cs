@@ -21,7 +21,7 @@ namespace Lex.Db.Indexing
 
   internal class DataNode<K> : RBTreeNode<K, DataNode<K>>
   {
-    public HashSet<IKeyNode> Keys = new HashSet<IKeyNode>();
+    public List<IKeyNode> Keys;
   }
 
   [DebuggerDisplay("{_name} ({ToString()}) : {Count}")]
@@ -33,6 +33,7 @@ namespace Lex.Db.Indexing
     readonly RBTree<K, DataNode<K>> _tree;
     readonly DbTable<T> _table;
     readonly Func<K, object, Lazy<T>> _lazyCtor;
+    static readonly Func<DataNode<K>> _ctor = RBTree<K, DataNode<K>>._ctor;
 
     public DataIndex(DbTable<T> loader, string name, Func<T, K> getter, IComparer<K> comparer, Func<K, object, Lazy<T>> lazyCtor, MemberInfo[] members)
     {
@@ -139,14 +140,14 @@ namespace Lex.Db.Indexing
       var color = reader.ReadSByte();
       if (color == -1) return null;
 
-      var result = new DataNode<K>
-      {
-        Parent = parent,
-        Color = (RBTreeColor)color,
-        Key = _deserializer(reader)
-      };
+      var result = _ctor();
+      result.Parent = parent;
+      result.Color = (RBTreeColor)color;
+      result.Key = _deserializer(reader);
 
       var keysCount = reader.ReadInt32();
+      result.Keys = new List<IKeyNode>(keysCount);
+
       for (var i = 0; i < keysCount; i++)
       {
         var id = reader.ReadInt64();

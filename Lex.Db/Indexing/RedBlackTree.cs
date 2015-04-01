@@ -32,7 +32,7 @@ namespace Lex.Db.Indexing
   class RBTree<TKey, TNode> : IEnumerable<TNode> where TNode : RBTreeNode<TKey, TNode>, new()
   {
     public readonly IComparer<TKey> Comparer;
-    static readonly Func<TNode> _ctor = Ctor<TNode>.New;
+    internal static readonly Func<TNode> _ctor = Ctor<TNode>.New;
 
     public RBTree(IComparer<TKey> comparer)
     {

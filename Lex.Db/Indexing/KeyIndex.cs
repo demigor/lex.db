@@ -180,6 +180,7 @@ namespace Lex.Db.Indexing
     readonly RBTree<K, KeyNode<K>> _tree;
     readonly DbTable<T> _table;
     readonly MemberInfo[] _keys;
+    static readonly Func<KeyNode<K>> _ctor = RBTree<K, KeyNode<K>>._ctor;
 
     public KeyIndex(DbTable<T> table, Func<T, K> getter, MemberInfo key, IComparer<K> comparer)
     {
@@ -205,7 +206,7 @@ namespace Lex.Db.Indexing
       var assign = Expression.Assign(obj.Member(member), key);
       return Expression.Lambda<Action<T, K>>(assign, obj, key).Compile();
 #endif
-      }
+    }
 
     public DbTable<T> Table { get { return _table; } }
 
@@ -289,14 +290,12 @@ namespace Lex.Db.Indexing
       var offset = reader.ReadInt64();
       var key = _deserializer(reader);
 
-      var result = new KeyNode<K>
-      {
-        Key = key,
-        Color = (RBTreeColor)color,
-        Length = length,
-        Offset = offset,
-        Parent = parent,
-      };
+      var result = _ctor();
+      result.Key = key;
+      result.Color = (RBTreeColor)color;
+      result.Length = length;
+      result.Offset = offset;
+      result.Parent = parent;
       result.Left = ReadNode(reader, result);
       result.Right = ReadNode(reader, result);
       return result;
