@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>Lex.Db</id>
-        <version>1.2.2.0</version>
+        <version>1.2.3.0</version>
         <title>Lex DB</title>
         <authors>Lex Lavnikov</authors>
         <owners>Lex Lavnikov</owners>
@@ -22,7 +22,10 @@ Features:
 * Indexing
 * Concurrent database access (multiple application instance support incl. SL OOB)</description>
         <summary>Superfast, lightweight (~100K), truly cross-platform AnyCPU POCO database for PCL, Universal Apps, Windows Phone 8/8.1/UAP, Windows Store 8/8.1, .NET4/4.5+, SL5, Xamarin.Mono &amp; Xamarin.iOS platforms.</summary>
-        <releaseNotes>1.2.2
+        <releaseNotes>1.2.3
+Bugfixes (compiled again with VS2013)
+
+1.2.2
 Windows 10 Univeral App Platform support
 
 1.2.1

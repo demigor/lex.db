@@ -21,7 +21,8 @@ namespace Lex.Db.Indexing
 
   internal class DataNode<K> : RBTreeNode<K, DataNode<K>>
   {
-    public List<IKeyNode> Keys;
+    public List<IKeyNode> Keys { get { return _keys ?? (_keys = new List<IKeyNode>()); } }
+    internal List<IKeyNode> _keys;
   }
 
   [DebuggerDisplay("{_name} ({ToString()}) : {Count}")]
@@ -100,9 +101,15 @@ namespace Lex.Db.Indexing
       writer.Write((sbyte)node.Color);
       _serializer(writer, node.Key);
 
-      writer.Write(node.Keys.Count);
-      foreach (var i in node.Keys)
-        writer.Write(i.Offset);
+      var keys = node._keys;
+      if (keys == null)
+        writer.Write(0);
+      else
+      {
+        writer.Write(keys.Count);
+        foreach (var i in keys)
+          writer.Write(i.Offset);
+      }
     }
 
     public void Read(DataReader reader, DbFormat format)
@@ -146,7 +153,7 @@ namespace Lex.Db.Indexing
       result.Key = _deserializer(reader);
 
       var keysCount = reader.ReadInt32();
-      result.Keys = new List<IKeyNode>(keysCount);
+      result._keys = new List<IKeyNode>(keysCount);
 
       for (var i = 0; i < keysCount; i++)
       {
