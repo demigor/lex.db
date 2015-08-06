@@ -1,0 +1,107 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+    <metadata>
+        <id>Lex.Db</id>
+        <version>1.2.4.0</version>
+        <title>Lex DB</title>
+        <authors>Lex Lavnikov</authors>
+        <owners>Lex Lavnikov</owners>
+        <licenseUrl>https://raw.github.com/demigor/lex.db/master/License.txt</licenseUrl>
+        <projectUrl>https://github.com/demigor/lex.db</projectUrl>
+        <iconUrl>http://lexblog.azurewebsites.net/wp-content/uploads/2012/12/lexdb32.png</iconUrl>
+        <requireLicenseAcceptance>true</requireLicenseAcceptance>
+        <description>Superfast, lightweight (~100K), truly cross-platform AnyCPU POCO database for PCL, Universal Apps, Windows Phone 8/8.1, Windows Store 8/8.1, .NET4/4.5+, Silverlight 5, Xamarin.Mono &amp; Xamarin.iOS platforms.
+
+Features: 
+* Async, sync &amp; batch DB operations
+* Automatic and manual POCO mapping, PK automatic generation
+* No attributes needed 
+* Supports isolated storage, local app data folders.
+* Simple table structures, schema auto-upgrade
+* Lazy loading
+* Indexing
+* Concurrent database access (multiple application instance support incl. SL OOB)</description>
+        <summary>Superfast, lightweight (~100K), truly cross-platform AnyCPU POCO database for PCL, Universal Apps, Windows Phone 8/8.1/UAP, Windows Store 8/8.1, .NET4/4.5+, SL5, Xamarin.Mono &amp; Xamarin.iOS platforms.</summary>
+        <releaseNotes>1.2.4
+Windows 10 WACK fix
+
+1.2.3
+Bugfixes (compiled again with VS2013)
+
+1.2.2
+Windows 10 Univeral App Platform support
+
+1.2.1
+Xamarin.iOS performance improvements
+
+1.2
+Xamarin.iOS support
+
+1.1.7.6
+MIT License.
+Nuget Xamarin.MonoAndroid support.
+SortedSet supported.
+
+
+1.1.7.5
++ BulkReadAsync/BulkWriteAsync extensions
+
+1.1.7.4
++ Universal Windows Apps
++ PCL support 
+
+1.1.7
++ Windows Store 8.1 support
++ Windows Phone 8.1 support
++ Windows Phone RT 8.1 support
+
+1.1.6.3
++ WACK fix 
+
+1.1.6
++ Async methods removed from .NET4 &amp; SL5 (include DbTableAsync.cs if you have Microsoft.Bcl.Async dependency, I don't want to bloat your project in case you don't use Async stuff)
+
+1.1.5
++ Performance improvements for Windows 8 (sync IO)
++ Bug fixes
+
+1.1.4
++ Support for ObservableCollection members
++ untyped primary key API
+
+1.1.3
++ Bugfixes
++ WinRT StorageFolder home</releaseNotes>
+        <copyright>Alexey Lavnikov</copyright>
+        <language>en-US</language>
+        <tags>lexdb localdb indexeddb</tags>
+    </metadata>
+    <files>
+        <file src="..\bin\Release\Net45\Lex.Db.dll" target="lib\MonoAndroid\Lex.Db.dll" />
+        <file src="..\bin\Release\Net45\Lex.Db.xml" target="lib\MonoAndroid\Lex.Db.xml" />
+        <file src="..\bin\Release\Net45\Lex.Db.dll" target="lib\MonoMac\Lex.Db.dll" />
+        <file src="..\bin\Release\Net45\Lex.Db.xml" target="lib\MonoMac\Lex.Db.xml" />
+        <file src="..\bin\Release\iOS\Lex.Db.dll" target="lib\MonoTouch\Lex.Db.dll" />
+        <file src="..\bin\Release\iOS\Lex.Db.xml" target="lib\MonoTouch\Lex.Db.xml" />
+        <file src="..\Lex.Db\Db\DbTableAsync.cs" target="lib\net40\DbTableAsync.cs" />
+        <file src="..\bin\Release\Net4\Lex.Db.dll" target="lib\net40\Lex.Db.dll" />
+        <file src="..\bin\Release\Net4\Lex.Db.xml" target="lib\net40\Lex.Db.xml" />
+        <file src="..\bin\Release\Net45\Lex.Db.dll" target="lib\net45\Lex.Db.dll" />
+        <file src="..\bin\Release\Net45\Lex.Db.xml" target="lib\net45\Lex.Db.xml" />
+        <file src="..\bin\Release\WinRT\Lex.Db.dll" target="lib\netcore45\Lex.Db.dll" />
+        <file src="..\bin\Release\WinRT\Lex.Db.xml" target="lib\netcore45\Lex.Db.xml" />
+        <file src="..\bin\Release\WinRT81\Lex.Db.dll" target="lib\netcore451\Lex.Db.dll" />
+        <file src="..\bin\Release\WinRT81\Lex.Db.xml" target="lib\netcore451\Lex.Db.xml" />
+        <file src="..\bin\Release\Portable\Lex.Db.dll" target="lib\portable-net4+sl5+wp8+win8+wpa81\Lex.Db.dll" />
+        <file src="..\bin\Release\Portable\Lex.Db.xml" target="lib\portable-net4+sl5+wp8+win8+wpa81\Lex.Db.xml" />
+        <file src="..\Lex.Db\Db\DbTableAsync.cs" target="lib\sl50\DbTableAsync.cs" />
+        <file src="..\bin\Release\Silverlight5\Lex.Db.dll" target="lib\sl50\Lex.Db.dll" />
+        <file src="..\bin\Release\Silverlight5\Lex.Db.xml" target="lib\sl50\Lex.Db.xml" />
+        <file src="..\bin\Release\WinPhone8\Lex.Db.dll" target="lib\wp8\Lex.Db.dll" />
+        <file src="..\bin\Release\WinPhone8\Lex.Db.xml" target="lib\wp8\Lex.Db.xml" />
+        <file src="..\bin\Release\WinPhone81\Lex.Db.dll" target="lib\wp81\Lex.Db.dll" />
+        <file src="..\bin\Release\WinPhone81\Lex.Db.xml" target="lib\wp81\Lex.Db.xml" />
+        <file src="..\bin\Release\WinPhoneRT81\Lex.Db.dll" target="lib\wpa81\Lex.Db.dll" />
+        <file src="..\bin\Release\WinPhoneRT81\Lex.Db.xml" target="lib\wpa81\Lex.Db.xml" />
+    </files>
+</package>

@@ -434,7 +434,7 @@ namespace Lex.Db
     {
       var info = new WinApi.FILE_ATTRIBUTE_DATA();
 
-      if (!WinApi.GetFileAttributesEx(path, 0, ref info))
+      if (!WinApi.GetFileAttributesExW(path, 0, ref info))
         throw new IOException("Unable to get file into", Marshal.GetLastWin32Error());
 
       long result = (long)((ulong)info.ftLastWriteTimeHigh << 32 | (ulong)info.ftLastWriteTimeLow);
@@ -449,7 +449,7 @@ namespace Lex.Db
 
     public static void Delete(string path)
     {
-      WinApi.DeleteFile(path);
+      WinApi.DeleteFileW(path);
     }
 
     public static void Move(string sourcePath, string destPath)
@@ -516,7 +516,7 @@ namespace Lex.Db
 
     static void CheckDirectory(string path)
     {
-      if (!Exists(path) && !WinApi.CreateDirectory(path, IntPtr.Zero))
+      if (!Exists(path) && !WinApi.CreateDirectoryW(path, IntPtr.Zero))
         throw new IOException("Unable to create directory", Marshal.GetLastWin32Error());
     }
 
@@ -525,7 +525,7 @@ namespace Lex.Db
       if (recursive)
         throw new NotImplementedException();
 
-      if (!WinApi.RemoveDirectory(path))
+      if (!WinApi.RemoveDirectoryW(path))
         throw new IOException("Unable to remove directory", Marshal.GetLastWin32Error());
     }
   }
@@ -578,30 +578,30 @@ namespace Lex.Db
 #if NETFX_CORE
 
     [DllImport(FileApiDll, SetLastError = true, CharSet = CharSet.Unicode)]
-    public static extern bool DeleteFile(string path);
+    public static extern bool DeleteFileW(string path);
 
 
     [DllImport(WinBaseDll, SetLastError = true, CharSet = CharSet.Unicode)]
-    public static extern bool MoveFileEx(string sourcePath, string targetPath, MOVE_FILE_FLAGS flags);
+    public static extern bool MoveFileExW(string sourcePath, string targetPath, MOVE_FILE_FLAGS flags);
 
     public static bool MoveFile(string sourcePath, string targetPath)
     {
-      return MoveFileEx(sourcePath, targetPath, MOVE_FILE_FLAGS.MOVEFILE_WRITE_THROUGH);
+      return MoveFileExW(sourcePath, targetPath, MOVE_FILE_FLAGS.MOVEFILE_WRITE_THROUGH);
     }
 
     [DllImport(FileApiDll, SetLastError = true, CharSet = CharSet.Unicode)]
-    public static extern bool CreateDirectory(string path, IntPtr mustBeZero);
+    public static extern bool CreateDirectoryW(string path, IntPtr mustBeZero);
 
     [DllImport(FileApiDll, SetLastError = true, CharSet = CharSet.Unicode)]
-    public static extern bool RemoveDirectory(string path);
+    public static extern bool RemoveDirectoryW(string path);
 
     [DllImport(FileApiDll, SetLastError = true, CharSet = CharSet.Unicode, BestFitMapping = false, ExactSpelling = false)]
-    public static extern bool GetFileAttributesEx(string name, int fileInfoLevel, ref FILE_ATTRIBUTE_DATA lpFileInformation);
+    public static extern bool GetFileAttributesExW(string name, int fileInfoLevel, ref FILE_ATTRIBUTE_DATA lpFileInformation);
 
     public static FileAttributes GetFileAttributes(string path)
     {
       var data = new FILE_ATTRIBUTE_DATA();
-      return GetFileAttributesEx(path, 0, ref data) ? (FileAttributes)data.fileAttributes : FileAttributes.Invalid;
+      return GetFileAttributesExW(path, 0, ref data) ? (FileAttributes)data.fileAttributes : FileAttributes.Invalid;
     }
 
     public enum MOVE_FILE_FLAGS : int
