@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>daa436c4-af4d-44a2-a387-2a80e56c7da8</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>Lex.Db.Shared</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Core\CtorOfT.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Hash.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\TypeHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Db\DbInstance.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Db\DbTable.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Db\DbTableAsync.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Db\ITransactionScope.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Framework\BufferedStream.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Framework\OSFileStream.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Framework\ReaderWriterLockSlim.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Indexing\DataIndex.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Indexing\Indexers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Indexing\Indexes.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Indexing\KeyIndex.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Indexing\Lazies.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Indexing\RedBlackTree.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Mapping\DataMap.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Mapping\MemberMap.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Mapping\Metadata.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Mapping\TypeMap.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Properties\Version.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Serialization\DbDictType.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Serialization\DbListType.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Serialization\DbType.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Serialization\DbTypes.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Serialization\DictSerializers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Serialization\Extensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Serialization\Interceptor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Serialization\KnownDbType.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Serialization\ListSerializers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Serialization\MStream.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Serialization\Serializers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Storage\DbStorage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Storage\FileSystem\DbSchemaStorage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Storage\FileSystem\DbTableStorage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Storage\Interfaces\IDbSchemaStorage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Storage\Interfaces\IDbStorage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Storage\Interfaces\IDbTableStorage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Storage\IsolatedStorage\DbSchemaStorage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Storage\IsolatedStorage\DbTableStorage.cs" />
+  </ItemGroup>
+</Project>

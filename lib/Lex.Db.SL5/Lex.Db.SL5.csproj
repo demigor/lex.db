@@ -1,0 +1,195 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.50727</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{1DB62BEF-1D62-49A3-923E-69E5091808DC}</ProjectGuid>
+    <ProjectTypeGuids>{A1591282-1198-4647-A2B1-27E5FF5F6F3B};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Lex.Db</RootNamespace>
+    <AssemblyName>Lex.Db</AssemblyName>
+    <TargetFrameworkIdentifier>Silverlight</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
+    <SilverlightVersion>$(TargetFrameworkVersion)</SilverlightVersion>
+    <SilverlightApplication>false</SilverlightApplication>
+    <ValidateXaml>true</ValidateXaml>
+    <ThrowErrorsInValidation>true</ThrowErrorsInValidation>
+  </PropertyGroup>
+  <!-- This property group is only here to support building this project using the 
+       MSBuild 3.5 toolset. In order to work correctly with this older toolset, it needs 
+       to set the TargetFrameworkVersion to v3.5 -->
+  <PropertyGroup Condition="'$(MSBuildToolsVersion)' == '3.5'">
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>Bin\Debug</OutputPath>
+    <DefineConstants>TRACE;DEBUG;SILVERLIGHT;NOASYNC</DefineConstants>
+    <NoStdLib>true</NoStdLib>
+    <NoConfig>true</NoConfig>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>Bin\Release</OutputPath>
+    <DefineConstants>TRACE;SILVERLIGHT;NOASYNC</DefineConstants>
+    <NoStdLib>true</NoStdLib>
+    <NoConfig>true</NoConfig>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="mscorlib" />
+    <Reference Include="system" />
+    <Reference Include="System.Core">
+      <HintPath>$(TargetFrameworkDirectory)System.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Windows" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\Lex.Db.Shared\Core\CtorOfT.cs">
+      <Link>Core\CtorOfT.cs</Link>
+    </Compile>
+    <Compile Include="..\Lex.Db.Shared\Core\Hash.cs">
+      <Link>Core\Hash.cs</Link>
+    </Compile>
+    <Compile Include="..\Lex.Db.Shared\Core\TypeHelper.cs">
+      <Link>Core\TypeHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\Lex.Db.Shared\Db\DbInstance.cs">
+      <Link>Db\DbInstance.cs</Link>
+    </Compile>
+    <Compile Include="..\Lex.Db.Shared\Db\DbTable.cs">
+      <Link>Db\DbTable.cs</Link>
+    </Compile>
+    <Compile Include="..\Lex.Db.Shared\Db\DbTableAsync.cs">
+      <Link>Db\DbTableAsync.cs</Link>
+    </Compile>
+    <Compile Include="..\Lex.Db.Shared\Db\ITransactionScope.cs">
+      <Link>Db\ITransactionScope.cs</Link>
+    </Compile>
+    <Compile Include="..\Lex.Db.Shared\Framework\BufferedStream.cs">
+      <Link>Framework\BufferedStream.cs</Link>
+    </Compile>
+    <Compile Include="..\Lex.Db.Shared\Framework\OSFileStream.cs">
+      <Link>Framework\OSFileStream.cs</Link>
+    </Compile>
+    <Compile Include="..\Lex.Db.Shared\Framework\ReaderWriterLockSlim.cs">
+      <Link>Framework\ReaderWriterLockSlim.cs</Link>
+    </Compile>
+    <Compile Include="..\Lex.Db.Shared\Indexing\DataIndex.cs">
+      <Link>Indexing\DataIndex.cs</Link>
+    </Compile>
+    <Compile Include="..\Lex.Db.Shared\Indexing\Indexers.cs">
+      <Link>Indexing\Indexers.cs</Link>
+    </Compile>
+    <Compile Include="..\Lex.Db.Shared\Indexing\Indexes.cs">
+      <Link>Indexing\Indexes.cs</Link>
+    </Compile>
+    <Compile Include="..\Lex.Db.Shared\Indexing\KeyIndex.cs">
+      <Link>Indexing\KeyIndex.cs</Link>
+    </Compile>
+    <Compile Include="..\Lex.Db.Shared\Indexing\Lazies.cs">
+      <Link>Indexing\Lazies.cs</Link>
+    </Compile>
+    <Compile Include="..\Lex.Db.Shared\Indexing\RedBlackTree.cs">
+      <Link>Indexing\RedBlackTree.cs</Link>
+    </Compile>
+    <Compile Include="..\Lex.Db.Shared\Mapping\DataMap.cs">
+      <Link>Mapping\DataMap.cs</Link>
+    </Compile>
+    <Compile Include="..\Lex.Db.Shared\Mapping\MemberMap.cs">
+      <Link>Mapping\MemberMap.cs</Link>
+    </Compile>
+    <Compile Include="..\Lex.Db.Shared\Mapping\Metadata.cs">
+      <Link>Mapping\Metadata.cs</Link>
+    </Compile>
+    <Compile Include="..\Lex.Db.Shared\Mapping\TypeMap.cs">
+      <Link>Mapping\TypeMap.cs</Link>
+    </Compile>
+    <Compile Include="..\Lex.Db.Shared\Properties\Version.cs">
+      <Link>Properties\Version.cs</Link>
+    </Compile>
+    <Compile Include="..\Lex.Db.Shared\Serialization\DbDictType.cs">
+      <Link>Serialization\DbDictType.cs</Link>
+    </Compile>
+    <Compile Include="..\Lex.Db.Shared\Serialization\DbListType.cs">
+      <Link>Serialization\DbListType.cs</Link>
+    </Compile>
+    <Compile Include="..\Lex.Db.Shared\Serialization\DbType.cs">
+      <Link>Serialization\DbType.cs</Link>
+    </Compile>
+    <Compile Include="..\Lex.Db.Shared\Serialization\DbTypes.cs">
+      <Link>Serialization\DbTypes.cs</Link>
+    </Compile>
+    <Compile Include="..\Lex.Db.Shared\Serialization\DictSerializers.cs">
+      <Link>Serialization\DictSerializers.cs</Link>
+    </Compile>
+    <Compile Include="..\Lex.Db.Shared\Serialization\Extensions.cs">
+      <Link>Serialization\Extensions.cs</Link>
+    </Compile>
+    <Compile Include="..\Lex.Db.Shared\Serialization\Interceptor.cs">
+      <Link>Serialization\Interceptor.cs</Link>
+    </Compile>
+    <Compile Include="..\Lex.Db.Shared\Serialization\KnownDbType.cs">
+      <Link>Serialization\KnownDbType.cs</Link>
+    </Compile>
+    <Compile Include="..\Lex.Db.Shared\Serialization\ListSerializers.cs">
+      <Link>Serialization\ListSerializers.cs</Link>
+    </Compile>
+    <Compile Include="..\Lex.Db.Shared\Serialization\MStream.cs">
+      <Link>Serialization\MStream.cs</Link>
+    </Compile>
+    <Compile Include="..\Lex.Db.Shared\Serialization\Serializers.cs">
+      <Link>Serialization\Serializers.cs</Link>
+    </Compile>
+    <Compile Include="..\Lex.Db.Shared\Storage\DbStorage.cs">
+      <Link>Storage\DbStorage.cs</Link>
+    </Compile>
+    <Compile Include="..\Lex.Db.Shared\Storage\FileSystem\DbSchemaStorage.cs">
+      <Link>Storage\FileSystem\DbSchemaStorage.cs</Link>
+    </Compile>
+    <Compile Include="..\Lex.Db.Shared\Storage\FileSystem\DbTableStorage.cs">
+      <Link>Storage\FileSystem\DbTableStorage.cs</Link>
+    </Compile>
+    <Compile Include="..\Lex.Db.Shared\Storage\Interfaces\IDbSchemaStorage.cs">
+      <Link>Storage\Interfaces\IDbSchemaStorage.cs</Link>
+    </Compile>
+    <Compile Include="..\Lex.Db.Shared\Storage\Interfaces\IDbStorage.cs">
+      <Link>Storage\Interfaces\IDbStorage.cs</Link>
+    </Compile>
+    <Compile Include="..\Lex.Db.Shared\Storage\Interfaces\IDbTableStorage.cs">
+      <Link>Storage\Interfaces\IDbTableStorage.cs</Link>
+    </Compile>
+    <Compile Include="..\Lex.Db.Shared\Storage\IsolatedStorage\DbSchemaStorage.cs">
+      <Link>Storage\IsolatedStorage\DbSchemaStorage.cs</Link>
+    </Compile>
+    <Compile Include="..\Lex.Db.Shared\Storage\IsolatedStorage\DbTableStorage.cs">
+      <Link>Storage\IsolatedStorage\DbTableStorage.cs</Link>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Silverlight\$(SilverlightVersion)\Microsoft.Silverlight.CSharp.targets" />
+  <ProjectExtensions>
+    <VisualStudio>
+      <FlavorProperties GUID="{A1591282-1198-4647-A2B1-27E5FF5F6F3B}">
+        <SilverlightProjectProperties />
+      </FlavorProperties>
+    </VisualStudio>
+  </ProjectExtensions>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
