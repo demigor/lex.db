@@ -81,7 +81,7 @@ SortedSet supported.
     </metadata>
     <files>
         <file src="..\lib\Lex.Db.Android\bin\Release\Lex.Db.dll" target="lib\MonoAndroid\Lex.Db.dll" />
-        <file src="..\lib\Lex.Db.iOS\bin\iPhone\Release\Lex.Db.dll" target="lib\MonoTouch\Lex.Db.dll" />
+        <file src="..\lib\Lex.Db.iOS\bin\Release\Lex.Db.dll" target="lib\MonoTouch\Lex.Db.dll" />
         <file src="..\lib\Lex.Db.Shared\Db\DbTableAsync.cs" target="lib\net40\DbTableAsync.cs" />
         <file src="..\lib\Lex.Db.Net4\bin\Release\Lex.Db.dll" target="lib\net40\Lex.Db.dll" />
         <file src="..\lib\Lex.Db.Net45\bin\Release\Lex.Db.dll" target="lib\net45\Lex.Db.dll" />
