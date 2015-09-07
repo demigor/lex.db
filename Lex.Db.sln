@@ -61,17 +61,24 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lex.Db.Tests.WP8", "tests\L
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		tests\Lex.Db.Tests.Shared\Lex.Db.Tests.Shared.projitems*{cb60506b-b9e7-4e39-87bc-f8f4b2f6da8c}*SharedItemsImports = 4
+		tests\Lex.Db.Tests.Shared\Lex.Db.Tests.Shared.projitems*{4c997843-2282-44af-b6e2-cd915b6387c1}*SharedItemsImports = 4
 		lib\Lex.Db.Shared\Lex.Db.Shared.projitems*{360e79ea-6118-47a6-9f00-fa8ecfca3338}*SharedItemsImports = 4
+		tests\Lex.Db.Tests.Shared\Lex.Db.Tests.Shared.projitems*{57fe6afa-c932-47c2-9761-2592ccf3cbe5}*SharedItemsImports = 4
 		lib\Lex.Db.Shared\Lex.Db.Shared.projitems*{127859d4-7ad4-4d34-83bd-b24f8709b54f}*SharedItemsImports = 4
 		lib\Lex.Db.Shared\Lex.Db.Shared.projitems*{d6dd941d-5c15-4ce5-9bf3-69875f138420}*SharedItemsImports = 4
 		lib\Lex.Db.Shared\Lex.Db.Shared.projitems*{f362f6b0-90b4-449b-96f8-8c5d7e950c2c}*SharedItemsImports = 4
 		lib\Lex.Db.Shared\Lex.Db.Shared.projitems*{a18b7c13-c346-4f1e-aad0-90acd85cea8a}*SharedItemsImports = 4
 		lib\Lex.Db.Shared\Lex.Db.Shared.projitems*{5bbc2755-3c7f-4847-bfbf-6b415cc4bdda}*SharedItemsImports = 4
 		lib\Lex.Db.Shared\Lex.Db.Shared.projitems*{64f35568-c748-4ee2-be6a-b8190f593857}*SharedItemsImports = 4
+		tests\Lex.Db.Tests.Shared\Lex.Db.Tests.Shared.projitems*{5be5edab-cf7f-44a4-9e6e-8983df07f103}*SharedItemsImports = 4
 		lib\Lex.Db.Shared\Lex.Db.Shared.projitems*{6d5ef575-f212-4750-af0c-8088c866adfc}*SharedItemsImports = 4
+		tests\Lex.Db.Tests.Shared\Lex.Db.Tests.Shared.projitems*{2824ff03-6c32-4a40-8e0e-6ce499b34a48}*SharedItemsImports = 4
 		lib\Lex.Db.Shared\Lex.Db.Shared.projitems*{cbb8cbba-b785-4ef6-9021-48ced15006cb}*SharedItemsImports = 4
 		lib\Lex.Db.Shared\Lex.Db.Shared.projitems*{04608184-27b9-42a2-9e5e-69a6cb21ecfe}*SharedItemsImports = 4
+		tests\Lex.Db.Tests.Shared\Lex.Db.Tests.Shared.projitems*{43bc9339-a337-4886-8ef7-bc7ea4e5e824}*SharedItemsImports = 13
 		lib\Lex.Db.Shared\Lex.Db.Shared.projitems*{daa436c4-af4d-44a2-a387-2a80e56c7da8}*SharedItemsImports = 13
+		tests\Lex.Db.Tests.Shared\Lex.Db.Tests.Shared.projitems*{8a2e61e9-ecb3-4dc1-b461-0474a30277cc}*SharedItemsImports = 4
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
