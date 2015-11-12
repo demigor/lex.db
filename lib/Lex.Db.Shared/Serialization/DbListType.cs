@@ -5,7 +5,7 @@ namespace Lex.Db.Serialization
   internal class DbListType : DbType
   {
     public DbListType(DbType element)
-      : base((short)KnownDbType.List, element.Type.MakeArrayType())
+      : base((sbyte)KnownDbType.List, element.Type.MakeArrayType())
     {
       Element = element;
     }

@@ -5,13 +5,13 @@ namespace Lex.Db.Serialization
 {
   class DbType
   {
-    protected DbType(short id, Type type)
+    protected DbType(sbyte id, Type type)
     {
       Id = id;
       Type = type;
     }
 
-    public DbType(short id)
+    public DbType(sbyte id)
       : this(id, DbTypes.GetType(id))
     {
     }
@@ -26,12 +26,12 @@ namespace Lex.Db.Serialization
       return type.Id == Id;
     }
 
-    public readonly short Id;
+    public readonly sbyte Id;
     public readonly Type Type;
 
     public static DbType Read(DataReader reader)
     {
-      var id = reader.ReadInt16();
+      var id = reader.ReadSByte();
 
       switch ((KnownDbType)id)
       {
