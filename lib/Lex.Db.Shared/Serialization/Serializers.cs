@@ -881,11 +881,11 @@ namespace Lex.Db.Serialization
 
     public Uri ReadUri()
     {
+      var absolute = ReadBoolean();
       var uri = ReadString();
       if (uri == null)
         return null;
 
-      var absolute = ReadBoolean();
       if (absolute)
         return new Uri(uri, UriKind.Absolute);
 

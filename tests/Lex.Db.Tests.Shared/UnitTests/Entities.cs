@@ -61,6 +61,8 @@ namespace Lex.Db
     public Guid GuidField { get; set; }
     public Guid? GuidNField { get; set; }
 
+    public Uri[] UriArrayField { get; set; }
+
     public List<int> ListField { get; set; }
 #if !SILVERLIGHT || WINDOWS_PHONE
     public SortedSet<int> SortedSetField { get; set; }
