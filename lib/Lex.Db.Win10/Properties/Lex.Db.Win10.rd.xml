@@ -21,13 +21,26 @@
         Use an AttributeImplies directive to indicate that your library needs to reflect over
         types or methods decorated with an attribute.
 
+      MarshalStructure="Required All"
+      MarshalDelegate="Required All"
+      
+      
+      
     For more information on writing Runtime Directives for libraries, please visit
     http://go.microsoft.com/fwlink/?LinkId=613100
 -->
-<Directives xmlns="http://schemas.microsoft.com/netfx/2013/01/metadata">
-  <Library Name="Lex.Db.UWP">
-
-  	<!-- add directives for your library here -->
-
+      <Directives xmlns="http://schemas.microsoft.com/netfx/2013/01/metadata">
+        <Library Name="Lex.Db.UWP">
+          <Assembly 
+            Name="Lex.Db" 
+            Dynamic="Required All"
+            Activate="Required All"
+            Serialize="Required All"
+            Browse="Required All"
+            XmlSerializer="Required All"
+            DataContractJsonSerializer="Required All"
+            DataContractSerializer="Required All"
+            DoNotOptimize="true"
+            DoNotInline="true" />
   </Library>
 </Directives>
