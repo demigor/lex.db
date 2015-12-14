@@ -7,17 +7,35 @@ namespace Lex.Db
   /// <summary>
   /// Pure POCO data entity
   /// </summary>
-  public class MyData 
+  public class MyData
   {
     public int Id { get; set; }
     public string Name { get; set; }
     public string LastName { get; set; }
 
+    public byte ByteField { get; set; }
+    public byte? ByteNField { get; set; }
+
+    public sbyte SByteField { get; set; }
+    public sbyte? SByteNField { get; set; }
+
+    public short ShortField { get; set; }
+    public short? ShortNField { get; set; }
+
+    public ushort UShortField { get; set; }
+    public ushort? UShortNField { get; set; }
+
     public int IntField { get; set; }
     public int? IntNField { get; set; }
 
+    public uint UIntField { get; set; }
+    public uint? UIntNField { get; set; }
+
     public long LongField { get; set; }
     public long? LongNField { get; set; }
+
+    public ulong ULongField { get; set; }
+    public ulong? ULongNField { get; set; }
 
     public double DoubleField { get; set; }
     public double? DoubleNField { get; set; }
@@ -42,6 +60,8 @@ namespace Lex.Db
 
     public Guid GuidField { get; set; }
     public Guid? GuidNField { get; set; }
+
+    public Uri[] UriArrayField { get; set; }
 
     public List<int> ListField { get; set; }
 #if !SILVERLIGHT || WINDOWS_PHONE
@@ -78,7 +98,7 @@ namespace Lex.Db
   }
 
   /// <summary>
-  /// Interface for interface based data entity 
+  /// Interface for interface based data entity
   /// </summary>
   public interface IData
   {

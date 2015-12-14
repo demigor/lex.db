@@ -43,7 +43,7 @@ namespace Lex.Db
 
     static DbTests2()
     {
-      Serialization.Extender.RegisterType<Point, PointSerializer>(2000);
+      Serialization.Extender.RegisterType<Point, PointSerializer>(100);
     }
 
     [TestInitialize]

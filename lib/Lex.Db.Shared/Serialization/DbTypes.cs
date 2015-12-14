@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Text;
 
 namespace Lex.Db.Serialization
 {
@@ -13,8 +14,13 @@ namespace Lex.Db.Serialization
     {
       Register<Guid>(KnownDbType.Guid);
       Register<string>(KnownDbType.String);
+      Register<StringBuilder>(KnownDbType.StringBuilder);
+      Register<short>(KnownDbType.Short);
+      Register<ushort>(KnownDbType.UnsignedShort);
       Register<int>(KnownDbType.Integer);
+      Register<uint>(KnownDbType.UnsignedInteger);
       Register<long>(KnownDbType.Long);
+      Register<ulong>(KnownDbType.UnsignedLong);
       Register<float>(KnownDbType.Float);
       Register<double>(KnownDbType.Double);
       Register<DateTime>(KnownDbType.DateTime);
@@ -23,15 +29,16 @@ namespace Lex.Db.Serialization
       Register<bool>(KnownDbType.Boolean);
       Register<decimal>(KnownDbType.Decimal);
       Register<byte>(KnownDbType.Byte);
+      Register<sbyte>(KnownDbType.SignedByte);
       Register<Uri>(KnownDbType.Uri);
     }
 
     static void Register<T>(KnownDbType dbType)
     {
-      Register<T>((short)dbType);
+      Register<T>((sbyte)dbType);
     }
 
-    public static void Register<T>(short dbId)
+    public static void Register<T>(sbyte dbId)
     {
       lock (_simpleTypes)
         _simpleTypes.Add(dbId, typeof(T));
@@ -97,7 +104,7 @@ namespace Lex.Db.Serialization
             if (elementDbType == null)
               return null;
 
-            return _dbTypes[type] = GetDbType(element.MakeArrayType()); // to reuse cached dbType 
+            return _dbTypes[type] = GetDbType(element.MakeArrayType()); // to reuse cached dbType
           }
         }
       }
@@ -107,7 +114,7 @@ namespace Lex.Db.Serialization
     public static DbType GetDbType(Type type)
     {
       var result = TryGetDbType(type);
-      
+
       if (result == null)
         throw new NotSupportedException(string.Format("Serialization of '{0}' is not supported", type));
 

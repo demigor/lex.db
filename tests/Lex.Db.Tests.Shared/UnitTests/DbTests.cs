@@ -660,6 +660,11 @@ namespace Lex.Db
     {
       var obj = new MyData
       {
+        UriArrayField = new Uri[]
+        {
+          new Uri("https://github.com/demigor/lex.db"),
+          new Uri("/abc.txt", UriKind.Relative)
+        },
         ListField = new List<int> { 1, 2, 3, 4, 5 },
 #if !SILVERLIGHT || WINDOWS_PHONE
         SortedSetField = new SortedSet<int> { 5, 2, 3, 4, 1 },
