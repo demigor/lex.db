@@ -16,6 +16,13 @@
     TimeSpan = 9,
     Long = 10,
     DateTimeOffset = 11,
-    Uri = 12
+    Uri = 12,
+    UriBuilder = 13,
+    StringBuilder = 14,
+    SByte = 15,
+    Short = 16,
+    UShort = 17,
+    UInteger = 18,
+    ULong = 19
   }
 }

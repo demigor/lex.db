@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Text;
 
 namespace Lex.Db.Serialization
 {
@@ -117,11 +118,17 @@ namespace Lex.Db.Serialization
     {
       // default writers registration
       _writerMethods[typeof(byte)] = (w, data) => w.Write((byte)data);
+      _writerMethods[typeof(sbyte)] = (w, data) => w.Write((sbyte)data);
+      _writerMethods[typeof(short)] = (w, data) => w.Write((short)data);
+      _writerMethods[typeof(ushort)] = (w, data) => w.Write((ushort)data);
       _writerMethods[typeof(byte[])] = (w, data) => w.WriteArray((byte[])data);
       _writerMethods[typeof(string)] = (w, data) => w.Write((string)data);
+      _writerMethods[typeof(StringBuilder)] = (w, data) => w.Write((StringBuilder)data);
       _writerMethods[typeof(bool)] = (w, data) => w.Write((bool)data);
       _writerMethods[typeof(int)] = (w, data) => w.Write((int)data);
+      _writerMethods[typeof(uint)] = (w, data) => w.Write((uint)data);
       _writerMethods[typeof(long)] = (w, data) => w.Write((long)data);
+      _writerMethods[typeof(ulong)] = (w, data) => w.Write((ulong)data);
       _writerMethods[typeof(double)] = (w, data) => w.Write((double)data);
       _writerMethods[typeof(float)] = (w, data) => w.Write((float)data);
       _writerMethods[typeof(decimal)] = (w, data) => w.Write((decimal)data);
@@ -130,14 +137,21 @@ namespace Lex.Db.Serialization
       _writerMethods[typeof(TimeSpan)] = (w, data) => w.Write((TimeSpan)data);
       _writerMethods[typeof(Guid)] = (w, data) => w.Write((Guid)data);
       _writerMethods[typeof(Uri)] = (w, data) => w.Write((Uri)data);
+      _writerMethods[typeof(UriBuilder)] = (w, data) => w.Write((UriBuilder)data);
 
       // default readers registration
       _readerMethods[typeof(byte)] = r => r.ReadByte();
+      _readerMethods[typeof(sbyte)] = r => r.ReadSByte();
+      _readerMethods[typeof(short)] = r => r.ReadInt16();
+      _readerMethods[typeof(ushort)] = r => r.ReadUInt16();
       _readerMethods[typeof(byte[])] = r => r.ReadArray();
       _readerMethods[typeof(string)] = r => r.ReadString();
+      _readerMethods[typeof(StringBuilder)] = r => r.ReadStringBuilder(); 
       _readerMethods[typeof(bool)] = r => r.ReadBoolean();
       _readerMethods[typeof(int)] = r => r.ReadInt32();
+      _readerMethods[typeof(uint)] = r => r.ReadUInt32();
       _readerMethods[typeof(long)] = r => r.ReadInt64();
+      _readerMethods[typeof(ulong)] = r => r.ReadUInt64();
       _readerMethods[typeof(double)] = r => r.ReadDouble();
       _readerMethods[typeof(float)] = r => r.ReadSingle();
       _readerMethods[typeof(decimal)] = r => r.ReadDecimal();
@@ -146,6 +160,8 @@ namespace Lex.Db.Serialization
       _readerMethods[typeof(TimeSpan)] = r => r.ReadTimeSpan();
       _readerMethods[typeof(Guid)] = r => r.ReadGuid();
       _readerMethods[typeof(Uri)] = r => r.ReadUri();
+      _readerMethods[typeof(StringBuilder)] = r => r.ReadUri();
+      _readerMethods[typeof(UriBuilder)] = r => r.ReadUriBuilder(); 
     }
 
     static Func<DataReader, object> GetReaderField(Type type, string name = "Reader")
@@ -350,13 +366,9 @@ namespace Lex.Db.Serialization
 
     static Expression WriteValueNullable(Expression writer, Expression value, Type nnType)
     {
-#if WINDOWS_UWP
-      var @cond = Expression.NotEqual(value, Expression.Default(value.Type));
-#else
       var @cond = Expression.Property(value, "HasValue");
-#endif
       var @then = WriteValueNormal(writer, Expression.Property(value, "Value"));
-      var @else = Expression.Call(writer, _writeBool, Expression.Constant(true)); 
+      var @else = Expression.Call(writer, _writeBool, Expression.Constant(true));
 
       return Expression.IfThenElse(@cond, @then, @else);
     }
@@ -438,14 +450,22 @@ namespace Lex.Db.Serialization
 
     static MethodInfo MakeArrayWrite(Type type)
     {
-      var et = type.GetElementType();
-      return typeof(ListSerializers<>).MakeGenericType(et).GetStaticMethod("WriteArray");
+      return MakeArrayWriteCore(typeof(ListSerializers<>).MakeGenericType(type.GetElementType()));
+    }
+
+    static MethodInfo MakeArrayWriteCore(Type type)
+    {
+      return type.GetStaticMethod("WriteArray");
     }
 
     static MethodInfo MakeArrayRead(Type type)
     {
-      var et = type.GetElementType();
-      return typeof(ListSerializers<>).MakeGenericType(et).GetStaticMethod("ReadArray");
+      return MakeArrayReadCore(typeof(ListSerializers<>).MakeGenericType(type.GetElementType()));
+    }
+
+    static MethodInfo MakeArrayReadCore(Type type)
+    {
+      return type.GetStaticMethod("ReadArray");
     }
 
     static MethodInfo MakeGenericWrite(Type type)
@@ -508,7 +528,7 @@ namespace Lex.Db.Serialization
       throw new NotSupportedException();
     }
 
-      #region Guid serialization
+    #region Guid serialization
 
     public static Guid ReadGuid(DataReader reader)
     {
@@ -520,9 +540,9 @@ namespace Lex.Db.Serialization
       writer.Write(value);
     }
 
-      #endregion
+    #endregion
 
-      #region Uri serialization
+    #region Uri serialization
 
     public static Uri ReadUri(DataReader reader)
     {
@@ -534,9 +554,51 @@ namespace Lex.Db.Serialization
       writer.Write(value);
     }
 
-      #endregion
+    #endregion
 
-      #region int serialization
+    #region UriBuilder serialization  
+
+    public static UriBuilder ReadUriBuilder(DataReader reader)
+    {
+      return reader.ReadUriBuilder();
+    }
+
+    public static void WriteUriBuilder(DataWriter writer, UriBuilder value)
+    {
+      writer.Write(value);
+    }
+
+    #endregion
+
+    #region short serialization
+
+    public static short ReadShort(DataReader reader)
+    {
+      return reader.ReadInt16();
+    }
+
+    public static void WriteShort(DataWriter writer, short value)
+    {
+      writer.Write(value);
+    }
+
+    #endregion
+
+    #region ushort serialization
+
+    public static ushort ReadUShort(DataReader reader)
+    {
+      return reader.ReadUInt16();
+    }
+
+    public static void WriteUShort(DataWriter writer, ushort value)
+    {
+      writer.Write(value);
+    }
+
+    #endregion
+
+    #region int serialization
 
     public static int ReadInt(DataReader reader)
     {
@@ -548,9 +610,23 @@ namespace Lex.Db.Serialization
       writer.Write(value);
     }
 
-      #endregion
+    #endregion
 
-      #region long serialization
+    #region uint serialization
+
+    public static uint ReadUInt(DataReader reader)
+    {
+      return reader.ReadUInt32();
+    }
+
+    public static void WriteUInt(DataWriter writer, uint value)
+    {
+      writer.Write(value);
+    }
+
+    #endregion
+
+    #region long serialization
 
     public static long ReadLong(DataReader reader)
     {
@@ -562,9 +638,23 @@ namespace Lex.Db.Serialization
       writer.Write(value);
     }
 
-      #endregion
+    #endregion
 
-      #region float serialization
+    #region ulong serialization
+
+    public static ulong ReadULong(DataReader reader)
+    {
+      return reader.ReadUInt64();
+    }
+
+    public static void WriteULong(DataWriter writer, ulong value)
+    {
+      writer.Write(value);
+    }
+
+    #endregion
+
+    #region float serialization
 
     public static float ReadFloat(DataReader reader)
     {
@@ -576,9 +666,9 @@ namespace Lex.Db.Serialization
       writer.Write(value);
     }
 
-      #endregion
+    #endregion
 
-      #region double serialization
+    #region double serialization
 
     public static double ReadDouble(DataReader reader)
     {
@@ -590,9 +680,9 @@ namespace Lex.Db.Serialization
       writer.Write(value);
     }
 
-      #endregion
+    #endregion
 
-      #region string serialization
+    #region string serialization
 
     public static string ReadString(DataReader reader)
     {
@@ -604,9 +694,23 @@ namespace Lex.Db.Serialization
       writer.Write(value);
     }
 
-      #endregion
+    #endregion
 
-      #region DateTime serialization
+    #region StringBuilder serialization  
+
+    public static StringBuilder ReadStringBuilder(DataReader reader)
+    {
+      return reader.ReadStringBuilder();
+    }
+
+    public static void WriteStringBuilder(DataWriter writer, StringBuilder value)
+    {
+      writer.Write(value);
+    }
+
+    #endregion
+
+    #region DateTime serialization
 
     public static DateTime ReadDateTime(DataReader reader)
     {
@@ -618,9 +722,9 @@ namespace Lex.Db.Serialization
       writer.Write(value);
     }
 
-      #endregion
+    #endregion
 
-      #region DateTimeOffset serialization
+    #region DateTimeOffset serialization
 
     public static DateTimeOffset ReadDateTimeOffset(DataReader reader)
     {
@@ -632,9 +736,9 @@ namespace Lex.Db.Serialization
       writer.Write(value);
     }
 
-      #endregion
+    #endregion
 
-      #region TimeSpan serialization
+    #region TimeSpan serialization
 
     public static TimeSpan ReadTimeSpan(DataReader reader)
     {
@@ -646,9 +750,9 @@ namespace Lex.Db.Serialization
       writer.Write(value);
     }
 
-      #endregion
+    #endregion
 
-      #region bool serialization
+    #region bool serialization
 
     public static bool ReadBoolean(DataReader reader)
     {
@@ -660,9 +764,9 @@ namespace Lex.Db.Serialization
       writer.Write(value);
     }
 
-      #endregion
+    #endregion
 
-      #region byte serialization
+    #region byte serialization
 
     public static byte ReadByte(DataReader reader)
     {
@@ -674,9 +778,23 @@ namespace Lex.Db.Serialization
       writer.Write(value);
     }
 
-      #endregion
+    #endregion
 
-      #region byte array serialization
+    #region sbyte serialization
+
+    public static sbyte ReadSByte(DataReader reader)
+    {
+      return reader.ReadSByte();
+    }
+
+    public static void WriteSByte(DataWriter writer, sbyte value)
+    {
+      writer.Write(value);
+    }
+
+    #endregion
+
+    #region byte array serialization
 
     public static byte[] ReadArray(DataReader reader)
     {
@@ -688,9 +806,9 @@ namespace Lex.Db.Serialization
       writer.WriteArray(value);
     }
 
-      #endregion
+    #endregion
 
-      #region decimal serialization
+    #region decimal serialization
 
     public static decimal ReadDecimal(DataReader reader)
     {
@@ -706,9 +824,9 @@ namespace Lex.Db.Serialization
 #endif
     }
 
-      #endregion
+    #endregion
 #endif
-    }
+  }
 
   static class Serializer<K>
   {
@@ -751,6 +869,24 @@ namespace Lex.Db.Serialization
     /// </summary>
     /// <param name="stream">Stream to read from</param>
     public DataReader(Stream stream) : base(stream) { }
+
+    public UriBuilder ReadUriBuilder()
+    {
+      var uri = ReadUri();
+      if (uri == null)
+        return null;
+
+      return new UriBuilder(uri);
+    }
+
+    public StringBuilder ReadStringBuilder()
+    {
+      var result = ReadString();
+      if (result == null)
+        return null;
+
+      return new StringBuilder(result);
+    }
 
     /// <summary>
     /// Reads TimeSpan value from stream
@@ -840,6 +976,27 @@ namespace Lex.Db.Serialization
     /// </summary>
     /// <param name="stream">Stream to write to</param>
     public DataWriter(Stream stream) : base(stream) { }
+
+    public void Write(UriBuilder value)
+    {
+      if (value == null)
+        Write((string)null);
+      else
+      {
+        var uri = value.Uri;
+        var absolute = uri.IsAbsoluteUri;
+        Write(absolute);
+        Write(uri.GetComponents(UriComponents.SerializationInfoString, UriFormat.UriEscaped));
+      }
+    }
+
+    public void Write(StringBuilder value)
+    {
+      if (value == null)
+        Write((string)null);
+      else
+        Write(value.ToString());
+    }
 
     /// <summary>
     /// Writes TimeSpan value to stream

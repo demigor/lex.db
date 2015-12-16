@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Text;
 
 namespace Lex.Db
 {
@@ -13,11 +14,23 @@ namespace Lex.Db
     public string Name { get; set; }
     public string LastName { get; set; }
 
+    public short ShortField { get; set; }
+    public short? ShortNField { get; set; }
+
+    public ushort UShortField { get; set; }
+    public ushort? UShortNField { get; set; }
+
     public int IntField { get; set; }
     public int? IntNField { get; set; }
 
+    public uint UIntField { get; set; }
+    public uint? UIntNField { get; set; }
+
     public long LongField { get; set; }
     public long? LongNField { get; set; }
+
+    public ulong ULongField { get; set; }
+    public ulong? ULongNField { get; set; }
 
     public double DoubleField { get; set; }
     public double? DoubleNField { get; set; }
@@ -54,6 +67,9 @@ namespace Lex.Db
     public TestEnum? EnumNField { get; set; }
 
     public byte[] BlobField;
+
+    public StringBuilder StringBuilderField;
+    public UriBuilder UriBuilderField;
   }
 
   /// <summary>

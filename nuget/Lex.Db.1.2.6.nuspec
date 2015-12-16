@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>Lex.Db</id>
-        <version>1.2.5</version>
+        <version>1.2.6</version>
         <title>Lex DB</title>
         <authors>Lex Lavnikov</authors>
         <owners>Lex Lavnikov</owners>
@@ -22,7 +22,10 @@ Features:
 * Indexing
 * Concurrent database access (multiple application instance support incl. SL OOB)</description>
         <summary>Superfast, lightweight (~100K), truly cross-platform AnyCPU POCO database for PCL, UWP Windows 10/Windows 8.1, WinPhone 8/8.1, .NET4/4.5/4.6, SL5, Xamarin.Android &amp; Xamarin.iOS platforms.</summary>
-        <releaseNotes>1.2.5
+        <releaseNotes>1.2.6
+Windows 10 UWP .NET Native fix
+
+1.2.5
 Windows 10 UWP fix
 
 1.2.4
@@ -81,17 +84,41 @@ SortedSet supported.
     </metadata>
     <files>
         <file src="..\lib\Lex.Db.Android\bin\Release\Lex.Db.dll" target="lib\MonoAndroid\Lex.Db.dll" />
+        <file src="..\lib\Lex.Db.Android\bin\Release\Lex.Db.pdb" target="lib\MonoAndroid\Lex.Db.pdb" />
+        <file src="..\lib\Lex.Db.Android\bin\Release\Lex.Db.xml" target="lib\MonoAndroid\Lex.Db.xml" />
         <file src="..\lib\Lex.Db.iOS\bin\Release\Lex.Db.dll" target="lib\MonoTouch\Lex.Db.dll" />
+        <file src="..\lib\Lex.Db.iOS\bin\Release\Lex.Db.pdb" target="lib\MonoTouch\Lex.Db.pdb" />
+        <file src="..\lib\Lex.Db.iOS\bin\Release\Lex.Db.xml" target="lib\MonoTouch\Lex.Db.xml" />
         <file src="..\lib\Lex.Db.Shared\Db\DbTableAsync.cs" target="lib\net40\DbTableAsync.cs" />
         <file src="..\lib\Lex.Db.Net4\bin\Release\Lex.Db.dll" target="lib\net40\Lex.Db.dll" />
+        <file src="..\lib\Lex.Db.Net4\bin\Release\Lex.Db.pdb" target="lib\net40\Lex.Db.pdb" />
+        <file src="..\lib\Lex.Db.Net4\bin\Release\Lex.Db.xml" target="lib\net40\Lex.Db.xml" />
         <file src="..\lib\Lex.Db.Net45\bin\Release\Lex.Db.dll" target="lib\net45\Lex.Db.dll" />
+        <file src="..\lib\Lex.Db.Net45\bin\Release\Lex.Db.pdb" target="lib\net45\Lex.Db.pdb" />
+        <file src="..\lib\Lex.Db.Net45\bin\Release\Lex.Db.xml" target="lib\net45\Lex.Db.xml" />
         <file src="..\lib\Lex.Db.Net46\bin\Release\Lex.Db.dll" target="lib\net46\Lex.Db.dll" />
+        <file src="..\lib\Lex.Db.Net46\bin\Release\Lex.Db.pdb" target="lib\net46\Lex.Db.pdb" />
+        <file src="..\lib\Lex.Db.Net46\bin\Release\Lex.Db.xml" target="lib\net46\Lex.Db.xml" />
         <file src="..\lib\Lex.Db.Portable\bin\Release\Lex.Db.dll" target="lib\portable-net4+sl5+wp8+win8+MonoAndroid+MonoTouch\Lex.Db.dll" />
+        <file src="..\lib\Lex.Db.Portable\bin\Release\Lex.Db.pdb" target="lib\portable-net4+sl5+wp8+win8+MonoAndroid+MonoTouch\Lex.Db.pdb" />
+        <file src="..\lib\Lex.Db.Portable\bin\Release\Lex.Db.xml" target="lib\portable-net4+sl5+wp8+win8+MonoAndroid+MonoTouch\Lex.Db.xml" />
         <file src="..\lib\Lex.Db.Win81\bin\Release\Lex.Db.dll" target="lib\portable-win81+wpa81\Lex.Db.dll" />
+        <file src="..\lib\Lex.Db.Win81\bin\Release\Lex.Db.pdb" target="lib\portable-win81+wpa81\Lex.Db.pdb" />
+        <file src="..\lib\Lex.Db.Win81\bin\Release\Lex.Db.pri" target="lib\portable-win81+wpa81\Lex.Db.pri" />
+        <file src="..\lib\Lex.Db.Win81\bin\Release\Lex.Db.xml" target="lib\portable-win81+wpa81\Lex.Db.xml" />
         <file src="..\lib\Lex.Db.Shared\Db\DbTableAsync.cs" target="lib\sl50\DbTableAsync.cs" />
         <file src="..\lib\Lex.Db.SL5\Bin\Release\Lex.Db.dll" target="lib\sl50\Lex.Db.dll" />
+        <file src="..\lib\Lex.Db.SL5\Bin\Release\Lex.Db.pdb" target="lib\sl50\Lex.Db.pdb" />
+        <file src="..\lib\Lex.Db.SL5\Bin\Release\Lex.Db.xml" target="lib\sl50\Lex.Db.xml" />
         <file src="..\lib\Lex.Db.Win10\bin\Release\Lex.Db.dll" target="lib\uap10.0\Lex.Db.dll" />
+        <file src="..\lib\Lex.Db.Win10\bin\Release\Lex.Db.pdb" target="lib\uap10.0\Lex.Db.pdb" />
+        <file src="..\lib\Lex.Db.Win10\bin\Release\Lex.Db.pri" target="lib\uap10.0\Lex.Db.pri" />
+        <file src="..\lib\Lex.Db.Win10\bin\Release\Lex.Db.xml" target="lib\uap10.0\Lex.Db.xml" />
         <file src="..\lib\Lex.Db.WP8\Bin\Release\Lex.Db.dll" target="lib\wp8\Lex.Db.dll" />
+        <file src="..\lib\Lex.Db.WP8\Bin\Release\Lex.Db.pdb" target="lib\wp8\Lex.Db.pdb" />
+        <file src="..\lib\Lex.Db.WP8\Bin\Release\Lex.Db.xml" target="lib\wp8\Lex.Db.xml" />
         <file src="..\lib\Lex.Db.WP81\Bin\Release\Lex.Db.dll" target="lib\wp81\Lex.Db.dll" />
+        <file src="..\lib\Lex.Db.WP81\Bin\Release\Lex.Db.pdb" target="lib\wp81\Lex.Db.pdb" />
+        <file src="..\lib\Lex.Db.WP81\Bin\Release\Lex.Db.xml" target="lib\wp81\Lex.Db.xml" />
     </files>
 </package>

@@ -61,10 +61,12 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.Silverlight.Testing">
-      <HintPath>C:\Program Files (x86)\Microsoft SDKs\Silverlight\v5.0\Toolkit\dec11\Testing\Microsoft.Silverlight.Testing.dll</HintPath>
+      <HintPath>..\..\packages\Silverlight.UnitTest.4.0.40413.2011\lib\SL4\Microsoft.Silverlight.Testing.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTesting.Silverlight">
-      <HintPath>C:\Program Files (x86)\Microsoft SDKs\Silverlight\v5.0\Toolkit\dec11\Testing\Microsoft.VisualStudio.QualityTools.UnitTesting.Silverlight.dll</HintPath>
+      <HintPath>..\..\packages\Silverlight.UnitTest.4.0.40413.2011\lib\SL4\Microsoft.VisualStudio.QualityTools.UnitTesting.Silverlight.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="System.Windows" />
@@ -82,6 +84,9 @@
     </Compile>
     <Compile Include="..\Lex.Db.Tests.Shared\UnitTests\DbTests2.cs">
       <Link>UnitTests\DbTests2.cs</Link>
+    </Compile>
+    <Compile Include="..\Lex.Db.Tests.Shared\UnitTests\DbTests3.cs">
+      <Link>UnitTests\DbTests3.cs</Link>
     </Compile>
     <Compile Include="..\Lex.Db.Tests.Shared\UnitTests\Entities.cs">
       <Link>UnitTests\Entities.cs</Link>
@@ -101,6 +106,7 @@
     </ApplicationDefinition>
   </ItemGroup>
   <ItemGroup>
+    <None Include="packages.config" />
     <None Include="Properties\AppManifest.xml" />
   </ItemGroup>
   <ItemGroup>

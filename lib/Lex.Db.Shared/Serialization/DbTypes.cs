@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Text;
 
 namespace Lex.Db.Serialization
 {
@@ -13,8 +14,12 @@ namespace Lex.Db.Serialization
     {
       Register<Guid>(KnownDbType.Guid);
       Register<string>(KnownDbType.String);
+      Register<short>(KnownDbType.Short);
+      Register<ushort>(KnownDbType.UShort);
       Register<int>(KnownDbType.Integer);
+      Register<uint>(KnownDbType.UInteger);
       Register<long>(KnownDbType.Long);
+      Register<ulong>(KnownDbType.ULong);
       Register<float>(KnownDbType.Float);
       Register<double>(KnownDbType.Double);
       Register<DateTime>(KnownDbType.DateTime);
@@ -22,8 +27,11 @@ namespace Lex.Db.Serialization
       Register<TimeSpan>(KnownDbType.TimeSpan);
       Register<bool>(KnownDbType.Boolean);
       Register<decimal>(KnownDbType.Decimal);
+      Register<sbyte>(KnownDbType.SByte);
       Register<byte>(KnownDbType.Byte);
       Register<Uri>(KnownDbType.Uri);
+      Register<UriBuilder>(KnownDbType.UriBuilder);
+      Register<StringBuilder>(KnownDbType.StringBuilder);
     }
 
     static void Register<T>(KnownDbType dbType)

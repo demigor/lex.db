@@ -16,6 +16,12 @@ namespace Lex.Db.Sample2
       this.InitializeComponent();
 
       TestPKTypes();
+
+      DbTests.RunTests();
+      DbTests2.RunTests();
+      DbTests3.RunTests();
+
+      Content = new TextBlock { Text = "Tests OK" };
     }
 
     public void TestPKTypes()

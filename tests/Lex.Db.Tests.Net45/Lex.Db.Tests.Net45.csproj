@@ -44,6 +44,9 @@
     <Compile Include="..\Lex.Db.Tests.Shared\UnitTests\DbTests2.cs">
       <Link>UnitTests\DbTests2.cs</Link>
     </Compile>
+    <Compile Include="..\Lex.Db.Tests.Shared\UnitTests\DbTests3.cs">
+      <Link>UnitTests\DbTests3.cs</Link>
+    </Compile>
     <Compile Include="..\Lex.Db.Tests.Shared\UnitTests\Entities.cs">
       <Link>UnitTests\Entities.cs</Link>
     </Compile>

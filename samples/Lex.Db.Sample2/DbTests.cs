@@ -3,43 +3,12 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Diagnostics;
-
-#if NETFX_CORE || WINDOWS_PHONE
-using Microsoft.VisualStudio.TestPlatform.UnitTestFramework;
-#elif DROID
-using NUnit.Framework;
-using TestClassAttribute = NUnit.Framework.TestFixtureAttribute;
-using TestInitializeAttribute = NUnit.Framework.SetUpAttribute;
-using TestCleanupAttribute = NUnit.Framework.TearDownAttribute;
-using TestMethodAttribute = NUnit.Framework.TestAttribute;
-using TestContext = System.Console;
-#else
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-#if SILVERLIGHT
-using Microsoft.Silverlight.Testing;
-using System.IO.IsolatedStorage;
-#endif
-#endif
+using System.IO;
 
 namespace Lex.Db
 {
-#if WINDOWS_PHONE || !SILVERLIGHT
-  [AttributeUsage(AttributeTargets.Method)]
-  public class AsynchronousAttribute : Attribute { }
-
-  public class WorkItemTest
+  public class DbTests : IDisposable
   {
-    public void TestComplete() { }
-  }
-#endif
-
-  [TestClass]
-  public class DbTests : WorkItemTest
-  {
-#if !DROID
-    public TestContext TestContext { get; set; }
-#endif
-
     DbInstance db;
     DbTable<MyData> table;
 
@@ -51,7 +20,31 @@ namespace Lex.Db
       return db;
     }
 
-    [TestMethod]
+    public DbTests()
+    {
+      PurgeDb();
+    }
+
+    public void Dispose()
+    {
+      CleanUp();
+    }
+
+    public void PurgeDb()
+    {
+      using (var i = Prepare())
+        i.Purge();
+
+      db = Prepare();
+      table = db.Table<MyData>();
+    }
+
+    public void CleanUp()
+    {
+      db.Purge();
+      db.Dispose();
+    }
+
     public void TestPKTypes()
     {
       TestPKKey(i => i.KeyBool, (o, v) => o.KeyBool = v, true);
@@ -85,81 +78,43 @@ namespace Lex.Db
 
       db.Purge();
     }
-#if NETFX_CORE
-    [TestMethod]
+
     public void TestPackageLocation()
     {
-      using (var db = new DbInstance("TestPackage", Windows.ApplicationModel.Package.Current.InstalledLocation))
+      try
       {
-        db.Map<MyData>().Automap(i => i.Id, true);
-        db.Initialize();
+        using (var db = new DbInstance("TestPackage", Windows.ApplicationModel.Package.Current.InstalledLocation))
+        {
+          db.Map<MyData>().Automap(i => i.Id, true);
+          db.Initialize();
 
-        db.Save(new MyData());
+          db.Save(new MyData());
+        }
+        Assert.Fail("Must fail");
+      }
+      catch (IOException)
+      {
       }
     }
-#endif
 
-    [TestInitialize]
-    public void PurgeDb()
-    {
-      using (var i = Prepare())
-        i.Purge();
-
-      db = Prepare();
-      table = db.Table<MyData>();
-    }
-
-    [TestCleanup]
-    public void CleanUp()
-    {
-      Debugger.Break();
-      db.Purge();
-      db.Dispose();
-    }
-
-    [TestMethod]
     public void OpenDb()
     {
       var db = new DbInstance("My Database");
       db.Initialize();
     }
 
-    [TestMethod]
     public void OpenDbComplexPath()
     {
       var db = new DbInstance(@"My Database\My Schema");
       db.Initialize();
     }
 
-#if NETFX_CORE
-    [TestMethod]
     public void OpenDbComplexPath2()
     {
       var db = new DbInstance(@"My Database\My Schema", Windows.Storage.ApplicationData.Current.TemporaryFolder);
       db.Initialize();
     }
-#else
-    public void OpenDbComplexPath2()
-    {
-      try
-      {
-        var db = new DbInstance(@"d:\test.db");
-        db.Initialize();
-      }
-#if SILVERLIGHT
-      catch (System.IO.IsolatedStorage.IsolatedStorageException) 
-      {
-        // SL without ElevatedPriviliges does not allow absolute path access
-      }
-#endif
-      finally
-      {
-      }
-    }
-#endif
 
-    [TestMethod]
-    //    [ExpectedException(typeof(InvalidOperationException))]
     public void DoubleOpenDbComplexPath()
     {
       try
@@ -175,8 +130,6 @@ namespace Lex.Db
       }
     }
 
-    [TestMethod]
-    //    [ExpectedException(typeof(InvalidOperationException))]
     public void MapDb()
     {
       try
@@ -194,8 +147,6 @@ namespace Lex.Db
       }
     }
 
-    [TestMethod]
-    //    [ExpectedException(typeof(InvalidOperationException))]
     public void MapDbWrong()
     {
       try
@@ -213,7 +164,6 @@ namespace Lex.Db
       }
     }
 
-    [TestMethod]
     public void Indexing()
     {
       var db = new DbInstance(@"My Database\Indexing");
@@ -244,7 +194,6 @@ namespace Lex.Db
       Assert.AreEqual(list2count, 200);
     }
 
-    [TestMethod]
     public void IndexingDetails()
     {
       var db = new DbInstance(@"My Database\Indexing2");
@@ -310,14 +259,12 @@ namespace Lex.Db
       Assert.IsTrue(a.OrderBy(i => i.Id).Select(i => i.Id).SequenceEqual(b.OrderBy(i => i.Id).Select(i => i.Id)));
     }
 
-    [TestMethod]
     public void LoadData()
     {
       var table = db.Table<MyData>();
       var items = table.LoadAll();
     }
 
-    [TestMethod]
     public void SaveData()
     {
       var swatch = DateTime.Now;
@@ -338,7 +285,6 @@ namespace Lex.Db
       });
     }
 
-    [TestMethod]
     public void SaveDataBulk()
     {
       db.Purge();
@@ -362,7 +308,6 @@ namespace Lex.Db
       return cnt;
     }
 
-    [TestMethod]
     public void LoadDataBulk()
     {
       db.BulkWrite(() =>
@@ -373,21 +318,17 @@ namespace Lex.Db
       });
     }
 
-    [TestMethod]
     public void Compact()
     {
       table.Compact();
     }
 
-    [TestMethod]
     public void CheckInfo()
     {
       var info1 = table.GetInfo();
       var info2 = db.GetInfo();
     }
 
-
-    [TestMethod]
     public void RountripNulls()
     {
       var obj = new MyData();
@@ -410,13 +351,12 @@ namespace Lex.Db
       Assert.AreEqual(obj.Name, newObj.Name);
 
       var info = table.GetInfo();
-      Assert.AreNotEqual(0, info.DataSize);
-      Assert.AreNotEqual(0, info.IndexSize);
+      Assert.AreNotEqual(0L, info.DataSize);
+      Assert.AreNotEqual(0L, info.IndexSize);
     }
 
-#region Bool Rountrip Tests
+    #region Bool Rountrip Tests
 
-    [TestMethod]
     public void RountripBool1()
     {
       var obj = new MyData { BoolField = true, BoolNField = false };
@@ -429,7 +369,6 @@ namespace Lex.Db
       Assert.AreEqual(obj.BoolNField, newObj.BoolNField);
     }
 
-    [TestMethod]
     public void RountripBool2()
     {
       var obj = new MyData { BoolField = false, BoolNField = true };
@@ -442,11 +381,10 @@ namespace Lex.Db
       Assert.AreEqual(obj.BoolNField, newObj.BoolNField);
     }
 
-#endregion
+    #endregion
 
-#region Int Rountrip Tests
+    #region Int Rountrip Tests
 
-    [TestMethod]
     public void RountripInt1()
     {
       var obj = new MyData { IntField = int.MaxValue, IntNField = int.MinValue };
@@ -459,7 +397,6 @@ namespace Lex.Db
       Assert.AreEqual(obj.IntNField, newObj.IntNField);
     }
 
-    [TestMethod]
     public void RountripInt2()
     {
       var obj = new MyData { IntField = int.MinValue, IntNField = int.MaxValue };
@@ -472,11 +409,10 @@ namespace Lex.Db
       Assert.AreEqual(obj.IntNField, newObj.IntNField);
     }
 
-#endregion
+    #endregion
 
-#region Long Rountrip Tests
+    #region Long Rountrip Tests
 
-    [TestMethod]
     public void RountripLong1()
     {
       var obj = new MyData { LongField = long.MaxValue, LongNField = long.MinValue };
@@ -489,7 +425,6 @@ namespace Lex.Db
       Assert.AreEqual(obj.LongNField, newObj.LongNField);
     }
 
-    [TestMethod]
     public void RountripLong2()
     {
       var obj = new MyData { LongField = long.MinValue, LongNField = long.MaxValue };
@@ -502,11 +437,10 @@ namespace Lex.Db
       Assert.AreEqual(obj.LongNField, newObj.LongNField);
     }
 
-#endregion
+    #endregion
 
-#region Float Rountrip Tests
+    #region Float Rountrip Tests
 
-    [TestMethod]
     public void RountripFloat1()
     {
       var obj = new MyData { FloatField = (float)Math.PI, FloatNField = (float)-Math.PI };
@@ -519,11 +453,10 @@ namespace Lex.Db
       Assert.AreEqual(obj.FloatNField, newObj.FloatNField);
     }
 
-#endregion
+    #endregion
 
-#region Double Rountrip Tests
+    #region Double Rountrip Tests
 
-    [TestMethod]
     public void RountripDouble1()
     {
       var obj = new MyData { DoubleField = Math.PI, DoubleNField = -Math.PI };
@@ -536,11 +469,10 @@ namespace Lex.Db
       Assert.AreEqual(obj.DoubleNField, newObj.DoubleNField);
     }
 
-#endregion
+    #endregion
 
-#region Decimal Rountrip Tests
+    #region Decimal Rountrip Tests
 
-    [TestMethod]
     public void RountripDecimal1()
     {
       var obj = new MyData { DecimalField = (decimal)Math.PI, DecimalNField = (decimal)-Math.PI };
@@ -553,11 +485,10 @@ namespace Lex.Db
       Assert.AreEqual(obj.DecimalNField, newObj.DecimalNField);
     }
 
-#endregion
+    #endregion
 
-#region String Rountrip Tests
+    #region String Rountrip Tests
 
-    [TestMethod]
     public void RountripString1()
     {
       var obj = new MyData { Name = "Test ABC" };
@@ -569,11 +500,10 @@ namespace Lex.Db
       Assert.AreEqual(obj.Name, newObj.Name);
     }
 
-#endregion
+    #endregion
 
-#region Guid Rountrip Tests
+    #region Guid Rountrip Tests
 
-    [TestMethod]
     public void RountripGuid1()
     {
       var obj = new MyData { GuidField = Guid.NewGuid(), GuidNField = Guid.NewGuid() };
@@ -586,11 +516,10 @@ namespace Lex.Db
       Assert.AreEqual(obj.GuidNField, newObj.GuidNField);
     }
 
-#endregion
+    #endregion
 
-#region Enum Rountrip Tests
+    #region Enum Rountrip Tests
 
-    [TestMethod]
     public void RountripEnum1()
     {
       var obj = new MyData { EnumField = TestEnum.EnumValue1, EnumNField = TestEnum.EnumValue2 };
@@ -603,11 +532,10 @@ namespace Lex.Db
       Assert.AreEqual(obj.EnumNField, newObj.EnumNField);
     }
 
-#endregion
+    #endregion
 
-#region TimeSpan Rountrip Tests
+    #region TimeSpan Rountrip Tests
 
-    [TestMethod]
     public void RountripTimeSpan1()
     {
       var obj = new MyData { TimeSpanField = new TimeSpan(1, 2, 3), TimeSpanNField = new TimeSpan(2, 3, 4) };
@@ -620,11 +548,10 @@ namespace Lex.Db
       Assert.AreEqual(obj.TimeSpanNField, newObj.TimeSpanNField);
     }
 
-#endregion
+    #endregion
 
-#region DateTime Rountrip Tests
+    #region DateTime Rountrip Tests
 
-    [TestMethod]
     public void RountripDateTime1()
     {
       var obj = new MyData { DateTimeField = new DateTime(1, 2, 3, 4, 5, 6), DateTimeNField = new DateTime(2, 3, 4, 5, 6, 7) };
@@ -637,11 +564,10 @@ namespace Lex.Db
       Assert.AreEqual(obj.DateTimeNField, newObj.DateTimeNField);
     }
 
-#endregion
+    #endregion
 
-#region DateTimeOffset Rountrip Tests
+    #region DateTimeOffset Rountrip Tests
 
-    [TestMethod]
     public void RountripDateTimeOffset1()
     {
       var obj = new MyData { DateTimeOffsetField = new DateTimeOffset(1, 2, 3, 4, 5, 6, TimeSpan.FromMinutes(60)), DateTimeOffsetNField = new DateTimeOffset(2, 3, 4, 5, 6, 7, TimeSpan.FromMinutes(120)) };
@@ -654,11 +580,10 @@ namespace Lex.Db
       Assert.AreEqual(obj.DateTimeOffsetNField, newObj.DateTimeOffsetNField);
     }
 
-#endregion
+    #endregion
 
-#region Lists Rountrip Tests
+    #region Lists Rountrip Tests
 
-    [TestMethod]
     public void RountripLists1()
     {
       var obj = new MyData
@@ -682,11 +607,11 @@ namespace Lex.Db
       Assert.IsTrue(obj.DictField.Values.SequenceEqual(newObj.DictField.Values));
     }
 
-#endregion
+    #endregion
 
-#region Bugfixes
+    #region Bugfixes
 
-#region github issue #9
+    #region github issue #9
 
     public class TemplateModel
     {
@@ -696,7 +621,7 @@ namespace Lex.Db
       public int Type { get; set; }
     }
 
-    void TestDeleteBugfix()
+    public void TestDeleteBugfix()
     {
       var db = new DbInstance("test.fix1");
 
@@ -723,11 +648,10 @@ namespace Lex.Db
       Assert.AreEqual(1, indexQuery2.Count());
     }
 
-#endregion
+    #endregion
 
-#region github issue #10
+    #region github issue #10
 
-    [TestMethod]
     public void TestLoadByKeyObj()
     {
       var obj = new MyData { GuidField = Guid.NewGuid() };
@@ -739,7 +663,6 @@ namespace Lex.Db
       Assert.AreEqual(obj.GuidField, newObj.GuidField);
     }
 
-    [TestMethod]
     public void TestDeleteByKeyObj()
     {
       var obj = new MyData { GuidField = Guid.NewGuid() };
@@ -750,8 +673,49 @@ namespace Lex.Db
 
     }
 
-#endregion
+    #endregion
 
-#endregion
+    #endregion
+
+    public static void RunTests()
+    {
+      using (var t = new DbTests()) t.TestPKTypes();
+      using (var t = new DbTests()) t.TestPackageLocation();
+      using (var t = new DbTests()) t.OpenDb();
+      using (var t = new DbTests()) t.OpenDbComplexPath();
+      using (var t = new DbTests()) t.OpenDbComplexPath2();
+      using (var t = new DbTests()) t.DoubleOpenDbComplexPath();
+      using (var t = new DbTests()) t.MapDb();
+      using (var t = new DbTests()) t.MapDbWrong();
+      using (var t = new DbTests()) t.Indexing();
+      using (var t = new DbTests()) t.IndexingDetails();
+      using (var t = new DbTests()) t.LoadData();
+      using (var t = new DbTests()) t.SaveData();
+      using (var t = new DbTests()) t.SaveDataBulk();
+      using (var t = new DbTests()) t.LoadDataBulk();
+      using (var t = new DbTests()) t.Compact();
+      using (var t = new DbTests()) t.CheckInfo();
+      using (var t = new DbTests()) t.RountripNulls();
+      using (var t = new DbTests()) t.RountripBool1();
+      using (var t = new DbTests()) t.RountripBool2();
+      using (var t = new DbTests()) t.RountripInt1();
+      using (var t = new DbTests()) t.RountripInt2();
+      using (var t = new DbTests()) t.RountripLong1();
+      using (var t = new DbTests()) t.RountripLong2();
+      using (var t = new DbTests()) t.RountripFloat1();
+      using (var t = new DbTests()) t.RountripDouble1();
+      using (var t = new DbTests()) t.RountripDecimal1();
+      using (var t = new DbTests()) t.RountripString1();
+      using (var t = new DbTests()) t.RountripGuid1();
+      using (var t = new DbTests()) t.RountripEnum1();
+      using (var t = new DbTests()) t.RountripTimeSpan1();
+      using (var t = new DbTests()) t.RountripDateTime1();
+      using (var t = new DbTests()) t.RountripDateTimeOffset1();
+      using (var t = new DbTests()) t.RountripLists1();
+      using (var t = new DbTests()) t.TestDeleteBugfix();
+      using (var t = new DbTests()) t.TestLoadByKeyObj();
+      using (var t = new DbTests()) t.TestDeleteByKeyObj();
+    }
+
   }
 }

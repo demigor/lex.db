@@ -29,18 +29,35 @@
     For more information on writing Runtime Directives for libraries, please visit
     http://go.microsoft.com/fwlink/?LinkId=613100
 -->
-      <Directives xmlns="http://schemas.microsoft.com/netfx/2013/01/metadata">
-        <Library Name="Lex.Db.UWP">
-          <Assembly 
-            Name="Lex.Db" 
-            Dynamic="Required All"
-            Activate="Required All"
-            Serialize="Required All"
-            Browse="Required All"
-            XmlSerializer="Required All"
-            DataContractJsonSerializer="Required All"
-            DataContractSerializer="Required All"
-            DoNotOptimize="true"
-            DoNotInline="true" />
+<Directives xmlns="http://schemas.microsoft.com/netfx/2013/01/metadata">
+  <Library Name="Lex.Db">
+
+    <TypeInstantiation Name="Lex.Db.Serialization.ListSerializers" Arguments="System.Int32" Dynamic="Required All" Activate="Required All" Browse="Required All" />
+    <TypeInstantiation Name="Lex.Db.Serialization.DictSerializers" Arguments="System.String,System.Int32" Dynamic="Required All" Activate="Required All" Browse="Required All" />
+    
+    <Type Name="Lex.Db.Ctor{T}">
+      <GenericParameter Name="T" Dynamic="Required All" Activate="Required All" Browse="Required All"/>
+    </Type>
+
+    <Type Name="Lex.Db.DbTable{T}">
+      <GenericParameter Name="T" Dynamic="Required All" Activate="Required All" Browse="Required All"/>
+    </Type>
+
+    <Type Name="Lex.Db.TypeMap{T}">
+      <GenericParameter Name="T" Dynamic="Required All" Activate="Required All" Browse="Required All"/>
+    </Type>
+
+    <Type Name="Lex.Db.Serialization.Serializers">
+      <Method Name="WriteValueNullable">
+        <TypeParameter Name="nnType" Dynamic="Required All" Activate="Required All" Browse="Required All" />
+      </Method>
+      <Method Name="MakeArrayWriteCore">
+        <TypeParameter Name="type" Dynamic="Required All" Activate="Required All" Browse="Required All" />
+      </Method>
+      <Method Name="MakeArrayReadCore">
+        <TypeParameter Name="type" Dynamic="Required All" Activate="Required All" Browse="Required All" />
+      </Method>
+    </Type>
+
   </Library>
 </Directives>

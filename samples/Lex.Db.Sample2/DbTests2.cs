@@ -1,35 +1,10 @@
 ﻿using System;
-using System.Linq;
-using System.Collections.Generic;
 using Lex.Db.Serialization;
-
-#if NETFX_CORE || WINDOWS_PHONE
-using Microsoft.VisualStudio.TestPlatform.UnitTestFramework;
-#elif DROID
-using NUnit.Framework;
-using TestClassAttribute = NUnit.Framework.TestFixtureAttribute;
-using TestInitializeAttribute = NUnit.Framework.SetUpAttribute;
-using TestCleanupAttribute = NUnit.Framework.TearDownAttribute;
-using TestMethodAttribute = NUnit.Framework.TestAttribute;
-using TestContext = System.Console;
-#else
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-#endif
-#if SILVERLIGHT && !WINDOWS_PHONE
-using Microsoft.Silverlight.Testing;
-#else
-using System.Threading.Tasks;
-#endif
 
 namespace Lex.Db
 {
-  [TestClass]
-  public class DbTests2 : WorkItemTest
+  public class DbTests2 : IDisposable
   {
-#if !DROID
-    public TestContext TestContext { get; set; }
-#endif
-
     DbInstance db;
     DbTable<IData> table;
 
@@ -41,7 +16,16 @@ namespace Lex.Db
       return db;
     }
 
-    [TestInitialize]
+    public DbTests2()
+    {
+      PurgeDb();
+    }
+
+    public void Dispose()
+    {
+      CleanUp();
+    }
+
     public void PurgeDb()
     {
       try
@@ -57,14 +41,12 @@ namespace Lex.Db
       table = db.Table<IData>();
     }
 
-    [TestCleanup]
     public void CleanUp()
     {
       db.Purge();
       db.Dispose();
     }
 
-    [TestMethod]
     public void Indexing2()
     {
       var db = new DbInstance(@"MyDatabase2\Indexing");
@@ -111,14 +93,12 @@ namespace Lex.Db
       Assert.AreEqual(300, list8count);
     }
 
-    [TestMethod]
     public void LoadData2()
     {
       var table = db.Table<IData>();
       var items = table.LoadAll();
     }
 
-    [TestMethod]
     public void SaveData2()
     {
       var swatch = DateTime.Now;
@@ -137,6 +117,18 @@ namespace Lex.Db
         TestContext.WriteLine("Completed: " + (DateTime.Now - swatch).TotalMilliseconds);
 #endif
       });
+    }
+
+    public static void RunTests()
+    {
+      using (var t = new DbTests2())
+        t.Indexing2();
+
+      using (var t = new DbTests2())
+        t.SaveData2();
+
+      using (var t = new DbTests2())
+        t.LoadData2();
     }
   }
 }

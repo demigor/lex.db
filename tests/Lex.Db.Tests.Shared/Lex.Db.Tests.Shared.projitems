@@ -11,6 +11,7 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)UnitTests\DbTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UnitTests\DbTests2.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UnitTests\DbTests3.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UnitTests\Entities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UnitTests\Stopwatch.cs" />
   </ItemGroup>
