@@ -33,8 +33,10 @@
   <Library Name="Lex.Db">
 
     <TypeInstantiation Name="Lex.Db.Serialization.ListSerializers" Arguments="System.Int32" Dynamic="Required All" Activate="Required All" Browse="Required All" />
+    <TypeInstantiation Name="Lex.Db.Serialization.ListSerializers" Arguments="System.Guid" Dynamic="Required All" Activate="Required All" Browse="Required All" />
     <TypeInstantiation Name="Lex.Db.Serialization.DictSerializers" Arguments="System.String,System.Int32" Dynamic="Required All" Activate="Required All" Browse="Required All" />
-    
+    <TypeInstantiation Name="Lex.Db.Serialization.DictSerializers" Arguments="System.String,System.Guid" Dynamic="Required All" Activate="Required All" Browse="Required All" />
+
     <Type Name="Lex.Db.Ctor{T}">
       <GenericParameter Name="T" Dynamic="Required All" Activate="Required All" Browse="Required All"/>
     </Type>
