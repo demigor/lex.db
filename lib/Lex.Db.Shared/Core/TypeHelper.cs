@@ -460,5 +460,5 @@ namespace Lex.Db
       throw new NotSupportedException();
     }
 #endif
-    }
+  }
 }

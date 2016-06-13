@@ -838,7 +838,7 @@ namespace Lex.Db
 #else
       var keyMethod = GetType().GetMethod("InitPKCore", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
 #endif
-            var pkKeyMethod = keyMethod.MakeGenericMethod(pk);
+      var pkKeyMethod = keyMethod.MakeGenericMethod(pk);
 
       pkKeyMethod.Invoke(this, new object[] { table });
     }
