@@ -833,10 +833,12 @@ namespace Lex.Db
     {
 #if NETFX_CORE
       var keyMethod = GetType().GetRuntimeMethod("InitPKCore", new Type[] { typeof(DbTable<object[]>) });
+#elif CORE
+      var keyMethod = GetType().GetMethod("InitPKCore", new Type[] { typeof(DbTable<object[]>) });
 #else
       var keyMethod = GetType().GetMethod("InitPKCore", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
 #endif
-      var pkKeyMethod = keyMethod.MakeGenericMethod(pk);
+            var pkKeyMethod = keyMethod.MakeGenericMethod(pk);
 
       pkKeyMethod.Invoke(this, new object[] { table });
     }

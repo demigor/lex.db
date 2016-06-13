@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
 
 namespace Lex.Db.Serialization
@@ -124,17 +125,30 @@ namespace Lex.Db.Serialization
 
     public static Type GetCollectionElementType(Type type)
     {
+#if CORE
+      return (from i in type.GetTypeInfo().ImplementedInterfaces
+          where i.IsGenericType() && i.GetGenericTypeDefinition() == typeof(ICollection<>)
+          select i.GenericTypeArguments[0]).FirstOrDefault();
+#else
       return (from i in type.GetInterfaces()
-              where i.IsGenericType() && i.GetGenericTypeDefinition() == typeof(ICollection<>)
-              select i.GetGenericArguments()[0]).FirstOrDefault();
+          where i.IsGenericType() && i.GetGenericTypeDefinition() == typeof(ICollection<>)
+          select i.GetGenericArguments()[0]).FirstOrDefault();
+#endif
     }
 
     public static Tuple<Type, Type> GetDictionaryElementTypes(Type type)
     {
+#if CORE
+      return (from i in type.GetTypeInfo().ImplementedInterfaces
+              where i.IsGenericType() && i.GetGenericTypeDefinition() == typeof(IDictionary<,>)
+              let args = i.GenericTypeArguments
+              select Tuple.Create(args[0], args[1])).FirstOrDefault();
+#else
       return (from i in type.GetInterfaces()
               where i.IsGenericType() && i.GetGenericTypeDefinition() == typeof(IDictionary<,>)
               let args = i.GetGenericArguments()
               select Tuple.Create(args[0], args[1])).FirstOrDefault();
+#endif
     }
   }
 }

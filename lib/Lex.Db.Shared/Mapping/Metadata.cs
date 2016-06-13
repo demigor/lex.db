@@ -286,7 +286,7 @@ namespace Lex.Db.Mapping
       }
     }
 
-    #endregion
+        #endregion
 
     #region MakeWriteMethod logic
 
@@ -299,7 +299,7 @@ namespace Lex.Db.Mapping
       public Action<DataWriter, object> Writer;
     }
 #else
-    static readonly MethodInfo _writeShort = typeof(BinaryWriter).GetMethod("Write", new[] { typeof(short) });
+    static readonly MethodInfo _writeShort = TypeHelper.GetMethod(typeof(BinaryWriter), "Write", new[] { typeof(short) });
 #endif
 
     /// <summary>
