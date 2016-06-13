@@ -175,16 +175,16 @@ namespace Lex.Db
              where m.IsStatic
              select m;
 #elif CORE
-        List<MethodInfo> methodInfos = new List<MethodInfo>();
-        var methods = type.GetRuntimeMethods();
-        foreach (MethodInfo methodInfo in methods)
-        {
-            if (methodInfo.IsStatic)
-                methodInfos.Add(methodInfo);
-        }
-        return methodInfos;
+      List<MethodInfo> methodInfos = new List<MethodInfo>();
+      var methods = type.GetRuntimeMethods();
+      foreach (MethodInfo methodInfo in methods)
+      {
+          if (methodInfo.IsStatic)
+              methodInfos.Add(methodInfo);
+      }
+      return methodInfos;
 #else
-        return type.GetMethods(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
+      return type.GetMethods(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
 #endif
     }
 
@@ -257,7 +257,7 @@ namespace Lex.Db
 #else
       return type.GetMethod(name, BindingFlags.Static | BindingFlags.Public);
 #endif
-        }
+    }
 
     public static MethodInfo GetPublicInstanceMethod(this Type type, string name)
     {
