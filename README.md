@@ -1,11 +1,11 @@
-##Lex.DB
+## Lex.DB
 
 Lex.DB is a lightweight, superfast, in-process database engine, completely written in AnyCPU C#. 
 
-###Why?
+### Why?
 We feel the need in small, fast and platform-neutral solution to store and access data locally. SQLite is almost good, but it is binary platform-specific (x32/x64/ARM versions of SQLite.dll), and has no real support for Silverlight. 
 
-###Supported platforms:
+### Supported platforms:
 
 * New: Xamarin.iOS & Xamarin.Android.
 * New: Universal Windows Store Apps Support
@@ -24,7 +24,7 @@ Usage is greatly inspired by [Sterling](http://sterling.codeplex.com/), but perf
 [Lex.DB.Sync](https://github.com/demigor/lex.db.sync) - lightweight data synchronization framework is logical extensions of Lex.DB.
 
 
-####Features still in development
+#### Features still in development
 * Serialization of complex types
 * Serialization of references & lists of references (one-to-many, many-to-many associations)
 * Single file schema (right now each table has two files: index and data)
