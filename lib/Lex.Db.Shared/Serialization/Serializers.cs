@@ -953,7 +953,7 @@ namespace Lex.Db.Serialization
       return ReadBytes(ReadInt32());
     }
 
-#if SILVERLIGHT && !WINDOWS_PHONE || PORTABLE
+#if SILVERLIGHT && !WINDOWS_PHONE || PORTABLE && !CORE
     
     /// <summary>
     /// Reads Decimal value from stream

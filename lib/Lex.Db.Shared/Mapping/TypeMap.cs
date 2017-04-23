@@ -252,9 +252,6 @@ namespace Lex.Db
     {
 #if NETFX_CORE
       if (!typeof(T).GetTypeInfo().IsInterface)
-#else
-      if (!typeof(T).IsInterface)
-#endif
       {
         var fields = from f in typeof(T).GetPublicInstanceFields()
                      where f != _key
@@ -271,6 +268,43 @@ namespace Lex.Db
                        && p.CanRead && p.CanWrite && p.GetGetMethod().IsPublic && p.GetSetMethod().IsPublic
                        && !IsIgnored(p.GetCustomAttributes(false))
                        select p;
+#elif CORE
+      if (!typeof(T).GetTypeInfo().IsInterface)
+      {
+        var fields = from f in typeof(T).GetPublicInstanceFields()
+                     where f != _key
+                     && !f.Attributes.HasFlag(FieldAttributes.InitOnly)
+                     && !IsIgnored(f.GetCustomAttributes(false).ToArray())
+                     select f;
+
+        foreach (var f in fields)
+          _table.Add(new MemberMap<T>(f));
+      }
+
+      var properties = from p in typeof(T).GetPublicInstanceProperties()
+                       where p != _key
+                       && p.CanRead && p.CanWrite && p.GetMethod.IsPublic && p.SetMethod.IsPublic
+                       && !IsIgnored(p.GetCustomAttributes(false).ToArray())
+                       select p;
+#else
+      if (!typeof(T).IsInterface)
+      {
+        var fields = from f in typeof(T).GetPublicInstanceFields()
+                     where f != _key
+                     && !f.Attributes.HasFlag(FieldAttributes.InitOnly)
+                     && !IsIgnored(f.GetCustomAttributes(false))
+                     select f;
+
+        foreach (var f in fields)
+          _table.Add(new MemberMap<T>(f));
+      }
+
+      var properties = from p in typeof(T).GetPublicInstanceProperties()
+                       where p != _key
+                       && p.CanRead && p.CanWrite && p.GetGetMethod().IsPublic && p.GetSetMethod().IsPublic
+                       && !IsIgnored(p.GetCustomAttributes(false))
+                       select p;
+#endif
 
       foreach (var p in properties)
         _table.Add(new MemberMap<T>(p));

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Lex.Db.Shared", "lib\Lex.Db.Shared\Lex.Db.Shared.shproj", "{DAA436C4-AF4D-44A2-A387-2A80E56C7DA8}"
 EndProject
@@ -59,6 +59,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lex.Db.Sample2", "samples\L
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lex.Db.Tests.WP8", "tests\Lex.Db.Tests.WP8\Lex.Db.Tests.WP8.csproj", "{CB60506B-B9E7-4E39-87BC-F8F4B2F6DA8C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lex.Db.Portable.Core", "lib\Lex.Db.Portable.Core\Lex.Db.Portable.Core.csproj", "{F362F6B0-90B4-449B-96F8-8C5D7E950C2D}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		tests\Lex.Db.Tests.Shared\Lex.Db.Tests.Shared.projitems*{cb60506b-b9e7-4e39-87bc-f8f4b2f6da8c}*SharedItemsImports = 4
@@ -67,6 +69,7 @@ Global
 		tests\Lex.Db.Tests.Shared\Lex.Db.Tests.Shared.projitems*{57fe6afa-c932-47c2-9761-2592ccf3cbe5}*SharedItemsImports = 4
 		lib\Lex.Db.Shared\Lex.Db.Shared.projitems*{127859d4-7ad4-4d34-83bd-b24f8709b54f}*SharedItemsImports = 4
 		lib\Lex.Db.Shared\Lex.Db.Shared.projitems*{d6dd941d-5c15-4ce5-9bf3-69875f138420}*SharedItemsImports = 4
+		lib\Lex.Db.Shared\Lex.Db.Shared.projitems*{f362f6b0-90b4-449b-96f8-8c5d7e950c2d}*SharedItemsImports = 4
 		lib\Lex.Db.Shared\Lex.Db.Shared.projitems*{f362f6b0-90b4-449b-96f8-8c5d7e950c2c}*SharedItemsImports = 4
 		lib\Lex.Db.Shared\Lex.Db.Shared.projitems*{a18b7c13-c346-4f1e-aad0-90acd85cea8a}*SharedItemsImports = 4
 		lib\Lex.Db.Shared\Lex.Db.Shared.projitems*{5bbc2755-3c7f-4847-bfbf-6b415cc4bdda}*SharedItemsImports = 4
@@ -511,6 +514,22 @@ Global
 		{CB60506B-B9E7-4E39-87BC-F8F4B2F6DA8C}.Release|x86.ActiveCfg = Release|x86
 		{CB60506B-B9E7-4E39-87BC-F8F4B2F6DA8C}.Release|x86.Build.0 = Release|x86
 		{CB60506B-B9E7-4E39-87BC-F8F4B2F6DA8C}.Release|x86.Deploy.0 = Release|x86
+		{F362F6B0-90B4-449B-96F8-8C5D7E950C2D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F362F6B0-90B4-449B-96F8-8C5D7E950C2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F362F6B0-90B4-449B-96F8-8C5D7E950C2D}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{F362F6B0-90B4-449B-96F8-8C5D7E950C2D}.Debug|ARM.Build.0 = Debug|Any CPU
+		{F362F6B0-90B4-449B-96F8-8C5D7E950C2D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F362F6B0-90B4-449B-96F8-8C5D7E950C2D}.Debug|x64.Build.0 = Debug|Any CPU
+		{F362F6B0-90B4-449B-96F8-8C5D7E950C2D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F362F6B0-90B4-449B-96F8-8C5D7E950C2D}.Debug|x86.Build.0 = Debug|Any CPU
+		{F362F6B0-90B4-449B-96F8-8C5D7E950C2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F362F6B0-90B4-449B-96F8-8C5D7E950C2D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F362F6B0-90B4-449B-96F8-8C5D7E950C2D}.Release|ARM.ActiveCfg = Release|Any CPU
+		{F362F6B0-90B4-449B-96F8-8C5D7E950C2D}.Release|ARM.Build.0 = Release|Any CPU
+		{F362F6B0-90B4-449B-96F8-8C5D7E950C2D}.Release|x64.ActiveCfg = Release|Any CPU
+		{F362F6B0-90B4-449B-96F8-8C5D7E950C2D}.Release|x64.Build.0 = Release|Any CPU
+		{F362F6B0-90B4-449B-96F8-8C5D7E950C2D}.Release|x86.ActiveCfg = Release|Any CPU
+		{F362F6B0-90B4-449B-96F8-8C5D7E950C2D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -541,5 +560,6 @@ Global
 		{46764D1E-CD8A-4BAA-8AFB-7A28EB9EF65D} = {EAAD171F-83C8-4C3D-AABE-9EBC7F87A569}
 		{1D91BAB8-FADB-4CBF-9ABA-A325470A2D8C} = {24897141-AF2F-4A49-9E34-651E27ECDF5B}
 		{CB60506B-B9E7-4E39-87BC-F8F4B2F6DA8C} = {EAAD171F-83C8-4C3D-AABE-9EBC7F87A569}
+		{F362F6B0-90B4-449B-96F8-8C5D7E950C2D} = {F3C297C0-4BA8-4CAE-AD27-2A6DFABF37F0}
 	EndGlobalSection
 EndGlobal
